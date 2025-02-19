@@ -1,4 +1,3 @@
-/*web ui section is testing*/
 
 internal class Program
 {
