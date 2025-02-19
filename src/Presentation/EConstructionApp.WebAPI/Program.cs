@@ -1,5 +1,3 @@
-/* WebAPI section is testing! */
-
 internal class Program
 {
     private static void Main(string[] args)
