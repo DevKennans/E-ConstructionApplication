@@ -2,9 +2,9 @@
 {
     public class BaseEntity
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-        public DateTime InsertDate { get; set; }
+        public virtual DateTime InsertedDate { get; set; } = DateTime.Now;
         public virtual DateTime? ModifiedDate { get; set; }
     }
 }

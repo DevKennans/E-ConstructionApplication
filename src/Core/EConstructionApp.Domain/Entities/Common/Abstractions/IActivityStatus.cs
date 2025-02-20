@@ -1,7 +1,7 @@
 ﻿namespace EConstructionApp.Domain.Entities.Common.Abstractions
 {
-    public interface ITaskStatus
+    public interface IActivityStatus
     {
-        public bool IsActiveTask { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

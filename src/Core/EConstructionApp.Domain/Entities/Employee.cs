@@ -1,10 +1,9 @@
 ﻿using EConstructionApp.Domain.Entities.Common;
 using EConstructionApp.Domain.Entities.Common.Abstractions;
-using EConstructionApp.Domain.Entities.Cross;
 
 namespace EConstructionApp.Domain.Entities
 {
-    public class Employee : BaseEntity, IEmployeeStatus
+    public class Employee : BaseEntity, IActivityStatus
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -12,9 +11,13 @@ namespace EConstructionApp.Domain.Entities
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
 
-        public bool IsActiveEmployee { get; set; } = true;
+        public bool IsCurrentlyWorking { get; set; }
 
-        public ICollection<EmployeeTask> EmployeeTasks { get; set; }
-        public ICollection<EmployeeAttendance> EmployeeAttendances { get; set; }
+        public bool IsDeleted { get; set; } = false;
+
+        public Guid? CurrentTaskId { get; set; }
+        public Task CurrentTask { get; set; }
+
+        public ICollection<EmployeeAttendance> EmployeeAttendances { get; set; } = new List<EmployeeAttendance>();
     }
 }
