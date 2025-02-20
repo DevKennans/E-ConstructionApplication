@@ -2,7 +2,8 @@
 {
     public enum Measure
     {
-        Kilogram = 1,
-        Meter = 2
+        Kilogram,
+        Meter,
+        Unit
     }
 }

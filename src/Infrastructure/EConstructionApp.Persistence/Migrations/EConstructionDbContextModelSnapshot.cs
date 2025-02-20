@@ -28,8 +28,11 @@ namespace EConstructionApp.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("InsertDate")
+                    b.Property<DateTime>("InsertedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -39,21 +42,6 @@ namespace EConstructionApp.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("EConstructionApp.Domain.Entities.Cross.EmployeeTask", b =>
-                {
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TaskId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("EmployeeId", "TaskId");
-
-                    b.HasIndex("TaskId");
-
-                    b.ToTable("EmployeeTasks");
                 });
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Cross.MaterialTask", b =>
@@ -82,6 +70,9 @@ namespace EConstructionApp.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<Guid?>("CurrentTaskId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
@@ -90,10 +81,13 @@ namespace EConstructionApp.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("InsertDate")
+                    b.Property<DateTime>("InsertedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsActiveEmployee")
+                    b.Property<bool>("IsCurrentlyWorking")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")
@@ -111,6 +105,8 @@ namespace EConstructionApp.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CurrentTaskId");
+
                     b.ToTable("Employees");
                 });
 
@@ -126,20 +122,23 @@ namespace EConstructionApp.Persistence.Migrations
                     b.Property<DateTime?>("CheckOutTime")
                         .HasColumnType("datetime");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("Dairy")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("InsertDate")
+                    b.Property<DateTime>("InsertedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("EmployeeAttendance");
+                    b.ToTable("EmployeeAttendances");
                 });
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Material", b =>
@@ -151,8 +150,11 @@ namespace EConstructionApp.Persistence.Migrations
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("InsertDate")
+                    b.Property<DateTime>("InsertedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<int>("Measure")
                         .HasColumnType("int");
@@ -189,10 +191,13 @@ namespace EConstructionApp.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<DateTime>("InsertDate")
+                    b.Property<DateTime>("InsertedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsActiveTask")
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDone")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("ModifiedDate")
@@ -201,25 +206,6 @@ namespace EConstructionApp.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tasks");
-                });
-
-            modelBuilder.Entity("EConstructionApp.Domain.Entities.Cross.EmployeeTask", b =>
-                {
-                    b.HasOne("EConstructionApp.Domain.Entities.Employee", "Employee")
-                        .WithMany("EmployeeTasks")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EConstructionApp.Domain.Entities.Task", "Task")
-                        .WithMany("EmployeeTasks")
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-
-                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Cross.MaterialTask", b =>
@@ -239,6 +225,16 @@ namespace EConstructionApp.Persistence.Migrations
                     b.Navigation("Material");
 
                     b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("EConstructionApp.Domain.Entities.Employee", b =>
+                {
+                    b.HasOne("EConstructionApp.Domain.Entities.Task", "CurrentTask")
+                        .WithMany("Employees")
+                        .HasForeignKey("CurrentTaskId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CurrentTask");
                 });
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.EmployeeAttendance", b =>
@@ -271,8 +267,6 @@ namespace EConstructionApp.Persistence.Migrations
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Employee", b =>
                 {
                     b.Navigation("EmployeeAttendances");
-
-                    b.Navigation("EmployeeTasks");
                 });
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Material", b =>
@@ -282,7 +276,7 @@ namespace EConstructionApp.Persistence.Migrations
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Task", b =>
                 {
-                    b.Navigation("EmployeeTasks");
+                    b.Navigation("Employees");
 
                     b.Navigation("MaterialTasks");
                 });
