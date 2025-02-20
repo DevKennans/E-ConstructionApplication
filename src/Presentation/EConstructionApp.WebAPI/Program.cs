@@ -1,3 +1,4 @@
+using EConstructionApp.Persistence;
 using EConstructionApp.WebAPI.Extensions.Exceptions;
 using Microsoft.AspNetCore.HttpLogging;
 
@@ -19,6 +20,8 @@ internal class Program
         builder.Services.AddControllers();
 
         // Add services to the container.
+        builder.Services.AddPersistence(builder.Configuration);
+
         builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
