@@ -7,6 +7,13 @@ internal class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
 
+        /*builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/Admin/Login";
+            options.AccessDeniedPath = "/";
+        });*/
+
+
         WebApplication app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -23,6 +30,14 @@ internal class Program
         app.UseRouting();
 
         app.UseAuthorization();
+        app.MapControllerRoute(
+            name: "admin_default",
+            pattern: "Admin",
+            defaults: new { area = "Admin", controller = "Dashboard", action = "Login" });
+
+        app.MapControllerRoute(
+            name: "areas",
+            pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
         app.MapControllerRoute(
             name: "default",
