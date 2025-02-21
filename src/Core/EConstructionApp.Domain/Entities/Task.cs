@@ -13,6 +13,6 @@ namespace EConstructionApp.Domain.Entities
         public bool IsDeleted { get; set; } = false;
 
         public ICollection<Employee> Employees { get; set; } = new List<Employee>();
-        public ICollection<MaterialTask> MaterialTasks { get; set; }
+        public ICollection<MaterialTask> MaterialTasks { get; set; } = new List<MaterialTask>();
     }
 }
