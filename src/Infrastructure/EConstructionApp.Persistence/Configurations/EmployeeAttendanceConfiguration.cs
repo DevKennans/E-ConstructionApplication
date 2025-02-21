@@ -9,7 +9,7 @@ namespace EConstructionApp.Persistence.Configurations
         public void Configure(EntityTypeBuilder<EmployeeAttendance> builder)
         {
             builder.HasKey(ea => ea.Id);
-            builder.Property(ea => ea.Dairy).IsRequired();
+            builder.Property(ea => ea.Dairy).IsRequired().HasColumnType("date");
             builder.Property(ea => ea.CheckInTime).HasColumnType("datetime");
             builder.Property(ea => ea.CheckOutTime).HasColumnType("datetime");
 

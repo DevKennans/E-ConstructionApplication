@@ -7,7 +7,7 @@ namespace EConstructionApp.Domain.Entities
         public Guid EmployeeId { get; set; }
         public Employee Employee { get; set; }
 
-        public DateTime Dairy { get; set; }
+        public DateOnly Dairy { get; set; }
 
         public DateTime? CheckInTime { get; set; }
         public DateTime? CheckOutTime { get; set; }

@@ -11,7 +11,7 @@ namespace EConstructionApp.Persistence.Configurations
             builder.HasKey(m => m.Id);
             builder.Property(m => m.Name).IsRequired().HasMaxLength(150);
             builder.Property(m => m.Price).IsRequired().HasColumnType("decimal(18,2)");
-            builder.Property(m => m.StockQuantity).IsRequired();
+            builder.Property(m => m.StockQuantity).IsRequired().HasColumnType("decimal(18,2)");
             builder.Property(m => m.Measure).IsRequired();
 
             builder.HasOne(m => m.Category)

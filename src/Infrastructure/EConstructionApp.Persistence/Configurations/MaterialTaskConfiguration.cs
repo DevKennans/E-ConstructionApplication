@@ -17,6 +17,10 @@ namespace EConstructionApp.Persistence.Configurations
             builder.HasOne(mt => mt.Task)
                 .WithMany(t => t.MaterialTasks)
                 .HasForeignKey(mt => mt.TaskId);
+
+            builder.Property(mt => mt.Quantity)
+                .IsRequired()
+                .HasColumnType("decimal(18,2)");
         }
     }
 }
