@@ -17,7 +17,12 @@ internal class Program
             logging.ResponseBodyLogLimit = 4096;
         });
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.WriteIndented = true;
+            });
 
         // Add services to the container.
         builder.Services.AddPersistence(builder.Configuration);

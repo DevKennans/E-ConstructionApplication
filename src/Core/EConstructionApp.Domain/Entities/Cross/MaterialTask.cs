@@ -1,6 +1,8 @@
-﻿namespace EConstructionApp.Domain.Entities.Cross
+﻿using EConstructionApp.Domain.Entities.Common.Abstractions;
+
+namespace EConstructionApp.Domain.Entities.Cross
 {
-    public class MaterialTask
+    public class MaterialTask : IBaseEntity
     {
         public Guid MaterialId { get; set; }
         public Material Material { get; set; }
