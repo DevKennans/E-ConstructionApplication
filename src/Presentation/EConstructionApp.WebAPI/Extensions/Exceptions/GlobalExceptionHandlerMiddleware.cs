@@ -1,4 +1,5 @@
 ﻿using EConstructionApp.WebAPI.Extensions.Exceptions.Helpers;
+using FluentValidation;
 using System.Net;
 using System.Net.Mime;
 
@@ -24,6 +25,13 @@ namespace EConstructionApp.WebAPI.Extensions.Exceptions
 
             int statusCode = (int)HttpStatusCode.InternalServerError;
             httpContext.Response.StatusCode = statusCode;
+
+            if (exception.GetType() == typeof(ValidationException))
+                return httpContext.Response.WriteAsync(new ExceptionResponseModel()
+                {
+                    Errors = ((ValidationException)exception).Errors.Select(error => error.ErrorMessage),
+                    StatusCode = (int)HttpStatusCode.UnprocessableEntity
+                }.ToString());
 
             List<string> errors = new List<string>
             {

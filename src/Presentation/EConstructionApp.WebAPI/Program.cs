@@ -1,3 +1,5 @@
+using EConstructionApp.Application;
+using EConstructionApp.Infrastructure;
 using EConstructionApp.Persistence;
 using EConstructionApp.WebAPI.Extensions.Exceptions;
 using Microsoft.AspNetCore.HttpLogging;
@@ -22,9 +24,12 @@ internal class Program
             {
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.WriteIndented = true;
-            });
+            })
+            .ConfigureApiBehaviorOptions(option => option.SuppressModelStateInvalidFilter = true);
 
         // Add services to the container.
+        builder.Services.AddApplication();
+        builder.Services.AddInfrastructure();
         builder.Services.AddPersistence(builder.Configuration);
 
         builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();

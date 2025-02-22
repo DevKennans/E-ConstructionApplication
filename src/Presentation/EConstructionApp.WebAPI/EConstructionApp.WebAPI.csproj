@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\EConstructionApp.Infrastructure\EConstructionApp.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Infrastructure\EConstructionApp.Persistence\EConstructionApp.Persistence.csproj" />
   </ItemGroup>
 
