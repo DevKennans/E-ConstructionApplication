@@ -1,4 +1,5 @@
 ﻿using EConstructionApp.Domain.Entities;
+using EConstructionApp.Domain.Entities.Common;
 using EConstructionApp.Domain.Entities.Cross;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +24,17 @@ namespace EConstructionApp.Persistence.Contexts
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(EConstructionDbContext).Assembly);
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<BaseEntity> entry in ChangeTracker.Entries<BaseEntity>())
+            {
+                if (entry.State == EntityState.Modified)
+                    entry.Entity.ModifiedDate = DateTime.Now;
+            }
+
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }

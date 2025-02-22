@@ -1,6 +1,8 @@
-﻿namespace EConstructionApp.Domain.Entities.Common
+﻿using EConstructionApp.Domain.Entities.Common.Abstractions;
+
+namespace EConstructionApp.Domain.Entities.Common
 {
-    public class BaseEntity
+    public class BaseEntity : IBaseEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 
