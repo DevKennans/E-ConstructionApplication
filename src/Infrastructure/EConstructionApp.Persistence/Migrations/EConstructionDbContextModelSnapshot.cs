@@ -34,6 +34,9 @@ namespace EConstructionApp.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -105,6 +108,9 @@ namespace EConstructionApp.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
+
+                    b.Property<decimal>("Salary")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 

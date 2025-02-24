@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EConstructionApp.Persistence.Migrations
 {
     [DbContext(typeof(EConstructionDbContext))]
-    [Migration("20250220192131_InitialMigration")]
+    [Migration("20250224060813_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -37,6 +37,9 @@ namespace EConstructionApp.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -54,6 +57,9 @@ namespace EConstructionApp.Persistence.Migrations
 
                     b.Property<Guid>("TaskId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("MaterialId", "TaskId");
 
@@ -106,6 +112,9 @@ namespace EConstructionApp.Persistence.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
+                    b.Property<decimal>("Salary")
+                        .HasColumnType("decimal(18,2)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CurrentTaskId");
@@ -125,8 +134,8 @@ namespace EConstructionApp.Persistence.Migrations
                     b.Property<DateTime?>("CheckOutTime")
                         .HasColumnType("datetime");
 
-                    b.Property<DateTime>("Dairy")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("Dairy")
+                        .HasColumnType("date");
 
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
@@ -173,8 +182,8 @@ namespace EConstructionApp.Persistence.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("StockQuantity")
-                        .HasColumnType("int");
+                    b.Property<decimal>("StockQuantity")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 

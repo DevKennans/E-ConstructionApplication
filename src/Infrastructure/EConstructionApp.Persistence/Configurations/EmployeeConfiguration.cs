@@ -14,6 +14,7 @@ namespace EConstructionApp.Persistence.Configurations
             builder.Property(e => e.DateOfBirth).IsRequired();
             builder.Property(e => e.PhoneNumber).HasMaxLength(15);
             builder.Property(e => e.Address).HasMaxLength(250);
+            builder.Property(e => e.Salary).IsRequired();
             builder.Property(e => e.IsDeleted).IsRequired();
             builder.Property(e => e.IsCurrentlyWorking).IsRequired();
 

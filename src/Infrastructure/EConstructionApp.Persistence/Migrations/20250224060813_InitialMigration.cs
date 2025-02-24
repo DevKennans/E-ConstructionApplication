@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -18,7 +17,8 @@ namespace EConstructionApp.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    InsertedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    InsertedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -48,7 +48,7 @@ namespace EConstructionApp.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    StockQuantity = table.Column<int>(type: "int", nullable: false),
+                    StockQuantity = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Measure = table.Column<int>(type: "int", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -76,6 +76,7 @@ namespace EConstructionApp.Persistence.Migrations
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
                     Address = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
+                    Salary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IsCurrentlyWorking = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CurrentTaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
@@ -98,7 +99,8 @@ namespace EConstructionApp.Persistence.Migrations
                 columns: table => new
                 {
                     MaterialId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    TaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Quantity = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -123,7 +125,7 @@ namespace EConstructionApp.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     EmployeeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Dairy = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Dairy = table.Column<DateOnly>(type: "date", nullable: false),
                     CheckInTime = table.Column<DateTime>(type: "datetime", nullable: true),
                     CheckOutTime = table.Column<DateTime>(type: "datetime", nullable: true),
                     InsertedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
