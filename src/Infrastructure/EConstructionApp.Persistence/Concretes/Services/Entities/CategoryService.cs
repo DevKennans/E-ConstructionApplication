@@ -66,5 +66,38 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             return (true, "Categories retrieved successfully.", categories, totalCategories);
         }
+
+        public async Task<(bool isSuccess, string message)> UpdateCategoryAsync(Guid categoryId, string newName)
+        {
+            if (string.IsNullOrWhiteSpace(newName))
+                return (false, "Category name cannot be empty.");
+
+            newName = newName.Trim();
+
+            Category? categoryToUpdate = await _unitOfWork.GetReadRepository<Category>()
+                .GetAsync(c => c.Id == categoryId, enableTracking: true);
+
+            string oldName = categoryToUpdate.Name.Trim();
+
+            if (string.Equals(oldName, newName, StringComparison.OrdinalIgnoreCase))
+                return (false, $"Category is already named '{oldName}'. No changes were made.");
+
+            Category? existingCategory = await _unitOfWork.GetReadRepository<Category>()
+                .GetAsync(c => c.Name.Trim().ToLower() == newName.ToLower() && c.Id != categoryId, includeDeleted: true);
+
+            if (existingCategory is not null)
+            {
+                if (existingCategory.IsDeleted)
+                    return (false, $"A deleted category with the name '{newName}' already exists. Consider restoring it instead.");
+
+                return (false, $"An active category with the name '{newName}' already exists.");
+            }
+
+            categoryToUpdate.Name = newName;
+            await _unitOfWork.GetWriteRepository<Category>().UpdateAsync(categoryToUpdate);
+            await _unitOfWork.SaveAsync();
+
+            return (true, $"Category '{oldName}' has been successfully updated to '{newName}'.");
+        }
     }
 }
