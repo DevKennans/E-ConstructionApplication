@@ -35,7 +35,6 @@ namespace EConstructionApp.WebAPI.Controllers
             return Ok(new { message, categories });
         }
 
-
         [HttpGet("GetPagedCategories")]
         public async Task<IActionResult> GetPagedCategories([FromQuery] int page, [FromQuery] int size, [FromQuery] bool includeDeleted = false)
         {

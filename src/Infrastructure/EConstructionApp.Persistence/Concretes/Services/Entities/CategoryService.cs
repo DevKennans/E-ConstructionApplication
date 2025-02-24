@@ -27,7 +27,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             await _unitOfWork.GetWriteRepository<Category>().AddAsync(category);
             await _unitOfWork.SaveAsync();
 
-            return (true, null);
+            return (true, $"Category '{name}' inserted successfully.");
         }
 
         public async Task<(bool isSuccess, string message, IList<Category> categories)> GetAllCategoriesAsync(bool includeDeleted = false)
