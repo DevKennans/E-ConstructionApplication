@@ -1,0 +1,55 @@
+﻿@model EConstructionApp.WebUI.Areas.Admin.Models.EmployeeViewModel
+
+@{
+    ViewData["Title"] = "Add New Employee";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body>
+    <div class="container mt-5">
+
+        <form method="post" asp-action="AddEmployee" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="FirstName">First Name</label>
+                <input asp-for="FirstName" class="form-control" id="FirstName" placeholder="Enter First Name" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <label for="LastName">Last Name</label>
+                <input asp-for="LastName" class="form-control" id="LastName" placeholder="Enter Last Name" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <label for="Position">Address</label>
+                <input asp-for="Address" class="form-control" id="Position" placeholder="Enter Address" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <label for="Position">Phone Number</label>
+                <input asp-for="PhoneNumber" class="form-control" id="Position" placeholder="Enter Phone Number" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <label for="DateOfBirth">Date of Birth</label>
+                <input asp-for="DateOfBirth" class="form-control" id="DateOfBirth" type="date" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success mt-4 w-100">Add Employee</button>
+        </form>
+    </div>
+</body>
+</html>

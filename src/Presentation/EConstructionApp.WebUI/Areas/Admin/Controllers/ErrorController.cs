@@ -2,13 +2,12 @@
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
-    [Area("Admin")]
-    public class HomeController : Controller
+    public class ErrorController : Controller
     {
-        public IActionResult Index()
+        [Area("Admin")]
+        public IActionResult ServerError()
         {
             return View();
         }
-        
     }
 }
