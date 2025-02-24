@@ -1,5 +1,7 @@
 using EConstructionApp.WebUI.Extensions.Exceptions;
-
+using EConstructionApp.Persistence;
+using EConstructionApp.Infrastructure;
+using EConstructionApp.Application;
 internal class Program
 {
     private static void Main(string[] args)
@@ -9,6 +11,9 @@ internal class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
 
+        builder.Services.AddApplication();
+        builder.Services.AddInfrastructure();
+        builder.Services.AddPersistence(builder.Configuration);
         builder.Services.ConfigureApplicationCookie(options =>
         {
             options.LoginPath = "/Admin/Login";
