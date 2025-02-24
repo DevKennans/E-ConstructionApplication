@@ -10,6 +10,7 @@ namespace EConstructionApp.Domain.Entities
         public DateTime DateOfBirth { get; set; }
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
+        public decimal Salary { get; set; }
 
         public bool IsCurrentlyWorking { get; set; }
 

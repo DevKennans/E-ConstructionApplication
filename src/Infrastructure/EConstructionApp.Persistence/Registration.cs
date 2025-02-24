@@ -1,6 +1,8 @@
 ﻿using EConstructionApp.Application.Interfaces.Repositories;
+using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
 using EConstructionApp.Persistence.Concretes.Repositories;
+using EConstructionApp.Persistence.Concretes.Services.Entities;
 using EConstructionApp.Persistence.Concretes.UnitOfWorks;
 using EConstructionApp.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +24,8 @@ namespace EConstructionApp.Persistence
             services.AddScoped(typeof(IWriteRepository<>), typeof(WriteRepository<>));
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddScoped<ICategoryService, CategoryService>();
         }
     }
 }
