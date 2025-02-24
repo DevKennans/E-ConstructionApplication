@@ -1,0 +1,92 @@
+﻿@model EConstructionApp.WebUI.Areas.Admin.Models.CategoryListViewModel
+
+@{
+    ViewData["Title"] = "Category List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Category List</h2>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    {
+        <div class="alert alert-danger text-center">@ViewBag.Error</div>
+    }
+    else if (Model?.Categories != null && Model.Categories.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Category Name</th>
+                        <th>Created Date</th>
+                        <th>Modified Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <tr>
+                            <td>@category.Name</td>
+                            <td>@category.InsertedDate.ToString("yyyy-MM-dd")</td>
+
+                            <td>
+                                @if (category.ModifiedDate.HasValue)
+                                {
+                                    @category.ModifiedDate.Value.ToString("yyyy-MM-dd")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Hazırda dəyişiklik olunmayıb</span>
+                                }
+                            </td>
+
+                            <td>
+                                <a href="@Url.Action("Edit", "Category", new { id = category.Id })" class="btn btn-warning btn-sm me-2">
+                                    ✏ Edit
+                                </a>
+                                <a href="@Url.Action("Delete", "Category", new { id = category.Id })" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
+                                    🗑 Delete
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-center mt-4">
+            @if (Model.TotalPages > 1)
+            {
+                var currentPage = Model.CurrentPage;
+                var totalPages = Model.TotalPages;
+
+                @if (currentPage > 1)
+                {
+                    <a href="@Url.Action("GetCategories", new { page = currentPage - 1 })" class="btn btn-outline-primary me-2">
+                        « Prev
+                    </a>
+                }
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <a href="@Url.Action("GetCategories", new { page = i })" class="btn btn-outline-primary me-2 @(i == currentPage ? "active" : "")">
+                        @i
+                    </a>
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <a href="@Url.Action("GetCategories", new { page = currentPage + 1 })" class="btn btn-outline-primary ms-2">
+                        Next »
+                    </a>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-center mt-3">No categories found.</p>
+    }
+</div>
