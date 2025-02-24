@@ -45,5 +45,16 @@ namespace EConstructionApp.WebAPI.Controllers
 
             return Ok(new { message, totalCategories, categories });
         }
+
+        [HttpPut("{categoryId}")]
+        public async Task<IActionResult> UpdateCategory(Guid categoryId, [FromBody] string newName)
+        {
+            (bool isSuccess, string message) = await _categoryService.UpdateCategoryAsync(categoryId, newName);
+
+            if (!isSuccess)
+                return BadRequest(new { error = message });
+
+            return Ok(new { message });
+        }
     }
 }
