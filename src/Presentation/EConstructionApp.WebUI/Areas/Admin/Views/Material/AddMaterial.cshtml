@@ -1,0 +1,97 @@
+﻿@{
+    ViewData["Title"] = "Add Material";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-5">
+                    <form method="post">
+                        <div class="mb-4">
+                            <label for="materialName" class="form-label fs-5 fw-bold">Material Name</label>
+                            <input type="text" id="materialName" name="materialName" class="form-control form-control-lg" placeholder="Enter material name" required />
+                        </div>
+                        <div class="mb-4">
+                            <label for="stockCount" class="form-label fs-5 fw-bold">Stock Count</label>
+                            <input type="number" id="stockCount" name="stockCount" class="form-control form-control-lg" placeholder="Enter stock count" required min="1" />
+                        </div>
+                        <div class="mb-4">
+                            <label for="materialPrice" class="form-label fs-5 fw-bold">Material Price ($)</label>
+                            <input type="text" id="materialPrice" name="materialPrice" class="form-control form-control-lg" placeholder="Enter material price" step="0.01" required />
+                        </div>
+                        <div class="mb-4">
+                            <label for="materialCategory" class="form-label fs-5 fw-bold">Material Category</label>
+                            <div class="custom-select-container">
+                                <select id="materialCategory" name="materialCategory" class="form-select form-select-lg" required>
+                                    <option value="" disabled selected>Select a category</option>
+                                    <option value="Construction">Construction</option>
+                                    <option value="Tools">Tools</option>
+                                    <option value="Electrical">Electrical</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-gradient btn-lg shadow-sm fw-bold">Add Material</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gradient {
+        background: linear-gradient(45deg, #6c63ff, #6c757d);
+        color: white;
+        transition: background 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(45deg, #5755d9, #5a636e);
+            transition-delay: 0.5s;
+        }
+
+    .card {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        transition: border-color 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 0.25rem rgba(108, 99, 255, 0.25);
+        }
+
+    .custom-select-container {
+        position: relative;
+    }
+
+    .form-select {
+        background-color: #f8f9fa;
+        padding: 10px 15px;
+        font-size: 1rem;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+        .form-select:focus {
+            background-color: #ffffff;
+        }
+
+        .form-select option {
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .form-select:hover {
+            background-color: #e9ecef;
+        }
+</style>

@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Server Error";
+}
+
+<div style="
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f8f9fa;
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+">
+    <h1 style="
+        font-size: 3rem;
+        color: #dc3545;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    ">
+        500 - Server Error
+    </h1>
+    <p style="
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin-bottom: 20px;
+    ">
+        Bir xəta baş verdi. Zəhmət olmasa daha sonra yenidən cəhd edin.
+    </p>
+    <a href="/" style="
+        display: inline-block;
+        padding: 12px 24px;
+        font-size: 1.2rem;
+        color: white;
+        background-color: #007bff;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: 0.3s ease-in-out;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    "
+       onmouseover="this.style.backgroundColor='#0056b3';"
+       onmouseout="this.style.backgroundColor='#007bff';">
+        Ana səhifəyə qayıt
+    </a>
+</div>

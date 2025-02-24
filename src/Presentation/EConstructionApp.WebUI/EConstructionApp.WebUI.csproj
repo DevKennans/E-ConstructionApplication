@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Data\" />
-    <Folder Include="Areas\Admin\Views\Home\" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>
