@@ -13,7 +13,7 @@ namespace EConstructionApp.WebAPI.Controllers
             _categoryService = categoryService;
         }
 
-        [HttpPost("Insert")]
+        [HttpPost("InsertCategory")]
         public async Task<IActionResult> InsertCategory([FromBody] string name)
         {
             (bool isSuccess, string? message) = await _categoryService.InsertAsync(name);
@@ -22,6 +22,28 @@ namespace EConstructionApp.WebAPI.Controllers
                 return BadRequest(new { error = message });
 
             return Ok(new { message = $"Category '{name}' inserted successfully." });
+        }
+
+        [HttpGet("GetAllCategories")]
+        public async Task<IActionResult> GetAllCategories([FromQuery] bool includeDeleted = false)
+        {
+            (bool isSuccess, string message, IList<Domain.Entities.Category> categories) = await _categoryService.GetAllCategoriesAsync(includeDeleted);
+
+            if (!isSuccess || categories == default)
+                return NotFound(new { error = message });
+
+            return Ok(new { message, categories });
+        }
+
+        [HttpGet("GetPagedCategories")]
+        public async Task<IActionResult> GetPagedCategories([FromQuery] int page, [FromQuery] int size, [FromQuery] bool includeDeleted = false)
+        {
+            (bool isSuccess, string message, IList<Domain.Entities.Category> categories, int totalCategories) = await _categoryService.GetPagedCategoriesAsync(page, size, includeDeleted);
+
+            if (!isSuccess || categories == default)
+                return NotFound(new { error = message, totalCategories });
+
+            return Ok(new { message, totalCategories, categories });
         }
     }
 }
