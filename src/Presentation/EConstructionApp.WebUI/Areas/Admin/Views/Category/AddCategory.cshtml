@@ -1,18 +1,40 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "AddCategory";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="add-category-container">
+    <h2 class="form-title">Add a New Category</h2>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Message))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @ViewBag.Message
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(ViewBag.Success))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @ViewBag.Success
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
     <form method="post" class="add-category-form">
         <div class="form-group">
             <label for="categoryName">Category Name</label>
-            <input type="text" id="categoryName" name="categoryName" class="form-control" placeholder="Enter category name" required />
+            <input type="text" id="categoryName" name="name" class="form-control" placeholder="Enter category name" />
         </div>
         <button type="submit" class="btn-submit">Add Category</button>
     </form>
 </div>
+
 <style>
     .add-category-container {
         max-width: 600px;
@@ -21,10 +43,10 @@
         background-color: #f4f7fc;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
     }
 
     .form-title {
-        text-align: center;
         font-size: 24px;
         margin-bottom: 20px;
         color: #333;
@@ -39,14 +61,16 @@
     .form-group {
         display: flex;
         flex-direction: column;
+        text-align: left;
     }
+
         .form-group label {
             font-size: 14px;
             color: #555;
             margin-bottom: 8px;
         }
-        .form-group input,
-        .form-group select {
+
+        .form-group input {
             padding: 12px;
             font-size: 16px;
             border: 1px solid #ddd;
@@ -54,10 +78,11 @@
             outline: none;
             transition: border-color 0.3s;
         }
-            .form-group input:focus,
-            .form-group select:focus {
+
+            .form-group input:focus {
                 border-color: #6c63ff;
             }
+
     .btn-submit {
         padding: 12px;
         font-size: 16px;
@@ -68,7 +93,33 @@
         cursor: pointer;
         transition: background-color 0.3s;
     }
+
         .btn-submit:hover {
             background-color: #5a54e5;
         }
+
+    /* Notification mesajları üçün */
+    .alert {
+        margin-top: 15px;
+        font-size: 14px;
+    }
+
+    .close {
+        border: none;
+        background: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
 </style>
+
+<script>
+    // 3 saniyə sonra alert-ləri avtomatik bağlayır
+    setTimeout(() => {
+        let alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            alert.classList.remove("show");
+            alert.classList.add("fade");
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 3000);
+</script>
