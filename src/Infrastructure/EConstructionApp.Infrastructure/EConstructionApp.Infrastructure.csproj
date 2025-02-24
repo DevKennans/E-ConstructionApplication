@@ -10,4 +10,9 @@
     <PackageReference Include="AutoMapper" Version="14.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\EConstructionApp.Application\EConstructionApp.Application.csproj" />
+    <ProjectReference Include="..\..\Core\EConstructionApp.Domain\EConstructionApp.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
