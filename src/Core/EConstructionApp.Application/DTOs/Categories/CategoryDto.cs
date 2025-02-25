@@ -6,8 +6,8 @@
         public virtual DateTime InsertedDate { get; set; }
         public virtual DateTime? ModifiedDate { get; set; }
 
-        public bool IsDeleted { get; set; }
-
         public string Name { get; set; }
+
+        public bool IsDeleted { get; set; }
     }
 }
