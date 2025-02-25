@@ -156,8 +156,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             IList<Material> materials = await _unitOfWork.GetReadRepository<Material>()
                 .GetAllAsync(
-                    predicate: m => m.CategoryId == categoryId,
-                    enableTracking: true);
+                    predicate: m => m.CategoryId == categoryId && !m.IsDeleted,
+                    enableTracking: true,
+                    includeDeleted: true);
 
             foreach (Material material in materials)
             {
