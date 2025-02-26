@@ -24,5 +24,16 @@ namespace EConstructionApp.WebAPI.Controllers
 
             return Ok(new { message });
         }
+
+        [HttpGet("GetAllOrOnlyActiveEmployeesPagedList")]
+        public async Task<IActionResult> GetAllOrOnlyActiveEmployeesPagedList([FromQuery] int page, [FromQuery] int size, [FromQuery] bool includeDeleted = false)
+        {
+            (bool isSuccess, string message, IList<EmployeeDto> employees, int totalEmployees) = await _employeeService.GetAllOrOnlyActiveEmployeesPagedListAsync(page, size, includeDeleted);
+
+            if (!isSuccess || employees == default)
+                return NotFound(new { error = message, totalEmployees });
+
+            return Ok(new { message, totalEmployees, employees });
+        }
     }
 }
