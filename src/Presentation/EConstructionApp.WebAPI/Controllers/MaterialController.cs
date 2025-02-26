@@ -64,6 +64,17 @@ namespace EConstructionApp.WebAPI.Controllers
             return Ok(new { message, totalDeletedMaterials, materials });
         }
 
+        [HttpPut("UpdateMaterial")]
+        public async Task<IActionResult> UpdateMaterial([FromBody] MaterialUpdateDto dto)
+        {
+            (bool isSuccess, string? message) = await _materialService.UpdateAsync(dto);
+
+            if (!isSuccess)
+                return BadRequest(new { error = message });
+
+            return Ok(new { message });
+        }
+
         [HttpDelete("SafeDeleteMaterial/{materialId}")]
         public async Task<IActionResult> SafeDeleteMaterial([FromRoute] Guid materialId)
         {

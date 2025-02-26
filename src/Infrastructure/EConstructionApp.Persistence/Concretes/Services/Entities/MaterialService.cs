@@ -124,6 +124,72 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, "Deleted materials retrieved successfully.", materialDtos, totalDeletedMaterials);
         }
 
+        public async Task<(bool IsSuccess, string? Message)> UpdateAsync(MaterialUpdateDto dto)
+        {
+            if (dto is null)
+                return (false, "Invalid material data.");
+
+            List<string> validationErrors = new();
+
+            if (string.IsNullOrWhiteSpace(dto.Name) || dto.Name.Trim().Length == 0)
+                validationErrors.Add("Material name cannot be empty or whitespace.");
+
+            if (dto.Price <= 0)
+                validationErrors.Add("Price must be greater than zero.");
+
+            if (dto.StockQuantity < 0)
+                validationErrors.Add("Stock quantity cannot be negative.");
+
+            if (validationErrors.Any())
+                return (false, string.Join(" ", validationErrors));
+
+            Material? material = await _unitOfWork.GetReadRepository<Material>()
+                .GetAsync(
+                    predicate: m => m.Id == dto.Id,
+                    enableTracking: true,
+                    includeDeleted: true);
+            if (material is null)
+                return (false, "Material not found.");
+            if (material.IsDeleted)
+                return (false, "Cannot update a deleted material. Please restore it first.");
+
+            Category? category = await _unitOfWork.GetReadRepository<Category>()
+                .GetAsync(
+                    predicate: c => c.Id == dto.CategoryId,
+                    includeDeleted: true);
+            if (category is null)
+                return (false, "Category not found.");
+            if (category.IsDeleted)
+                return (false, "The selected category is inactive. Please restore it first.");
+
+            if (material.Name.Trim().ToLower() != dto.Name.Trim().ToLower() || material.CategoryId != dto.CategoryId)
+            {
+                Material? existingMaterial = await _unitOfWork.GetReadRepository<Material>()
+                    .GetAsync(
+                        predicate: m => m.Name.ToLower() == dto.Name.Trim().ToLower() &&
+                                        m.CategoryId == dto.CategoryId &&
+                                        m.Id != dto.Id,
+                        includeDeleted: true);
+                if (existingMaterial is not null)
+                    return existingMaterial.IsDeleted
+                        ? (false, "A material with the same name exists in this category but is inactive. Please restore it instead of updating.")
+                        : (false, "A material with the same name already exists in this category.");
+            }
+
+            if (material.Name == dto.Name.Trim() &&
+                material.Price == dto.Price &&
+                material.StockQuantity == dto.StockQuantity &&
+                material.CategoryId == dto.CategoryId)
+                return (true, "No changes detected. Update skipped.");
+
+            _mapper.Map(dto, material);
+
+            await _unitOfWork.GetWriteRepository<Material>().UpdateAsync(material);
+            await _unitOfWork.SaveAsync();
+
+            return (true, $"Material '{dto.Name.Trim()}' has been successfully updated.");
+        }
+
         public async Task<(bool isSuccess, string message)> SafeDeleteMaterialAsync(Guid materialId)
         {
             Material? material = await _unitOfWork.GetReadRepository<Material>()
