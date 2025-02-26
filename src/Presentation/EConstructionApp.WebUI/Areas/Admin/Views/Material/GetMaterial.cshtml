@@ -1,8 +1,224 @@
-﻿
+﻿@model EConstructionApp.WebUI.Areas.Admin.Models.MaterialListViewModel
 @{
-    ViewData["Title"] = "GetCategories";
+    ViewData["Title"] = "Material List";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Material List</h2>
 
-<h1>GetCategories</h1>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    @if (Model?.Materials != null && Model.Materials.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Material Name</th>
+                        <th>Quantity</th>
+                        <th>Measure</th>
+                        <th>Price</th>
+                        <th>Category</th>
+                        <th>Created Date</th>
+                        <th>Modified Date</th> 
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var material in Model.Materials)
+                    {
+                        <tr>
+                            <td>@material.Name</td>
+                            <td>@material.StockQuantity</td>
+                            <td>@material.Measure</td>
+                            <td>@material.Price</td>
+                            <td>@(material.Category != null ? material.Category.Name : "No Category")</td>
+                            <td>@material.InsertedDate.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                @if (material.ModifiedDate.HasValue)
+                                {
+                                    @material.ModifiedDate.Value.ToString("yyyy-MM-dd")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">There is no change at the moment</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-2 edit-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editMaterialModal"
+                                        data-id="@material.Id"
+                                        data-name="@material.Name"
+                                        data-quantity="@material.StockQuantity"
+                                        data-price="@material.Price"
+                                        data-measure="@material.Measure"
+                                        data-category-id="@(material.Category != null ? material.Category.Id : "")">
+                                    ✏ Edit
+                                </button>
+                                <form id="deleteForm_@material.Id" method="post" action="@Url.Action("DeleteMaterial", "Material")" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="materialId" value="@material.Id" />
+                                    <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="@material.Id">
+                                        🗑 Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
+        <nav aria-label="Material pagination">
+            <ul class="pagination justify-content-center mt-4">
+                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetMaterial", "Material", new { page = Model.CurrentPage - 1, size = 5 })" aria-label="Previous">
+                        « Previous
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                        <a class="page-link rounded-pill shadow-sm @(Model.CurrentPage == i ? "bg-primary text-white" : "")"
+                           href="@Url.Action("GetMaterial", "Material", new { page = i, size = 5 })">
+                            @i
+                        </a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetMaterial", "Material", new { page = Model.CurrentPage + 1, size = 5 })" aria-label="Next">
+                        Next »
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+    else
+    {
+        <p class="text-center mt-3">No materials found.</p>
+    }
+</div>
+
+<div class="modal fade" id="editMaterialModal" tabindex="-1" aria-labelledby="editMaterialModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editMaterialModalLabel">Edit Material</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editMaterialForm" method="post" action="@Url.Action("EditMaterial", "Material")">
+                    <input type="hidden" id="materialId" name="Id" />
+                    <div class="form-group">
+                        <label for="materialName">Material Name</label>
+                        <input type="text" id="materialName" name="Name" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="materialQuantity">Quantity</label>
+                        <input type="number" id="materialQuantity" name="StockQuantity" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="materialPrice">Price</label>
+                        <input type="number" id="materialPrice" name="Price" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="materialMeasure">Measure</label>
+                        <select id="materialMeasure" name="Measure" class="form-control" required>
+                            <option value="Kilogram">Kilogram</option>
+                            <option value="Meter">Meter</option>
+                            <option value="Unit">Unit</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="materialCategory">Category</label>
+                        <select id="materialCategory" name="CategoryId" class="form-control" required>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-actions mt-3">
+                        <button type="submit" class="btn btn-primary">Update Material</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const successMessage = document.querySelector('.alert-success');
+        const errorMessage = document.querySelector('.alert-danger');
+        if (successMessage) {
+            setTimeout(() => {
+                successMessage.classList.add('fade');
+                successMessage.classList.remove('show');
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+        if (errorMessage) {
+            setTimeout(() => {
+                errorMessage.classList.add('fade');
+                errorMessage.classList.remove('show');
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+        const editButtons = document.querySelectorAll('.edit-btn');
+        const materialIdField = document.getElementById('materialId');
+        const materialNameField = document.getElementById('materialName');
+        const materialQuantityField = document.getElementById('materialQuantity');
+        const materialPriceField = document.getElementById('materialPrice');
+        const materialMeasureField = document.getElementById('materialMeasure');
+        const materialCategoryField = document.getElementById('materialCategory');
+
+        editButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                materialIdField.value = button.getAttribute('data-id');
+                materialNameField.value = button.getAttribute('data-name');
+                materialQuantityField.value = button.getAttribute('data-quantity');
+                materialPriceField.value = button.getAttribute('data-price');
+                materialMeasureField.value = button.getAttribute('data-measure');
+                const selectedCategoryId = button.getAttribute('data-category-id');
+                if (selectedCategoryId) {
+                    materialCategoryField.value = selectedCategoryId;
+                }
+                
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const materialId = this.getAttribute('data-id');
+                const form = document.getElementById('deleteForm_' + materialId);
+                if (confirm('Are you sure you want to delete this material?')) {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
