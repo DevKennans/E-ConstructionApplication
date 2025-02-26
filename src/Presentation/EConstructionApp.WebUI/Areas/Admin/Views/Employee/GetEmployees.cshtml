@@ -1,0 +1,212 @@
+﻿@model EConstructionApp.WebUI.Areas.Admin.Models.EmployeeListViewModel
+@{
+    ViewData["Title"] = "GetEmployees";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="text-center mb-4">Employee List</h1>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+<div class="container mt-5">
+    @if (Model?.Employees != null && Model.Employees.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Birth Date</th>
+                        <th>Phone Number</th>
+                        <th>Address</th>
+                        <th>Salary</th>
+                        <th>Task Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var employee in Model.Employees)
+                    {
+                        <tr>
+                            <td>@employee.FirstName @employee.LastName</td>
+                            <td>@employee.DateOfBirth</td>
+                            <td>@employee.PhoneNumber</td>
+                            <td>@employee.Address</td>
+                            <td>@employee.Salary$</td>
+                            <td>
+                                @if (employee.IsCurrentlyWorking)
+                                {
+                                    <span class="text-success">Is Working</span>
+                                }
+                                else
+                                {
+                                    <span class="text-warning">Currently Available</span>
+                                }
+                            </td>                      
+                            <td>
+                                <button class="btn btn-warning btn-sm me-2 edit-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editEmployeeModal"
+                                        data-id="@employee.Id"
+                                        data-firstname="@employee.FirstName"
+                                        data-lastname="@employee.LastName"
+                                        data-email="@employee.Address"
+                                        data-phone="@employee.PhoneNumber">
+                                    ✏ Edit
+                                </button>
+                                <form id="deleteForm_@employee.Id" method="post" action="@Url.Action("DeleteEmployee", "Employee")" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="employeeId" value="@employee.Id" />
+                                    <button type="button" class="btn btn-danger btn-sm delete-btn"
+                                            data-id="@employee.Id">
+                                        🗑 Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mt-4">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetEmployees", new { page = Model.CurrentPage - 1, size = 5 })">
+                            « Previous
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                            <a class="page-link rounded-pill shadow-sm @(Model.CurrentPage == i ? "bg-primary text-white" : "")"
+                               href="@Url.Action("GetEmployees", new { page = i, size = 5 })">
+                                @i
+                            </a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetEmployees", new { page = Model.CurrentPage + 1, size = 5 })">
+                            Next »
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <p class="text-center mt-3">No employees found.</p>
+    }
+</div>
+
+<!-- Edit Employee Modal -->
+<div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editEmployeeModalLabel">Edit Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editEmployeeForm" method="post" action="@Url.Action("EditEmployee", "Employee")">
+                    <input type="hidden" id="employeeId" name="Id" />
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="FirstName" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="LastName" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="Email" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="text" id="phoneNumber" name="PhoneNumber" class="form-control" required />
+                    </div>
+                    <div class="form-actions mt-3">
+                        <button type="submit" class="btn btn-primary">Update Employee</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const successMessage = document.querySelector('.alert-success');
+        const errorMessage = document.querySelector('.alert-danger');
+        if (successMessage) {
+            setTimeout(() => {
+                successMessage.classList.add('fade');
+                successMessage.classList.remove('show');
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+        if (errorMessage) {
+            setTimeout(() => {
+                errorMessage.classList.add('fade');
+                errorMessage.classList.remove('show');
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Handle Edit Button Click
+        const editButtons = document.querySelectorAll('.edit-btn');
+        const employeeIdField = document.getElementById('employeeId');
+        const firstNameField = document.getElementById('firstName');
+        const lastNameField = document.getElementById('lastName');
+        const emailField = document.getElementById('email');
+        const phoneField = document.getElementById('phoneNumber');
+
+        editButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const employeeId = button.getAttribute('data-id');
+                const firstName = button.getAttribute('data-firstname');
+                const lastName = button.getAttribute('data-lastname');
+                const email = button.getAttribute('data-email');
+                const phone = button.getAttribute('data-phone');
+                employeeIdField.value = employeeId;
+                firstNameField.value = firstName;
+                lastNameField.value = lastName;
+                emailField.value = email;
+                phoneField.value = phone;
+            });
+        });
+
+        // Handle Delete Button Click
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const employeeId = this.getAttribute('data-id');
+                const form = document.getElementById('deleteForm_' + employeeId);
+                if (confirm('Are you sure you want to delete this employee?')) {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
