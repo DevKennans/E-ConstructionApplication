@@ -12,6 +12,8 @@ namespace EConstructionApp.Application.Interfaces.Services.Entities
 
         Task<(bool isSuccess, string message, IList<MaterialDto> materials, int totalDeletedMaterials)> GetDeletedMaterialsPagedListAsync(int page = 1, int size = 5);
 
+        Task<(bool IsSuccess, string? Message)> UpdateAsync(MaterialUpdateDto dto);
+
         Task<(bool isSuccess, string message)> SafeDeleteMaterialAsync(Guid materialId);
 
         Task<(bool isSuccess, string message)> RestoreMaterialAsync(Guid materialId);
