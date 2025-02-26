@@ -1,55 +1,151 @@
-﻿@model EConstructionApp.WebUI.Areas.Admin.Models.EmployeeViewModel
+﻿@model EConstructionApp.Application.DTOs.Employees.EmployeeInsertDto
 
 @{
     ViewData["Title"] = "Add New Employee";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@ViewData["Title"]</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-</head>
-<body>
-    <div class="container mt-5">
 
-        <form method="post" asp-action="AddEmployee" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="FirstName">First Name</label>
-                <input asp-for="FirstName" class="form-control" id="FirstName" placeholder="Enter First Name" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mt-3">
-                <label for="LastName">Last Name</label>
-                <input asp-for="LastName" class="form-control" id="LastName" placeholder="Enter Last Name" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mt-3">
-                <label for="Position">Address</label>
-                <input asp-for="Address" class="form-control" id="Position" placeholder="Enter Address" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mt-3">
-                <label for="Position">Phone Number</label>
-                <input asp-for="PhoneNumber" class="form-control" id="Position" placeholder="Enter Phone Number" />
-                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mt-3">
-                <label for="DateOfBirth">Date of Birth</label>
-                <input asp-for="DateOfBirth" class="form-control" id="DateOfBirth" type="date" />
-                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-success mt-4 w-100">Add Employee</button>
-        </form>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
-</body>
-</html>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-5">
+                    <form method="post" asp-action="AddEmployee" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-4">
+                            <label for="FirstName" class="form-label fs-5 fw-bold">First Name</label>
+                            <input name="FirstName" class="form-control form-control-lg" id="FirstName" placeholder="Enter First Name" required />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="mb-4">
+                            <label for="LastName" class="form-label fs-5 fw-bold">Last Name</label>
+                            <input name="LastName" class="form-control form-control-lg" id="LastName" placeholder="Enter Last Name" required />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                        <div class="mb-4">
+                            <label for="Address" class="form-label fs-5 fw-bold">Address</label>
+                            <input name="Address" class="form-control form-control-lg" id="Address" placeholder="Enter Address" required />
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+                        <div class="mb-4">
+                            <label for="PhoneNumber" class="form-label fs-5 fw-bold">Phone Number</label>
+                            <input name="PhoneNumber" class="form-control form-control-lg" id="PhoneNumber" placeholder="Enter Phone Number" required />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+                        <div class="mb-4">
+                            <label for="DateOfBirth" class="form-label fs-5 fw-bold">Date of Birth</label>
+                            <input name="DateOfBirth" class="form-control form-control-lg" id="DateOfBirth" type="date" required />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+                        <div class="mb-4">
+                            <label for="Salary" class="form-label fs-5 fw-bold">Salary</label>
+                            <input name="Salary" class="form-control form-control-lg" id="Salary" placeholder="Enter Salary" type="number" step="0.01" required />
+                            <span asp-validation-for="Salary" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-gradient btn-lg shadow-sm fw-bold">Add Employee</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gradient {
+        background: linear-gradient(45deg, #6c63ff, #6c757d);
+        color: white;
+        transition: background 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(45deg, #5755d9, #5a636e);
+            transition-delay: 0.5s;
+        }
+
+    .card {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        transition: border-color 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 0.25rem rgba(108, 99, 255, 0.25);
+        }
+
+    .custom-select-container {
+        position: relative;
+    }
+
+    .form-select {
+        background-color: #f8f9fa;
+        padding: 10px 15px;
+        font-size: 1rem;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+        .form-select:focus {
+            background-color: #ffffff;
+        }
+
+        .form-select option {
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .form-select:hover {
+            background-color: #e9ecef;
+        }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const successMessage = document.querySelector('.alert-success');
+        const errorMessage = document.querySelector('.alert-danger');
+
+        if (successMessage) {
+            setTimeout(() => {
+                successMessage.classList.add('fade');
+                successMessage.classList.remove('show');
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        if (errorMessage) {
+            setTimeout(() => {
+                errorMessage.classList.add('fade');
+                errorMessage.classList.remove('show');
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+    });
+</script>
