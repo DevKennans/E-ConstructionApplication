@@ -27,6 +27,7 @@ namespace EConstructionApp.Persistence
 
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IMaterialService, MaterialService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
         }
     }
 }

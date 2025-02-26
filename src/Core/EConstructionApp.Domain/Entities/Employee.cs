@@ -7,7 +7,7 @@ namespace EConstructionApp.Domain.Entities
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
         public decimal Salary { get; set; }
@@ -17,7 +17,7 @@ namespace EConstructionApp.Domain.Entities
         public bool IsDeleted { get; set; } = false;
 
         public Guid? CurrentTaskId { get; set; }
-        public Task CurrentTask { get; set; }
+        public Task? CurrentTask { get; set; }
 
         public ICollection<EmployeeAttendance> EmployeeAttendances { get; set; } = new List<EmployeeAttendance>();
     }
