@@ -92,12 +92,6 @@
                                         <p>Category List</p>
                                     </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a asp-area="Admin" asp-controller="Category" asp-action="GetDeletedCategories" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Deleted Categories</p>
-                                    </a>
-                                </li>
                             </ul>
                         </li>
                         <li class="nav-item has-treeview">
@@ -126,6 +120,27 @@
                                 <p>Employee Attendance</p>
                             </a>
                         </li>
+                        <li class="nav-item has-treeview">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-trash-alt"></i>
+                                <p>Recycle Bin<i class="right fas fa-angle-left"></i></p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a asp-area="Admin" asp-controller="Category" asp-action="GetDeletedCategories" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Deleted Categories</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-area="Admin" asp-controller="Material" asp-action="GetDeletedMaterials" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Deleted Materials</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="nav-icon fas fa-cogs"></i>

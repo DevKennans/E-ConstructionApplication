@@ -83,7 +83,6 @@
                             « Previous
                         </a>
                     </li>
-
                     @for (int i = 1; i <= Model.TotalPages; i++)
                     {
                         <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
@@ -93,7 +92,6 @@
                             </a>
                         </li>
                     }
-
                     <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
                         <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetCategories", new { page = Model.CurrentPage + 1, size = 5 })">
                             Next »

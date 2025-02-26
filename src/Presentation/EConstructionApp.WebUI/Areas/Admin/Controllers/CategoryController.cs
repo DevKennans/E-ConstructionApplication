@@ -63,7 +63,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
             if (!isSuccess || categories == null)
             {
-                ViewBag.Error = message;
+                TempData["ErrorMessage"] = message;
                 return View(new CategoryListViewModel
                 {
                     Categories = new List<CategoryDto>(),
@@ -91,7 +91,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             }
             else
             {
-                TempData["SuccessMessage"] = "Category restored successfully.";
+                TempData["SuccessMessage"] = message;
             }
             return RedirectToAction("GetDeletedCategories");
         }
