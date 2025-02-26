@@ -43,11 +43,34 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 return (false, string.Join(" ", validationErrors));
 
             Employee employee = _mapper.Map<Employee>(dto);
+            employee.IsCurrentlyWorking = false;
 
             await _unitOfWork.GetWriteRepository<Employee>().AddAsync(employee);
             await _unitOfWork.SaveAsync();
 
             return (true, $"Employee '{dto.FirstName} {dto.LastName}' has been successfully added.");
+        }
+
+        /* GetAllOrOnlyActiveEmployeesPagedListAsync method can use for both only active or active and passive lists. */
+        public async Task<(bool isSuccess, string message, IList<EmployeeDto> employees, int totalEmployees)> GetAllOrOnlyActiveEmployeesPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
+        {
+            if (page < 1 || size < 1)
+                return (false, "Page and size must be greater than zero.", default!, 0);
+
+            IList<Employee> employees = await _unitOfWork.GetReadRepository<Employee>().GetAllByPagingAsync(
+                    includeDeleted: includeDeleted,
+                    orderBy: q => q.OrderByDescending(e => e.InsertedDate),
+                    enableTracking: false,
+                    currentPage: page,
+                    pageSize: size);
+
+            int totalEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(includeDeleted: includeDeleted);
+
+            if (!employees.Any())
+                return (false, "No employees found.", default!, totalEmployees);
+
+            IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(employees);
+            return (true, "Employees retrieved successfully.", employeeDtos, totalEmployees);
         }
     }
 }
