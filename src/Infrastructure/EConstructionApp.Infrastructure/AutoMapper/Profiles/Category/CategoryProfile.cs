@@ -7,7 +7,7 @@ namespace EConstructionApp.Infrastructure.AutoMapper.Profiles.Category
     {
         public CategoryProfile()
         {
-            CreateMap<Domain.Entities.Category, CategoryDto>();
+            CreateMap<Domain.Entities.Category, CategoryDto>().ReverseMap();
         }
     }
 }
