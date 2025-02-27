@@ -1,0 +1,133 @@
+﻿@model EConstructionApp.WebUI.Areas.Admin.Models.EmployeeListViewModel
+@{
+    ViewData["Title"] = "Deleted Employees";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <h1 class="text-center">Deleted Employees</h1>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show text-center" role="alert" id="errorMessage">
+            @TempData["ErrorMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show text-center" role="alert" id="successMessage">
+            @TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    @if (Model?.Employees != null && Model.Employees.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mx-auto" style="width: 80%;">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Birth Date</th>
+                        <th>Phone Number</th>
+                        <th>Address</th>
+                        <th>Salary</th>
+                        <th>Task Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var employee in Model.Employees)
+                    {
+                        <tr>
+                            <td>@employee.FirstName @employee.LastName</td>
+                            <td>@employee.DateOfBirth.ToString("yyyy-MM-dd")</td>
+                            <td>@employee.PhoneNumber</td>
+                            <td>@employee.Address</td>
+                            <td>@employee.Salary$</td>
+                            <td>
+                                @if (employee.IsCurrentlyWorking)
+                                {
+                                    <span class="text-success">Is Working</span>
+                                }
+                                else
+                                {
+                                    <span class="text-warning">Currently Available</span>
+                                }
+                            </td>
+                            <td>
+                                <form method="post" action="@Url.Action("RestoreDeletedEmployee", "Employee")" style="display:inline;" id="restoreForm_@employee.Id">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="employeeId" value="@employee.Id" />
+                                    <button type="button" class="btn btn-success btn-sm" onclick="confirmRestore('@employee.Id')">
+                                        🔄 Restore
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
+                <ul class="pagination">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetDeletedEmployees", new { page = Model.CurrentPage - 1, size = 5 })">
+                            « Previous
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                            <a class="page-link rounded-pill shadow-sm @(Model.CurrentPage == i ? "bg-primary text-white" : "")"
+                               href="@Url.Action("GetDeletedEmployees", new { page = i, size = 5 })">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetDeletedEmployees", new { page = Model.CurrentPage + 1, size = 5 })">
+                            Next »
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <p class="text-center mt-3">No deleted employees found.</p>
+    }
+</div>
+
+<script>
+    function confirmRestore(employeeId) {
+        const form = document.getElementById('restoreForm_' + employeeId);
+        const confirmAction = confirm("Are you sure you want to restore this employee?");
+        if (confirmAction) {
+            form.submit();
+        }
+    }
+    setTimeout(function () {
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        if (errorMessage) {
+            errorMessage.style.display = 'none';
+        }
+
+        if (successMessage) {
+            successMessage.style.display = 'none';
+        }
+    }, 3000);
+</script>

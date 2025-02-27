@@ -68,8 +68,10 @@
                                         data-id="@employee.Id"
                                         data-firstname="@employee.FirstName"
                                         data-lastname="@employee.LastName"
-                                        data-email="@employee.Address"
-                                        data-phone="@employee.PhoneNumber">
+                                        data-dateofbirth="@employee.DateOfBirth.ToString("yyyy-MM-dd")"
+                                        data-phone="@employee.PhoneNumber"
+                                        data-address="@employee.Address"
+                                        data-salary="@employee.Salary">
                                     ✏ Edit
                                 </button>
                                 <form id="deleteForm_@employee.Id" method="post" action="@Url.Action("DeleteEmployee", "Employee")" style="display:inline;">
@@ -119,7 +121,6 @@
     }
 </div>
 
-<!-- Edit Employee Modal -->
 <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -129,23 +130,39 @@
             </div>
             <div class="modal-body">
                 <form id="editEmployeeForm" method="post" action="@Url.Action("EditEmployee", "Employee")">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" id="employeeId" name="Id" />
+
                     <div class="form-group">
                         <label for="firstName">First Name</label>
                         <input type="text" id="firstName" name="FirstName" class="form-control" required />
                     </div>
+
                     <div class="form-group">
                         <label for="lastName">Last Name</label>
                         <input type="text" id="lastName" name="LastName" class="form-control" required />
                     </div>
+
                     <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="Email" class="form-control" required />
+                        <label for="dateOfBirth">Birth Date</label>
+                        <input type="date" id="dateOfBirth" name="DateOfBirth" class="form-control" required />
                     </div>
+
                     <div class="form-group">
                         <label for="phoneNumber">Phone Number</label>
                         <input type="text" id="phoneNumber" name="PhoneNumber" class="form-control" required />
                     </div>
+
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input type="text" id="address" name="Address" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="salary">Salary ($)</label>
+                        <input type="number" id="salary" name="Salary" class="form-control" required />
+                    </div>
+
                     <div class="form-actions mt-3">
                         <button type="submit" class="btn btn-primary">Update Employee</button>
                     </div>
@@ -154,6 +171,7 @@
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -174,30 +192,34 @@
             }, 3000);
         }
 
-        // Handle Edit Button Click
         const editButtons = document.querySelectorAll('.edit-btn');
         const employeeIdField = document.getElementById('employeeId');
         const firstNameField = document.getElementById('firstName');
         const lastNameField = document.getElementById('lastName');
-        const emailField = document.getElementById('email');
+        const birthDateField = document.getElementById('dateOfBirth');
         const phoneField = document.getElementById('phoneNumber');
+        const addressField = document.getElementById('address');
+        const salaryField = document.getElementById('salary');
 
         editButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const employeeId = button.getAttribute('data-id');
                 const firstName = button.getAttribute('data-firstname');
                 const lastName = button.getAttribute('data-lastname');
-                const email = button.getAttribute('data-email');
+                const birthDate = button.getAttribute('data-dateofbirth');
                 const phone = button.getAttribute('data-phone');
+                const address = button.getAttribute('data-address');
+                const salary = button.getAttribute('data-salary');
                 employeeIdField.value = employeeId;
                 firstNameField.value = firstName;
                 lastNameField.value = lastName;
-                emailField.value = email;
+                birthDateField.value = birthDate;
                 phoneField.value = phone;
+                addressField.value = address;
+                salaryField.value = salary;
             });
         });
 
-        // Handle Delete Button Click
         const deleteButtons = document.querySelectorAll('.delete-btn');
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
