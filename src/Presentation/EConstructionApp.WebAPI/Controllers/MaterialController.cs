@@ -15,86 +15,86 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("InsertMaterial")]
-        public async Task<IActionResult> InsertMaterial([FromBody] MaterialInsertDto dto)
+        public async Task<IActionResult> InsertMaterial([FromBody] MaterialInsertDto Dto)
         {
-            if (dto is null)
+            if (Dto is null)
                 return BadRequest(new { error = "Invalid material data." });
 
-            (bool isSuccess, string? message) = await _materialService.InsertAsync(dto);
+            (bool IsSuccess, string? Message) = await _materialService.InsertAsync(Dto);
 
-            if (!isSuccess)
-                return BadRequest(new { error = message });
+            if (!IsSuccess)
+                return BadRequest(new { error = Message });
 
-            return Ok(new { message });
+            return Ok(new { Message });
         }
 
         [HttpGet("GetAllOrOnlyActiveMaterialsList")]
-        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsList([FromQuery] bool includeDeleted = false)
+        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsList([FromQuery] bool IncludeDeleted = false)
         {
-            (bool isSuccess, string message, IList<MaterialDto> materials) =
-                await _materialService.GetAllOrOnlyActiveMaterialsListAsync(includeDeleted);
+            (bool IsSuccess, string Message, IList<MaterialDto> Materials) =
+                await _materialService.GetAllOrOnlyActiveMaterialsListAsync(IncludeDeleted);
 
-            if (!isSuccess || materials == default)
-                return NotFound(new { error = message });
+            if (!IsSuccess || Materials == default)
+                return NotFound(new { error = Message });
 
-            return Ok(new { message, materials });
+            return Ok(new { Message, Materials });
         }
 
         [HttpGet("GetAllOrOnlyActiveMaterialsPagedList")]
-        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsPagedList([FromQuery] int page, [FromQuery] int size, [FromQuery] bool includeDeleted = false)
+        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsPagedList([FromQuery] int Page, [FromQuery] int Size, [FromQuery] bool IncludeDeleted = false)
         {
-            (bool isSuccess, string message, IList<MaterialDto> materials, int totalMaterials) =
-                await _materialService.GetAllOrOnlyActiveMaterialsPagedListAsync(page, size, includeDeleted);
+            (bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalMaterials) =
+                await _materialService.GetAllOrOnlyActiveMaterialsPagedListAsync(Page, Size, IncludeDeleted);
 
-            if (!isSuccess || materials == default)
-                return NotFound(new { error = message, totalMaterials });
+            if (!IsSuccess || Materials == default)
+                return NotFound(new { error = Message, TotalMaterials });
 
-            return Ok(new { message, totalMaterials, materials });
+            return Ok(new { Message, TotalMaterials, Materials });
         }
 
         [HttpGet("GetDeletedMaterialsPagedList")]
-        public async Task<IActionResult> GetDeletedMaterialsPagedList([FromQuery] int page, [FromQuery] int size)
+        public async Task<IActionResult> GetDeletedMaterialsPagedList([FromQuery] int Page, [FromQuery] int Size)
         {
-            (bool isSuccess, string message, IList<MaterialDto> materials, int totalDeletedMaterials) =
-                await _materialService.GetDeletedMaterialsPagedListAsync(page, size);
+            (bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalDeletedMaterials) =
+                await _materialService.GetDeletedMaterialsPagedListAsync(Page, Size);
 
-            if (!isSuccess || materials == default)
-                return NotFound(new { error = message, totalDeletedMaterials });
+            if (!IsSuccess || Materials == default)
+                return NotFound(new { error = Message, TotalDeletedMaterials });
 
-            return Ok(new { message, totalDeletedMaterials, materials });
+            return Ok(new { Message, TotalDeletedMaterials, Materials });
         }
 
         [HttpPut("UpdateMaterial")]
-        public async Task<IActionResult> UpdateMaterial([FromBody] MaterialUpdateDto dto)
+        public async Task<IActionResult> UpdateMaterial([FromBody] MaterialUpdateDto Dto)
         {
-            (bool isSuccess, string? message) = await _materialService.UpdateAsync(dto);
+            (bool IsSuccess, string? Message) = await _materialService.UpdateAsync(Dto);
 
-            if (!isSuccess)
-                return BadRequest(new { error = message });
+            if (!IsSuccess)
+                return BadRequest(new { error = Message });
 
-            return Ok(new { message });
+            return Ok(new { Message });
         }
 
         [HttpDelete("SafeDeleteMaterial/{materialId}")]
         public async Task<IActionResult> SafeDeleteMaterial([FromRoute] Guid materialId)
         {
-            (bool isSuccess, string message) = await _materialService.SafeDeleteMaterialAsync(materialId);
+            (bool IsSuccess, string Message) = await _materialService.SafeDeleteMaterialAsync(materialId);
 
-            if (!isSuccess)
-                return BadRequest(new { error = message });
+            if (!IsSuccess)
+                return BadRequest(new { error = Message });
 
-            return Ok(new { message });
+            return Ok(new { Message });
         }
 
         [HttpPut("RestoreMaterial/{materialId}")]
         public async Task<IActionResult> RestoreMaterial([FromRoute] Guid materialId)
         {
-            (bool isSuccess, string message) = await _materialService.RestoreMaterialAsync(materialId);
+            (bool IsSuccess, string Message) = await _materialService.RestoreMaterialAsync(materialId);
 
-            if (!isSuccess)
-                return BadRequest(new { error = message });
+            if (!IsSuccess)
+                return BadRequest(new { error = Message });
 
-            return Ok(new { message });
+            return Ok(new { Message });
         }
     }
 }

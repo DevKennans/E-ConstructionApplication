@@ -16,18 +16,22 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             _mapper = mapper;
         }
 
-        public async Task<(bool IsSuccess, string? Message)> InsertAsync(string name)
+        public async Task<(bool IsSuccess, string Message)> InsertAsync(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return (false, "Category name cannot be empty.");
 
-            bool exists = await _unitOfWork
-                .GetReadRepository<Category>()
-                .GetAsync(
-                    predicate: c => c.Name.ToLower() == name.ToLower(),
-                    includeDeleted: true) is not null;
-            if (exists)
-                return (false, "A category with the same name already exists.");
+            Category? existingCategory = await _unitOfWork.GetReadRepository<Category>().GetAsync(
+                    enableTracking: false,
+                    includeDeleted: true,
+                    predicate: c => c.Name.ToLower() == name.Trim().ToLower());
+            if (existingCategory is not null)
+            {
+                if (!existingCategory.IsDeleted)
+                    return (false, "A category with the same name already exists and is active.");
+                else
+                    return (false, "A category with the same name already exists but is inactive. You can reactivate it.");
+            }
 
             Category category = new Category { Name = name };
 
@@ -38,13 +42,13 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
         }
 
         /* GetAllOrOnlyActiveCategoriesListAsync method can use for both only active or active and passive lists. */
-        public async Task<(bool isSuccess, string message, IList<CategoryDto> categories)> GetAllOrOnlyActiveCategoriesListAsync(bool includeDeleted = false)
+        public async Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories)> GetAllOrOnlyActiveCategoriesListAsync(bool includeDeleted = false)
         {
             IList<Category> categories = await _unitOfWork.GetReadRepository<Category>()
                 .GetAllAsync(
+                    enableTracking: false,
                     includeDeleted: includeDeleted,
-                    orderBy: q => q.OrderByDescending(c => c.InsertedDate),
-                    enableTracking: false);
+                    orderBy: q => q.OrderByDescending(c => c.InsertedDate));
             if (!categories.Any())
                 return (false, "No categories found.", default!);
 
@@ -53,18 +57,18 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
         }
 
         /* GetAllOrOnlyActiveCategoriesPagedListAsync method can use for both only active or active and passive lists. */
-        public async Task<(bool isSuccess, string message, IList<CategoryDto> categories, int totalCategories)> GetAllOrOnlyActiveCategoriesPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
+        public async Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalCategories)> GetAllOrOnlyActiveCategoriesPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
         {
             if (page < 1 || size < 1)
                 return (false, "Page and size must be greater than zero.", default!, 0);
 
             IList<Category> categories = await _unitOfWork.GetReadRepository<Category>()
                 .GetAllByPagingAsync(
-                    includeDeleted: includeDeleted,
-                    orderBy: q => q.OrderByDescending(c => c.InsertedDate),
                     enableTracking: false,
+                    includeDeleted: includeDeleted,
                     currentPage: page,
-                    pageSize: size);
+                    pageSize: size,
+                    orderBy: q => q.OrderByDescending(c => c.InsertedDate));
 
             int totalCategories = await _unitOfWork.GetReadRepository<Category>().CountAsync(includeDeleted: includeDeleted);
 
@@ -76,23 +80,23 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
         }
 
         /* GetDeletedCategoriesPagedListAsync method can use for only and only passive list. */
-        public async Task<(bool isSuccess, string message, IList<CategoryDto> categories, int totalDeletedCategories)> GetDeletedCategoriesPagedListAsync(int page = 1, int size = 5)
+        public async Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalDeletedCategories)> GetDeletedCategoriesPagedListAsync(int page = 1, int size = 5)
         {
             if (page < 1 || size < 1)
                 return (false, "Page and size must be greater than zero.", default!, 0);
 
             IList<Category> deletedCategories = await _unitOfWork.GetReadRepository<Category>()
                 .GetAllByPagingAsync(
-                    includeDeleted: true,
-                    orderBy: q => q.OrderByDescending(c => c.InsertedDate),
                     enableTracking: false,
+                    includeDeleted: true,
                     predicate: c => c.IsDeleted,
                     currentPage: page,
-                    pageSize: size);
+                    pageSize: size,
+                    orderBy: q => q.OrderByDescending(c => c.InsertedDate));
 
             int totalDeletedCategories = await _unitOfWork.GetReadRepository<Category>().CountAsync(
-                predicate: c => c.IsDeleted,
-                includeDeleted: true);
+                    includeDeleted: true,
+                    predicate: c => c.IsDeleted);
 
             if (!deletedCategories.Any())
                 return (false, "No deleted categories found.", default!, totalDeletedCategories);
@@ -101,7 +105,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, "Deleted categories retrieved successfully.", categoryDtos, totalDeletedCategories);
         }
 
-        public async Task<(bool isSuccess, string message)> UpdateCategoryAsync(Guid categoryId, string newName)
+        public async Task<(bool IsSuccess, string Message)> UpdateCategoryAsync(Guid categoryId, string newName)
         {
             if (string.IsNullOrWhiteSpace(newName))
                 return (false, "Category name cannot be empty.");
@@ -110,9 +114,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             Category? categoryToUpdate = await _unitOfWork.GetReadRepository<Category>()
                 .GetAsync(
-                    predicate: c => c.Id == categoryId,
                     enableTracking: true,
-                    includeDeleted: false);
+                    includeDeleted: false,
+                    predicate: c => c.Id == categoryId);
             if (categoryToUpdate is null)
                 return (false, $"Category with ID: {categoryId} not found or has been soft-deleted. Please reactivate the category before making any updates.");
 
@@ -122,8 +126,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             Category? existingCategory = await _unitOfWork.GetReadRepository<Category>()
                 .GetAsync(
-                predicate: c => c.Name.Trim().ToLower() == newName.ToLower() && c.Id != categoryId,
-                includeDeleted: true);
+                    enableTracking: false,
+                    includeDeleted: true,
+                    predicate: c => c.Name.Trim().ToLower() == newName.ToLower() && c.Id != categoryId);
             if (existingCategory is not null)
             {
                 if (existingCategory.IsDeleted)
@@ -140,12 +145,12 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, $"Category '{oldName}' has been successfully updated to '{newName}'.");
         }
 
-        public async Task<(bool isSuccess, string message)> SafeDeleteCategoryAsync(Guid categoryId)
+        public async Task<(bool IsSuccess, string Message)> SafeDeleteCategoryAsync(Guid categoryId)
         {
             Category? category = await _unitOfWork.GetReadRepository<Category>().GetAsync(
-                predicate: c => c.Id == categoryId,
                 enableTracking: true,
-                includeDeleted: true);
+                includeDeleted: true,
+                predicate: c => c.Id == categoryId);
             if (category is null)
                 return (false, "Category not found.");
             if (category.IsDeleted)
@@ -156,9 +161,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             IList<Material> materials = await _unitOfWork.GetReadRepository<Material>()
                 .GetAllAsync(
-                    predicate: m => m.CategoryId == categoryId && !m.IsDeleted,
                     enableTracking: true,
-                    includeDeleted: true);
+                    includeDeleted: true,
+                    predicate: m => m.CategoryId == categoryId && !m.IsDeleted);
 
             foreach (Material material in materials)
             {
@@ -177,13 +182,13 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, materialMessage);
         }
 
-        public async Task<(bool isSuccess, string message)> RestoreDeletedCategoryAsync(Guid categoryId)
+        public async Task<(bool IsSuccess, string Message)> RestoreDeletedCategoryAsync(Guid categoryId)
         {
             Category? category = await _unitOfWork.GetReadRepository<Category>()
                 .GetAsync(
-                    predicate: c => c.Id == categoryId && c.IsDeleted,
                     enableTracking: true,
-                    includeDeleted: true);
+                    includeDeleted: true,
+                    predicate: c => c.Id == categoryId && c.IsDeleted);
             if (category is null)
                 return (false, "Category not found or already active.");
 
@@ -192,9 +197,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             IList<Material> materials = await _unitOfWork.GetReadRepository<Material>()
                 .GetAllAsync(
-                    predicate: m => m.CategoryId == categoryId && m.IsDeleted,
                     enableTracking: true,
-                    includeDeleted: true);
+                    includeDeleted: true,
+                    predicate: m => m.CategoryId == categoryId && m.IsDeleted);
 
             foreach (Material material in materials)
             {

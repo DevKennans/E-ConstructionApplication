@@ -7,9 +7,11 @@ namespace EConstructionApp.Infrastructure.AutoMapper.Profiles.Employee
     {
         public EmployeeProfile()
         {
-            CreateMap<EmployeeInsertDto, Domain.Entities.Employee>();
+            CreateMap<EmployeeInsertDto, Domain.Entities.Employee>().ReverseMap();
 
-            CreateMap<Domain.Entities.Employee, EmployeeDto>();
+            CreateMap<EmployeeDto, Domain.Entities.Employee>().ReverseMap();
+
+            CreateMap<EmployeeUpdateDto, Domain.Entities.Employee>().ReverseMap();
         }
     }
 }
