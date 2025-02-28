@@ -12,7 +12,7 @@ namespace EConstructionApp.Domain.Entities
         public string Address { get; set; }
         public decimal Salary { get; set; }
 
-        public bool IsCurrentlyWorking { get; set; }
+        public bool IsCurrentlyWorking { get; set; } = false;
 
         public bool IsDeleted { get; set; } = false;
 

@@ -43,7 +43,6 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 return (false, string.Join(" ", validationErrors));
 
             Employee employee = _mapper.Map<Employee>(dto);
-            employee.IsCurrentlyWorking = false;
 
             await _unitOfWork.GetWriteRepository<Employee>().AddAsync(employee);
             await _unitOfWork.SaveAsync();
