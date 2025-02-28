@@ -1,0 +1,31 @@
+﻿using EConstructionApp.Application.DTOs.Tasks;
+using EConstructionApp.Application.Interfaces.Services.Entities;
+using Microsoft.AspNetCore.Mvc;
+
+namespace EConstructionApp.WebAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TaskController : ControllerBase
+    {
+        private readonly ITaskService _taskService;
+        public TaskController(ITaskService taskService)
+        {
+            _taskService = taskService;
+        }
+
+        [HttpPost("InsertTask")]
+        public async Task<IActionResult> InsertTask(TaskInsertDto dto)
+        {
+            if (dto is null)
+                return BadRequest("Invalid task data.");
+
+            (bool isSuccess, string message) = await _taskService.InsertAsync(dto);
+
+            if (!isSuccess)
+                return BadRequest(new { Success = false, Message = message });
+
+            return Ok(new { Success = true, Message = message });
+        }
+    }
+}

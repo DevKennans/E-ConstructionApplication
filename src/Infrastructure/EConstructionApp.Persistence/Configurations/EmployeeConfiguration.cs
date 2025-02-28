@@ -9,14 +9,17 @@ namespace EConstructionApp.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Employee> builder)
         {
             builder.HasKey(e => e.Id);
+
             builder.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
             builder.Property(e => e.LastName).IsRequired().HasMaxLength(100);
             builder.Property(e => e.DateOfBirth).IsRequired();
             builder.Property(e => e.PhoneNumber).HasMaxLength(15);
             builder.Property(e => e.Address).HasMaxLength(250);
             builder.Property(e => e.Salary).IsRequired();
-            builder.Property(e => e.IsDeleted).IsRequired();
-            builder.Property(e => e.IsCurrentlyWorking).IsRequired();
+
+            builder.Property(e => e.IsCurrentlyWorking).IsRequired().HasDefaultValue(false);
+
+            builder.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
 
             builder.HasOne(e => e.CurrentTask)
                 .WithMany(t => t.Employees)

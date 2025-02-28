@@ -9,10 +9,14 @@ namespace EConstructionApp.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Material> builder)
         {
             builder.HasKey(m => m.Id);
-            builder.Property(m => m.Name).IsRequired().HasMaxLength(150);
+
+            builder.Property(m => m.Name).IsRequired().HasMaxLength(250);
             builder.Property(m => m.Price).IsRequired().HasColumnType("decimal(18,2)");
             builder.Property(m => m.StockQuantity).IsRequired().HasColumnType("decimal(18,2)");
+
             builder.Property(m => m.Measure).IsRequired();
+
+            builder.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
 
             builder.HasOne(m => m.Category)
                 .WithMany(c => c.Materials)
