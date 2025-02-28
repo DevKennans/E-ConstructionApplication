@@ -3,6 +3,7 @@ using EConstructionApp.Application.DTOs.Materials;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
 using EConstructionApp.Domain.Entities;
+using EConstructionApp.Domain.Entities.Cross;
 using Microsoft.EntityFrameworkCore;
 
 namespace EConstructionApp.Persistence.Concretes.Services.Entities
@@ -202,6 +203,12 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 return (false, "Material not found.");
             if (material.IsDeleted)
                 return (false, "Material is already marked as deleted.");
+
+            MaterialTask isMaterialAssignedToAnyTask = await _unitOfWork.GetReadRepository<MaterialTask>().GetAsync(
+                    enableTracking: false,
+                    predicate: mt => mt.MaterialId == materialId);
+            if (isMaterialAssignedToAnyTask is not null)
+                return (false, $"Material '{material.Name}' cannot be deleted because it is assigned to one or more tasks.");
 
             material.IsDeleted = true;
 
