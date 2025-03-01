@@ -20,12 +20,21 @@ namespace EConstructionApp.WebAPI.Controllers
             if (dto is null)
                 return BadRequest("Invalid task data.");
 
-            (bool isSuccess, string message) = await _taskService.InsertAsync(dto);
+            (bool IsSuccess, string Message) = await _taskService.InsertAsync(dto);
+            if (!IsSuccess)
+                return BadRequest(new { Success = false, Message });
 
-            if (!isSuccess)
-                return BadRequest(new { Success = false, Message = message });
+            return Ok(new { Success = true, Message });
+        }
 
-            return Ok(new { Success = true, Message = message });
+        [HttpGet("GetAllActiveTasksList")]
+        public async Task<IActionResult> GetAllActiveTasksList()
+        {
+            (bool IsSuccess, string Message, IList<TaskDto> Tasks) = await _taskService.GetAllActiveTasksListAsync();
+            if (!IsSuccess)
+                return NotFound(new { Message });
+
+            return Ok(new { Message, Tasks });
         }
     }
 }
