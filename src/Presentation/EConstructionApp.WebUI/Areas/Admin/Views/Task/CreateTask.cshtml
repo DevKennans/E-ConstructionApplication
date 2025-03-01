@@ -1,0 +1,313 @@
+﻿@model EConstructionApp.WebUI.Areas.Admin.Models.TaskCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Task";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Create New Task</h2>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show text-center" role="alert" id="errorMessage">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show text-center" role="alert" id="successMessage">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form id="taskForm" method="post" class="card p-4 shadow">
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label" for="AssignedBy">Assigned By:</label>
+                    <input type="text" id="AssignedBy" name="Task.AssignedBy" class="form-control" placeholder="Enter assigned by (max 200 chars)" required maxlength="200" />
+                    @Html.ValidationMessageFor(model => model.Task.AssignedBy, "", new { @class = "invalid-feedback" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="AssignedByPhone">Phone:</label>
+                    <input type="text" id="AssignedByPhone" name="Task.AssignedByPhone" class="form-control"
+                           pattern="^\+(\d{1,3})\s?(\d{9,15})$"
+                           title="Phone number must be in the format +994553618907 (e.g., country code followed by a valid number)"
+                           placeholder="Enter phone number (max 15 digits)" required maxlength="15" />
+                    @Html.ValidationMessageFor(model => model.Task.AssignedByPhone, "", new { @class = "invalid-feedback" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="AssignedByEmail">Email:</label>
+                    <input type="email" id="AssignedByEmail" name="Task.AssignedByEmail" class="form-control" placeholder="Enter email (max 150 chars)" required maxlength="150" />
+                    @Html.ValidationMessageFor(model => model.Task.AssignedByEmail, "", new { @class = "invalid-feedback" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="AssignedByAddress">Address:</label>
+                    <input type="text" id="AssignedByAddress" name="Task.AssignedByAddress" class="form-control" placeholder="Enter address (max 250 chars)" required maxlength="250" />
+                    @Html.ValidationMessageFor(model => model.Task.AssignedByAddress, "", new { @class = "invalid-feedback" })
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label" for="Title">Title:</label>
+                    <input type="text" id="Title" name="Task.Title" class="form-control" placeholder="Enter task title (max 250 chars)" required maxlength="250" />
+                    @Html.ValidationMessageFor(model => model.Task.Title, "", new { @class = "invalid-feedback" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="Description">Description:</label>
+                    <textarea id="Description" name="Task.Description" class="form-control" rows="3" placeholder="Enter task description (max 1000 chars)" required maxlength="1000"></textarea>
+                    @Html.ValidationMessageFor(model => model.Task.Description, "", new { @class = "invalid-feedback" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="Deadline">Deadline:</label>
+                    <input type="date" id="Deadline" name="Task.Deadline" class="form-control" placeholder="Pick a deadline (must be after tomorrow)" required />
+                    @Html.ValidationMessageFor(model => model.Task.Deadline, "", new { @class = "invalid-feedback" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="Priority">Priority:</label>
+                    <select id="Priority" name="Task.Priority" class="form-select" required>
+                        <option value="" disabled selected>Select a priority</option>
+                        <option value="0">Low</option>
+                        <option value="1">Medium</option>
+                        <option value="2">High</option>
+                        <option value="3">Critical</option>
+                    </select>
+                    @Html.ValidationMessageFor(model => model.Task.Priority, "", new { @class = "invalid-feedback" })
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <label class="form-label" for="EmployeeIds">Employees:</label>
+            <select id="EmployeeIds" name="Task.EmployeeIds" class="form-select" multiple>
+                @if (Model.Employees != null && Model.Employees.Any())
+                {
+                    @foreach (var emp in Model.Employees)
+                    {
+                        <option value="@emp.Id">@emp.FirstName @emp.LastName</option>
+                    }
+                }
+                else
+                {
+                    <option disabled>No employees available</option>
+                }
+            </select>
+            @Html.ValidationMessageFor(model => model.Task.EmployeeIds, "", new { @class = "invalid-feedback" })
+        </div>
+
+        <div class="mt-4">
+            <h5>Materials:</h5>
+            <div id="materialsContainer"></div>
+            <button type="button" class="btn btn-outline-primary mt-2" onclick="addMaterial()">+ Add Material</button>
+        </div>
+
+        <button type="submit" class="btn btn-success mt-4 w-100">Submit</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+   
+    document.addEventListener('DOMContentLoaded', function () {
+        var today = new Date();
+        var tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        var year = tomorrow.getFullYear();
+        var month = ('0' + (tomorrow.getMonth() + 1)).slice(-2);
+        var day = ('0' + tomorrow.getDate()).slice(-2);
+        var minDate = year + '-' + month + '-' + day;
+
+        document.getElementById('Deadline').setAttribute('min', minDate);
+        const successMessage = document.querySelector('#successMessage');
+        const errorMessage = document.querySelector('#errorMessage');
+
+        if (successMessage) {
+            setTimeout(() => {
+                successMessage.classList.remove('show');
+                successMessage.classList.add('fade');
+                setTimeout(() => successMessage.remove(), 500);
+            }, 3000);
+        }
+
+        if (errorMessage) {
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+                errorMessage.classList.add('fade');
+                setTimeout(() => errorMessage.remove(), 500);
+            }, 3000);
+        }
+    });
+
+    let selectedMaterialIds = [];
+
+    function addMaterial() {
+        let container = $("#materialsContainer");
+        let index = container.children().length;
+        let div = $(`
+            <div class="d-flex gap-2 mt-2 material-item">
+                <select class="form-select materialSelect" name="Task.MaterialAssignments[${index}].MaterialId">
+                    <option value="" disabled selected>Choose Material</option>
+                </select>
+                <input type="number" name="Task.MaterialAssignments[${index}].Quantity" class="form-control" min="1" step="1" placeholder="Quantity" value="1">
+                <button type="button" class="btn btn-danger remove-material">Remove</button>
+            </div>
+        `);
+        container.append(div);
+        loadMaterials(div.find(".materialSelect"));
+        updateMaterialSelections();
+    }
+
+    function loadMaterials(selectElement) {
+        let materials = @Html.Raw(Json.Serialize(Model.Materials));
+
+        selectElement.empty();
+        selectElement.append(new Option('Choose Material', '', true, true));
+
+        materials.forEach(mat => {
+            let optionText = `${mat.name} - ${mat.category.name}`;
+            let option = new Option(optionText, mat.id);
+            if (selectedMaterialIds.includes(mat.id)) {
+                option.disabled = true;
+            }
+            selectElement.append(option);
+        });
+
+        selectElement.on('change', function () {
+            let prevValue = $(this).data('prevValue');
+            let selectedValue = $(this).val();
+
+            if (prevValue) {
+                selectedMaterialIds = selectedMaterialIds.filter(id => id !== prevValue);
+            }
+
+            if (selectedValue && !selectedMaterialIds.includes(selectedValue)) {
+                selectedMaterialIds.push(selectedValue);
+                $(this).data('prevValue', selectedValue);
+            }
+
+            updateMaterialSelections();
+        });
+    }
+
+    $(document).on('click', '.remove-material', function () {
+        let parentDiv = $(this).closest('.material-item');
+        let selectedMaterialId = parentDiv.find('.materialSelect').val();
+
+        if (selectedMaterialId) {
+            selectedMaterialIds = selectedMaterialIds.filter(id => id !== selectedMaterialId);
+        }
+
+        parentDiv.remove();
+        updateMaterialSelections();
+    });
+
+    function updateMaterialSelections() {
+        $(".materialSelect").each(function () {
+            let currentVal = $(this).val();
+
+            $(this).find("option").each(function () {
+                let optionVal = $(this).val();
+                console.log(optionVal);
+                if (optionVal && selectedMaterialIds.includes(optionVal) && optionVal !== currentVal) {
+                    $(this).prop("disabled", true);
+                } else {
+                    $(this).prop("disabled", false);
+                }
+            });
+        });
+    }
+
+</script>
+<style>
+    .invalid-feedback {
+        display: block;
+        font-size: 0.875rem;
+        color: #dc3545;
+    }
+
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: #dc3545;
+    }
+
+    .form-label {
+        font-weight: bold;
+    }
+
+    body {
+        background-color: #f4f6f9;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .container {
+        max-width: 700px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background: white;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 16px;
+        transition: 0.3s;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #218838);
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #218838, #1e7e34);
+            transform: scale(1.03);
+        }
+
+    .btn-outline-primary {
+        border-radius: 8px;
+        transition: 0.3s;
+    }
+
+        .btn-outline-primary:hover {
+            background: #007bff;
+            color: white;
+            transform: scale(1.05);
+        }
+
+    .remove-material {
+        background: #dc3545;
+        color: white;
+        border-radius: 8px;
+        transition: 0.3s;
+    }
+
+        .remove-material:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+</style>
