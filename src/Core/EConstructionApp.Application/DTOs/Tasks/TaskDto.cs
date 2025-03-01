@@ -23,6 +23,8 @@ namespace EConstructionApp.Application.DTOs.Tasks
         public TaskPriority Priority { get; set; }
         public TaskStatus Status { get; set; }
 
+        public decimal TotalCost { get; set; }
+
         public bool IsDeleted { get; set; }
 
         public IList<EmployeeDto> Employees { get; set; } = new List<EmployeeDto>();
