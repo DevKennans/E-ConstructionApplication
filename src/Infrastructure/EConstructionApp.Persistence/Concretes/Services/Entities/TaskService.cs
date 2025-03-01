@@ -65,6 +65,19 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 return (false, "No active tasks found.", default!);
 
             IList<TaskDto> taskDtos = _mapper.Map<IList<TaskDto>>(tasks);
+            foreach (TaskDto taskDto in taskDtos)
+            {
+                Task? correspondingTask = tasks.FirstOrDefault(t => t.Id == taskDto.Id);
+                if (correspondingTask is null)
+                    continue;
+
+                decimal totalCost = correspondingTask.MaterialTasks
+                    .Where(mt => mt.Material is not null)
+                    .Sum(mt => mt.Quantity * mt.Material.Price);
+
+                taskDto.TotalCost = totalCost;
+            }
+
             return (true, "Active tasks retrieved successfully.", taskDtos);
         }
 
