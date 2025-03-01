@@ -17,6 +17,6 @@ namespace EConstructionApp.Application.DTOs.Tasks
         public TaskPriority Priority { get; set; }
 
         public List<Guid>? EmployeeIds { get; set; }
-        public List<MaterialAssignmentDto>? MaterialAssignments { get; set; }
+        public List<MaterialAssignmentInsertDto>? MaterialAssignments { get; set; }
     }
 }

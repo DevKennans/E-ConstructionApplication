@@ -15,13 +15,12 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("InsertMaterial")]
-        public async Task<IActionResult> InsertMaterial([FromBody] MaterialInsertDto Dto)
+        public async Task<IActionResult> InsertMaterial([FromBody] MaterialInsertDto dto)
         {
-            if (Dto is null)
+            if (dto is null)
                 return BadRequest(new { error = "Invalid material data." });
 
-            (bool IsSuccess, string? Message) = await _materialService.InsertAsync(Dto);
-
+            (bool IsSuccess, string? Message) = await _materialService.InsertAsync(dto);
             if (!IsSuccess)
                 return BadRequest(new { error = Message });
 
@@ -29,11 +28,10 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetAllOrOnlyActiveMaterialsList")]
-        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsList([FromQuery] bool IncludeDeleted = false)
+        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsList()
         {
             (bool IsSuccess, string Message, IList<MaterialDto> Materials) =
-                await _materialService.GetAllOrOnlyActiveMaterialsListAsync(IncludeDeleted);
-
+                await _materialService.GetAvailableMaterialsListAsync();
             if (!IsSuccess || Materials == default)
                 return NotFound(new { error = Message });
 
@@ -45,7 +43,6 @@ namespace EConstructionApp.WebAPI.Controllers
         {
             (bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalMaterials) =
                 await _materialService.GetAllOrOnlyActiveMaterialsPagedListAsync(Page, Size, IncludeDeleted);
-
             if (!IsSuccess || Materials == default)
                 return NotFound(new { error = Message, TotalMaterials });
 
@@ -57,7 +54,6 @@ namespace EConstructionApp.WebAPI.Controllers
         {
             (bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalDeletedMaterials) =
                 await _materialService.GetDeletedMaterialsPagedListAsync(Page, Size);
-
             if (!IsSuccess || Materials == default)
                 return NotFound(new { error = Message, TotalDeletedMaterials });
 
@@ -67,8 +63,7 @@ namespace EConstructionApp.WebAPI.Controllers
         [HttpPut("UpdateMaterial")]
         public async Task<IActionResult> UpdateMaterial([FromBody] MaterialUpdateDto Dto)
         {
-            (bool IsSuccess, string? Message) = await _materialService.UpdateAsync(Dto);
-
+            (bool IsSuccess, string Message) = await _materialService.UpdateAsync(Dto);
             if (!IsSuccess)
                 return BadRequest(new { error = Message });
 
@@ -79,7 +74,6 @@ namespace EConstructionApp.WebAPI.Controllers
         public async Task<IActionResult> SafeDeleteMaterial([FromRoute] Guid materialId)
         {
             (bool IsSuccess, string Message) = await _materialService.SafeDeleteMaterialAsync(materialId);
-
             if (!IsSuccess)
                 return BadRequest(new { error = Message });
 
@@ -90,7 +84,6 @@ namespace EConstructionApp.WebAPI.Controllers
         public async Task<IActionResult> RestoreMaterial([FromRoute] Guid materialId)
         {
             (bool IsSuccess, string Message) = await _materialService.RestoreMaterialAsync(materialId);
-
             if (!IsSuccess)
                 return BadRequest(new { error = Message });
 

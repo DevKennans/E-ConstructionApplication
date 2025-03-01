@@ -62,12 +62,13 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, $"Material '{dto.Name.Trim()}' has been successfully inserted under category '{category.Name}'.");
         }
 
-        /* GetAllOrOnlyActiveMaterialsListAsync method can use for both only active or active and passive lists. */
-        public async Task<(bool IsSuccess, string Message, IList<MaterialDto> Materials)> GetAllOrOnlyActiveMaterialsListAsync(bool includeDeleted = false)
+        /* GetAvailableMaterialsListAsync method can use for all available materials list for assign any task. */
+        public async Task<(bool IsSuccess, string Message, IList<MaterialDto> Materials)> GetAvailableMaterialsListAsync()
         {
             IList<Material> materials = await _unitOfWork.GetReadRepository<Material>().GetAllAsync(
                     enableTracking: false,
-                    includeDeleted: includeDeleted,
+                    includeDeleted: false,
+                    predicate: m => !m.IsDeleted && m.StockQuantity > 0,
                     include: entity => entity.Include(m => m.Category),
                     orderBy: q => q.OrderByDescending(m => m.InsertedDate));
             if (!materials.Any())

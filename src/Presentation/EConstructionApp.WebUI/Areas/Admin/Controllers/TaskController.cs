@@ -24,7 +24,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         public async Task<IActionResult> CreateTask()
         {
             var employeeResult = await _employeeService.GetAvailableEmployeesListAsync();
-            var materialResult = await _materialService.GetAllOrOnlyActiveMaterialsListAsync();
+            var materialResult = await _materialService.GetAvailableMaterialsListAsync();
 
             var model = new TaskCreateViewModel
             {
@@ -45,7 +45,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
             var (isSuccess, message) = await _taskService.InsertAsync(model.Task);
             var employeeResult = await _employeeService.GetAvailableEmployeesListAsync();
-            var materialResult = await _materialService.GetAllOrOnlyActiveMaterialsListAsync();
+            var materialResult = await _materialService.GetAvailableMaterialsListAsync();
 
             model.Employees = employeeResult.Employees;
             model.Materials = materialResult.Materials;

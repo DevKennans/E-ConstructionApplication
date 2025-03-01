@@ -18,7 +18,6 @@ namespace EConstructionApp.WebAPI.Controllers
         public async Task<IActionResult> InsertEmployee([FromBody] EmployeeInsertDto Dto)
         {
             (bool IsSuccess, string Message) = await _employeeService.InsertAsync(Dto);
-
             if (!IsSuccess)
                 return BadRequest(new { error = Message });
 
@@ -29,7 +28,6 @@ namespace EConstructionApp.WebAPI.Controllers
         public async Task<IActionResult> GetAvailableEmployeesList()
         {
             (bool IsSuccess, string Message, IList<EmployeeDto> Employees) = await _employeeService.GetAvailableEmployeesListAsync();
-
             if (!IsSuccess)
                 return NotFound(new { error = Message });
 
@@ -40,7 +38,6 @@ namespace EConstructionApp.WebAPI.Controllers
         public async Task<IActionResult> GetAllOrOnlyActiveEmployeesPagedList([FromQuery] int Page, [FromQuery] int Size, [FromQuery] bool IncludeDeleted = false)
         {
             (bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalEmployees) = await _employeeService.GetAllOrOnlyActiveEmployeesPagedListAsync(Page, Size, IncludeDeleted);
-
             if (!IsSuccess || Employees == default)
                 return NotFound(new { error = Message, TotalEmployees });
 
@@ -51,7 +48,6 @@ namespace EConstructionApp.WebAPI.Controllers
         public async Task<IActionResult> GetDeletedEmployeesPagedList([FromQuery] int Page, [FromQuery] int Size)
         {
             (bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalDeletedEmployees) = await _employeeService.GetDeletedEmployeesPagedListAsync(Page, Size);
-
             if (!IsSuccess)
                 return NotFound(new { error = Message, TotalDeletedEmployees });
 
@@ -61,8 +57,7 @@ namespace EConstructionApp.WebAPI.Controllers
         [HttpPut("UpdateEmployee")]
         public async Task<IActionResult> UpdateEmployee([FromBody] EmployeeUpdateDto Dto)
         {
-            (bool IsSuccess, string? Message) = await _employeeService.UpdateAsync(Dto);
-
+            (bool IsSuccess, string Message) = await _employeeService.UpdateAsync(Dto);
             if (!IsSuccess)
                 return BadRequest(new { error = Message });
 
@@ -72,23 +67,21 @@ namespace EConstructionApp.WebAPI.Controllers
         [HttpDelete("SafeDeleteEmployee/{employeeId}")]
         public async Task<IActionResult> SafeDeleteEmployee(Guid employeeId)
         {
-            (bool isSuccess, string message) = await _employeeService.SafeDeleteEmployeeAsync(employeeId);
+            (bool IsSuccess, string Message) = await _employeeService.SafeDeleteEmployeeAsync(employeeId);
+            if (!IsSuccess)
+                return BadRequest(new { Message });
 
-            if (!isSuccess)
-                return BadRequest(new { message });
-
-            return Ok(new { message });
+            return Ok(new { Message });
         }
 
         [HttpPut("RestoreEmployee/{employeeId}")]
         public async Task<IActionResult> RestoreEmployee(Guid employeeId)
         {
-            (bool isSuccess, string message) = await _employeeService.RestoreEmployeeAsync(employeeId);
+            (bool IsSuccess, string Message) = await _employeeService.RestoreEmployeeAsync(employeeId);
+            if (!IsSuccess)
+                return BadRequest(new { Message });
 
-            if (!isSuccess)
-                return BadRequest(new { message });
-
-            return Ok(new { message });
+            return Ok(new { Message });
         }
     }
 }
