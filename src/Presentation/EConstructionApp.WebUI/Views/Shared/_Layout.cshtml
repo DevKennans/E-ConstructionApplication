@@ -114,6 +114,20 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="nav-item has-treeview">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-tasks"></i>
+                                <p>Task<i class="right fas fa-angle-left"></i></p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a asp-area="Admin" asp-controller="Task" asp-action="CreateTask" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Create Task</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="nav-icon fas fa-user-clock"></i>
@@ -121,10 +135,11 @@
                             </a>
                         </li>
                         <li class="nav-item has-treeview">
-                            <a href="#" class="nav-link">
+                            <a href="#" class="nav-link" style="color: #f44336;">
                                 <i class="nav-icon fas fa-trash-alt"></i>
                                 <p>Recycle Bin<i class="right fas fa-angle-left"></i></p>
                             </a>
+
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
                                     <a asp-area="Admin" asp-controller="Employee" asp-action="GetDeletedEmployees" class="nav-link">
