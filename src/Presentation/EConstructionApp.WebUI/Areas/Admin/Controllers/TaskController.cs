@@ -61,5 +61,15 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> GetTasks()
+        {
+            var result = await _taskService.GetAllActiveTasksListAsync();
+            if (!result.IsSuccess)
+            {
+                TempData["ErrorMessage"] = result.Message;
+                return View(new List<TaskDto>());
+            }
+            return View(result.Tasks);
+        }
     }
 }
