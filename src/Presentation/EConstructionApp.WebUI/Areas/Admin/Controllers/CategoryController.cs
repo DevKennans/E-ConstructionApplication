@@ -37,7 +37,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
             if (!isSuccess || categories == null)
             {
-                ViewBag.Error = message;
+                TempData["ErrorMessage"] = message;
                 return View(new CategoryListViewModel
                 {
                     Categories = new List<CategoryDto>(), 

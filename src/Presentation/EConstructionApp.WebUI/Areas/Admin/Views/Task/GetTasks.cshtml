@@ -1,0 +1,204 @@
+﻿@model IList<EConstructionApp.Application.DTOs.Tasks.TaskDto>
+
+@{
+    ViewData["Title"] = "Active Tasks";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="text-center mt-4">🚀 Active Tasks</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-warning text-center">
+        No active tasks found.
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="row">
+            @foreach (var task in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card task-card shadow-sm h-100 d-flex flex-column">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">@task.Title</h5>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <p class="text-muted">@task.Description</p>
+
+                            <div class="task-info">
+                                <p><strong>📌 Assigned By:</strong> @task.AssignedBy</p>
+                                <p><strong>⏳ Deadline:</strong> @task.Deadline</p>
+                                <p><strong>🔥 Priority:</strong> <span class="badge bg-danger">@task.Priority</span></p>
+                                <p><strong>⚙️ Status:</strong> <span class="badge bg-success">@task.Status</span></p>
+                                <p><strong>💰 Total Cost:</strong> <span class="text-success">$@task.TotalCost.ToString("N2")</span></p>
+                            </div>
+
+                            <h6 class="mt-3"><strong>👷 Employees:</strong></h6>
+                            @if (task.Employees != null && task.Employees.Any())
+                            {
+                                <ul class="list-group list-group-flush" style="max-height: 150px; overflow-y: auto;">
+                                    @foreach (var employee in task.Employees)
+                                    {
+                                        <li class="list-group-item">@employee.FirstName @employee.LastName</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No employees assigned.</p>
+                            }
+
+                            <h6 class="mt-3"><strong>🔨 Materials Used:</strong></h6>
+                            @if (task.MaterialAssignments != null && task.MaterialAssignments.Any())
+                            {
+                                <ul class="list-group list-group-flush" style="max-height: 150px; overflow-y: auto;">
+                                    @foreach (var material in task.MaterialAssignments)
+                                    {
+                                        <li class="list-group-item">@material.Material.Name, @material.Material.Category.Name [@material.Quantity]</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No materials assigned.</p>
+                            }
+
+                            <div class="d-flex flex-column mt-auto">
+                                <button class="btn btn-primary mb-2 edit-datas-btn"
+                                        data-id="@task.Id"
+                                        data-title="@task.Title"
+                                        data-description="@task.Description"
+                                        data-assignedby="@task.AssignedBy"
+                                        data-deadline="@task.Deadline.ToString("yyyy-MM-dd")"
+                                        data-priority="@task.Priority"
+                                        data-status="@task.Status"
+                                        data-totalcost="@task.TotalCost">
+                                    <i class="fas fa-edit"></i> Edit Datas
+                                </button>
+                                <button class="btn btn-warning mb-2 edit-material-btn" data-material="@task.MaterialAssignments">
+                                    <i class="fas fa-box"></i> Edit Material
+                                </button>
+                                <button class="btn btn-success mb-2 edit-employee-btn" data-employee="@task.Employees">
+                                    <i class="fas fa-user-cog"></i> Edit Employee
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm">
+                    <input type="hidden" id="taskId">
+
+                    <div class="form-group">
+                        <label for="taskTitle">Title</label>
+                        <input type="text" class="form-control" id="taskTitle">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDescription">Description</label>
+                        <textarea class="form-control" id="taskDescription"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskAssignedBy">Assigned By</label>
+                        <input type="text" class="form-control" id="taskAssignedBy">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDeadline">Deadline</label>
+                        <input type="date" class="form-control" id="taskDeadline">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskPriority">Priority</label>
+                        <select class="form-control" id="taskPriority">
+                            <option value="0">Low</option>
+                            <option value="1">Medium</option>
+                            <option value="2">High</option>
+                            <option value="3">Critical</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskStatus">Status</label>
+                        <input type="text" class="form-control" id="taskStatus">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskTotalCost">Total Cost</label>
+                        <input type="number" class="form-control" id="taskTotalCost">
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 mt-3">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const errorMessage = document.querySelector('.alert-danger');
+        if (errorMessage) {
+            setTimeout(() => {
+                errorMessage.classList.add('fade');
+                errorMessage.classList.remove('show');
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        document.querySelectorAll('.edit-datas-btn, .edit-material-btn, .edit-employee-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                if (this.classList.contains('edit-datas-btn')) {
+                    document.getElementById('taskId').value = this.dataset.id;
+                    document.getElementById('taskTitle').value = this.dataset.title;
+                    document.getElementById('taskDescription').value = this.dataset.description;
+                    document.getElementById('taskAssignedBy').value = this.dataset.assignedby;
+                    document.getElementById('taskDeadline').value = this.dataset.deadline;
+
+                    const priorityValue = this.dataset.priority;
+                    console.log("Priority Value:", priorityValue); 
+                    document.getElementById('taskPriority').value = priorityValue;
+
+                    document.getElementById('taskStatus').value = this.dataset.status;
+                    document.getElementById('taskTotalCost').value = this.dataset.totalcost;
+                    $('#editTaskModal').modal('show');
+                }
+                else if (this.classList.contains('edit-material-btn')) {
+                    console.log("Edit Material button clicked", this.dataset.material);
+                }
+                else if (this.classList.contains('edit-employee-btn')) {
+                    console.log("Edit Employee button clicked", this.dataset.employee);
+                }
+            });
+        });
+    });
+</script>
