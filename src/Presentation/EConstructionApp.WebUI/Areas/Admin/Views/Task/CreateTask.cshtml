@@ -81,10 +81,10 @@
                     <label class="form-label" for="Priority">Priority:</label>
                     <select id="Priority" name="Task.Priority" class="form-select" required>
                         <option value="" disabled selected>Select a priority</option>
-                        <option value="0">Low</option>
-                        <option value="1">Medium</option>
-                        <option value="2">High</option>
-                        <option value="3">Critical</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
                     </select>
                     @Html.ValidationMessageFor(model => model.Task.Priority, "", new { @class = "invalid-feedback" })
                 </div>
