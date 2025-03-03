@@ -27,6 +27,19 @@ namespace EConstructionApp.WebAPI.Controllers
             return Ok(new { Success = true, Message });
         }
 
+        [HttpPut("UpdateMaterial")]
+        public async Task<IActionResult> UpdateTaskDetails([FromBody] TaskDetailsUpdateDto dto)
+        {
+            if (dto is null)
+                return BadRequest("Invalid request data.");
+
+            (bool IsSuccess, string Message) = await _taskService.UpdateTaskDetailsAsync(dto);
+            if (!IsSuccess)
+                return BadRequest(Message);
+
+            return Ok(Message);
+        }
+
         [HttpGet("GetTaskCounts")]
         public async Task<IActionResult> GetTaskCounts()
         {

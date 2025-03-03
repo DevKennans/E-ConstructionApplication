@@ -48,52 +48,6 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, GenerateTaskCreationSuccessMessage(task.Title, employeeResult.AssignedCount, materialResult.AssignedCount));
         }
 
-        public async Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTaskCountsAsync()
-        {
-            int totalTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(includeDeleted: true);
-            if (totalTasks == 0)
-                return (false, "No tasks found.", 0, 0);
-
-            int activeTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(
-                includeDeleted: false,
-                predicate: c => !c.IsDeleted);
-
-            return (true, "Task counts retrieved successfully.", activeTasks, totalTasks);
-        }
-
-        /* GetAllActiveTasksListAsync method can use for only and only active list. */
-        public async Task<(bool IsSuccess, string Message, IList<TaskDto> Tasks)> GetAllActiveTasksListAsync()
-        {
-            IList<Task> tasks = await _unitOfWork.GetReadRepository<Task>().GetAllAsync(
-                    enableTracking: false,
-                    includeDeleted: true,
-                    predicate: t => !t.IsDeleted,
-                    include: q => q
-                        .Include(t => t.Employees)
-                        .Include(t => t.MaterialTasks)
-                            .ThenInclude(mt => mt.Material)
-                                .ThenInclude(m => m.Category),
-                    orderBy: q => q.OrderByDescending(t => t.InsertedDate));
-            if (!tasks.Any())
-                return (false, "No active tasks found.", default!);
-
-            IList<TaskDto> taskDtos = _mapper.Map<IList<TaskDto>>(tasks);
-            foreach (TaskDto taskDto in taskDtos)
-            {
-                Task? correspondingTask = tasks.FirstOrDefault(t => t.Id == taskDto.Id);
-                if (correspondingTask is null)
-                    continue;
-
-                decimal totalCost = correspondingTask.MaterialTasks
-                    .Where(mt => mt.Material is not null)
-                    .Sum(mt => mt.Quantity * mt.Material.Price);
-
-                taskDto.TotalCost = totalCost;
-            }
-
-            return (true, "Active tasks retrieved successfully.", taskDtos);
-        }
-
         private (bool IsSuccess, string Message) ValidateTaskCreationDto(TaskInsertDto dto)
         {
             if (dto is null)
@@ -217,6 +171,124 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 message += $" ({string.Join(", ", details)}).";
 
             return message;
+        }
+
+        public async Task<(bool IsSuccess, string Message)> UpdateTaskDetailsAsync(TaskDetailsUpdateDto dto)
+        {
+            (bool IsSuccess, string Message, Task? Task) = await GetTaskWithRelationsByIdAsync(dto.Id);
+            if (!IsSuccess)
+                return (false, Message);
+
+            (bool IsSuccess, string Message) validation = ValidateTaskUpdate(dto, Task!);
+            if (!validation.IsSuccess)
+                return (false, validation.Message);
+
+            List<string> updates = ApplyTaskUpdates(dto, Task!);
+            if (!updates.Any())
+                return (false, "No changes detected. Task details remain the same.");
+
+            await _unitOfWork.GetWriteRepository<Task>().UpdateAsync(Task!);
+            await _unitOfWork.SaveAsync();
+
+            return (true, $"Task '{Task!.Title}' updated successfully. {string.Join(" ", updates)}");
+        }
+
+        private (bool IsSuccess, string Message) ValidateTaskUpdate(TaskDetailsUpdateDto dto, Task task)
+        {
+            if (dto is null)
+                return (false, "Invalid task update data.");
+
+            if (dto.Deadline < DateOnly.FromDateTime(DateTime.UtcNow))
+                return (false, "Deadline cannot be a past date.");
+
+            return (true, default!);
+        }
+
+        private List<string> ApplyTaskUpdates(TaskDetailsUpdateDto dto, Task task)
+        {
+            List<string> updates = new List<string>();
+
+            void UpdateField<T>(T newValue, T oldValue, Action<T> setter, string fieldName)
+            {
+                if (!EqualityComparer<T>.Default.Equals(newValue, oldValue))
+                {
+                    setter(newValue);
+                    updates.Add($"{fieldName} updated.");
+                }
+            }
+
+            UpdateField(dto.AssignedBy, task.AssignedBy, newValue => task.AssignedBy = newValue, "AssignedBy");
+            UpdateField(dto.AssignedByPhone, task.AssignedByPhone, newValue => task.AssignedByPhone = newValue, "AssignedByPhone");
+            UpdateField(dto.AssignedByEmail, task.AssignedByEmail, newValue => task.AssignedByEmail = newValue, "AssignedByEmail");
+            UpdateField(dto.AssignedByAddress, task.AssignedByAddress, newValue => task.AssignedByAddress = newValue, "AssignedByAddress");
+            UpdateField(dto.Title, task.Title, newValue => task.Title = newValue, "Title");
+            UpdateField(dto.Description, task.Description, newValue => task.Description = newValue, "Description");
+            UpdateField(dto.Deadline, task.Deadline, newValue => task.Deadline = newValue, "Deadline");
+            UpdateField(dto.Priority, task.Priority, newValue => task.Priority = newValue, "Priority");
+            UpdateField(dto.Status, task.Status, newValue => task.Status = newValue, "Status");
+
+            return updates;
+        }
+
+        public async Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTaskCountsAsync()
+        {
+            int totalTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(includeDeleted: true);
+            if (totalTasks == 0)
+                return (false, "No tasks found.", 0, 0);
+
+            int activeTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(
+                includeDeleted: false,
+                predicate: c => !c.IsDeleted);
+
+            return (true, "Task counts retrieved successfully.", activeTasks, totalTasks);
+        }
+
+        private async Task<(bool IsSuccess, string Message, Task? TaskEntity)> GetTaskWithRelationsByIdAsync(Guid taskId)
+        {
+            Task? task = await _unitOfWork.GetReadRepository<Task>().GetAsync(
+                predicate: t => t.Id == taskId && !t.IsDeleted,
+                include: q => q
+                    .Include(t => t.Employees)
+                    .Include(t => t.MaterialTasks)
+                        .ThenInclude(mt => mt.Material)
+                            .ThenInclude(m => m.Category));
+            if (task is null)
+                return (false, $"Task with ID '{taskId}' not found or has been deleted.", default!);
+
+            return (true, "Task retrieved successfully.", task);
+        }
+
+        /* GetAllActiveTasksListAsync method can use for only and only active list. */
+        public async Task<(bool IsSuccess, string Message, IList<TaskDto> Tasks)> GetAllActiveTasksListAsync()
+        {
+            IList<Task> tasks = await _unitOfWork.GetReadRepository<Task>().GetAllAsync(
+                    enableTracking: false,
+                    includeDeleted: true,
+                    predicate: t => !t.IsDeleted,
+                    include: q => q
+                        .Include(t => t.Employees)
+                        .Include(t => t.MaterialTasks)
+                            .ThenInclude(mt => mt.Material)
+                                .ThenInclude(m => m.Category),
+                    orderBy: q => q.OrderByDescending(t => t.InsertedDate));
+            if (!tasks.Any())
+                return (false, "No active tasks found.", default!);
+
+            IList<TaskDto> taskDtos = _mapper.Map<IList<TaskDto>>(tasks);
+            foreach (TaskDto taskDto in taskDtos)
+            {
+                Task? correspondingTask = tasks.FirstOrDefault(t => t.Id == taskDto.Id);
+                if (correspondingTask is null)
+                    continue;
+
+                decimal totalCost = correspondingTask.MaterialTasks
+                    .Where(mt => mt.Material is not null)
+                    .Sum(mt => mt.Quantity * mt.Material.Price);
+
+                taskDto.TotalCost = totalCost;
+            }
+
+            return (true, "Active tasks retrieved successfully.", taskDtos);
         }
     }
 }
