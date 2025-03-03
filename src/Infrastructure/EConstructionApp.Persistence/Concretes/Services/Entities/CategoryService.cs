@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using EConstructionApp.Application.DTOs.Categories;
+using EConstructionApp.Application.DTOs.Categories.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
 using EConstructionApp.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace EConstructionApp.Persistence.Concretes.Services.Entities
 {
@@ -229,6 +231,30 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             IList<CategoryDto> categoryDtos = _mapper.Map<IList<CategoryDto>>(deletedCategories);
             return (true, "Deleted categories retrieved successfully.", categoryDtos, totalDeletedCategories);
+        }
+
+        public async Task<(bool IsSuccess, string Message, IList<CategoryMaterialCountDto> Categories)> GetTopUsedCategoriesWithMaterialCountsAsync(int topCount = 5)
+        {
+            if (topCount < 1)
+                return (false, "The count must be at least 1.", default!);
+
+            IList<Category> categories = await _unitOfWork.GetReadRepository<Category>()
+                .GetAllAsync(
+                    enableTracking: false,
+                    predicate: c => c.Materials.Any(m => !m.IsDeleted),
+                    include: q => q.Include(c => c.Materials),
+                    orderBy: q => q.OrderByDescending(c => c.Materials.Count()));
+            if (!categories.Any())
+                return (false, "No active categories with materials found.", default!);
+
+            List<CategoryMaterialCountDto> categoryMaterialCounts = categories
+                .Take(topCount)
+                .Select(c => new CategoryMaterialCountDto
+                {
+                    CategoryName = c.Name,
+                    MaterialCounts = c.Materials.Count()
+                }).ToList();
+            return (true, "Top used categories with material counts retrieved successfully.", categoryMaterialCounts);
         }
     }
 }

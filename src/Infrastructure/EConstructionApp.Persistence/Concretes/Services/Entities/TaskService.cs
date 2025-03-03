@@ -290,5 +290,25 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             return (true, "Active tasks retrieved successfully.", taskDtos);
         }
+
+        public async Task<(bool IsSuccess, string Message, IList<TaskStatusCountsDto> TaskCounts)> GetTaskCountsByStatusAsync()
+        {
+            IList<Task> taskCounts = await _unitOfWork.GetReadRepository<Task>()
+                .GetAllAsync(
+                    enableTracking: false,
+                    includeDeleted: false,
+                    predicate: t => !t.IsDeleted);
+            if (!taskCounts.Any())
+                return (false, "No active tasks found.", default!);
+
+            List<TaskStatusCountsDto> statusCounts = taskCounts
+                .GroupBy(t => t.Status)
+                .Select(group => new TaskStatusCountsDto
+                {
+                    Status = (TaskStatus)group.Key,
+                    Count = group.Count()
+                }).ToList();
+            return (true, "Task status counts retrieved successfully.", statusCounts);
+        }
     }
 }

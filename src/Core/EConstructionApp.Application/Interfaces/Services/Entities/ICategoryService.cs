@@ -1,4 +1,5 @@
 ﻿using EConstructionApp.Application.DTOs.Categories;
+using EConstructionApp.Application.DTOs.Categories.Relations;
 
 namespace EConstructionApp.Application.Interfaces.Services.Entities
 {
@@ -19,5 +20,7 @@ namespace EConstructionApp.Application.Interfaces.Services.Entities
         Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalCategories)> GetAllOrOnlyActiveCategoriesPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false);
 
         Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalDeletedCategories)> GetDeletedCategoriesPagedListAsync(int page = 1, int size = 5);
+
+        Task<(bool IsSuccess, string Message, IList<CategoryMaterialCountDto> Categories)> GetTopUsedCategoriesWithMaterialCountsAsync(int topCount = 5);
     }
 }
