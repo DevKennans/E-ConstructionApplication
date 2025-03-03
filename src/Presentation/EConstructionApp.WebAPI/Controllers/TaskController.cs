@@ -60,5 +60,15 @@ namespace EConstructionApp.WebAPI.Controllers
 
             return Ok(new { Message, Tasks });
         }
+
+        [HttpGet("GetTaskCountsByStatus")]
+        public async Task<IActionResult> GetTaskCountsByStatus()
+        {
+            (bool IsSuccess, string Message, IList<Application.DTOs.Tasks.Relations.TaskStatusCountsDto> TaskCounts) result = await _taskService.GetTaskCountsByStatusAsync();
+            if (!result.IsSuccess)
+                return BadRequest(new { result.Message });
+
+            return Ok(new { result.Message, result.TaskCounts });
+        }
     }
 }

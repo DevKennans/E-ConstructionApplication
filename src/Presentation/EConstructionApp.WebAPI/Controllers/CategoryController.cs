@@ -93,5 +93,15 @@ namespace EConstructionApp.WebAPI.Controllers
 
             return Ok(new { Message, TotalDeletedCategories, Categories });
         }
+
+        [HttpGet("GetTopUsedCategoriesWithMaterialCounts")]
+        public async Task<IActionResult> GetTopUsedCategoriesWithMaterialCounts([FromQuery] int count = 5)
+        {
+            (bool IsSuccess, string Message, IList<Application.DTOs.Categories.Relations.CategoryMaterialCountDto> Categories) = await _categoryService.GetTopUsedCategoriesWithMaterialCountsAsync(count);
+            if (!IsSuccess)
+                return BadRequest(Message);
+
+            return Ok(Categories);
+        }
     }
 }
