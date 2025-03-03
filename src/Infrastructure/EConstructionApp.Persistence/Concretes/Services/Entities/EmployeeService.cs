@@ -50,68 +50,6 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, $"Employee '{dto.FirstName} {dto.LastName}' has been successfully added.");
         }
 
-        /* GetAvailableEmployeesListAsync method retrieves all non-deleted employees who are currently not assigned to any task. */
-        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto> Employees)> GetAvailableEmployeesListAsync()
-        {
-            IList<Employee> employees = await _unitOfWork.GetReadRepository<Employee>().GetAllAsync(
-                    enableTracking: false,
-                    includeDeleted: true,
-                    predicate: e => !e.IsDeleted && !e.IsCurrentlyWorking,
-                    orderBy: q => q.OrderByDescending(e => e.InsertedDate));
-            if (!employees.Any())
-                return (false, "No available employees found.", default!);
-
-            IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(employees);
-            return (true, "Available employees retrieved successfully.", employeeDtos);
-        }
-
-        /* GetAllOrOnlyActiveEmployeesPagedListAsync method can use for both only active or active and passive lists. */
-        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalEmployees)> GetAllOrOnlyActiveEmployeesPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
-        {
-            if (page < 1 || size < 1)
-                return (false, "Page and size must be greater than zero.", default!, 0);
-
-            IList<Employee> employees = await _unitOfWork.GetReadRepository<Employee>().GetAllByPagingAsync(
-                    enableTracking: false,
-                    includeDeleted: includeDeleted,
-                    currentPage: page,
-                    pageSize: size,
-                    orderBy: q => q.OrderByDescending(e => e.InsertedDate));
-
-            int totalEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(includeDeleted: includeDeleted);
-
-            if (!employees.Any())
-                return (false, "No employees found.", default!, totalEmployees);
-
-            IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(employees);
-            return (true, "Employees retrieved successfully.", employeeDtos, totalEmployees);
-        }
-
-        /* GetDeletedEmployeesPagedListAsync method can use for only and only passive list. */
-        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalDeletedEmployees)> GetDeletedEmployeesPagedListAsync(int page = 1, int size = 5)
-        {
-            if (page < 1 || size < 1)
-                return (false, "Page and size must be greater than zero.", default!, 0);
-
-            IList<Employee> deletedEmployees = await _unitOfWork.GetReadRepository<Employee>().GetAllByPagingAsync(
-                enableTracking: false,
-                includeDeleted: true,
-                predicate: e => e.IsDeleted,
-                currentPage: page,
-                pageSize: size,
-                orderBy: q => q.OrderByDescending(e => e.InsertedDate));
-
-            int totalDeletedEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(
-                    includeDeleted: true,
-                    predicate: e => e.IsDeleted);
-
-            if (!deletedEmployees.Any())
-                return (false, "No deleted employees found.", default!, totalDeletedEmployees);
-
-            IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(deletedEmployees);
-            return (true, "Deleted employees retrieved successfully.", employeeDtos, totalDeletedEmployees);
-        }
-
         public async Task<(bool IsSuccess, string Message)> UpdateAsync(EmployeeUpdateDto dto)
         {
             if (dto is null)
@@ -199,6 +137,81 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             await _unitOfWork.SaveAsync();
 
             return (true, $"Employee '{employee.FirstName} {employee.LastName}' has been restored.");
+        }
+
+        public async Task<(bool IsSuccess, string Message, int ActiveEmployees, int TotalEmployees)> GetEmployeeCountsAsync()
+        {
+            int totalEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(includeDeleted: true);
+            if (totalEmployees == 0)
+                return (false, "No employees found.", default!, default!);
+
+            int activeEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(
+                    includeDeleted: true,
+                    predicate: c => !c.IsDeleted);
+
+            return (true, "Employee counts retrieved successfully.", activeEmployees, totalEmployees);
+        }
+
+        /* GetAvailableEmployeesListAsync method retrieves all non-deleted employees who are currently not assigned to any task. */
+        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto> Employees)> GetAvailableEmployeesListAsync()
+        {
+            IList<Employee> employees = await _unitOfWork.GetReadRepository<Employee>().GetAllAsync(
+                    enableTracking: false,
+                    includeDeleted: true,
+                    predicate: e => !e.IsDeleted && !e.IsCurrentlyWorking,
+                    orderBy: q => q.OrderByDescending(e => e.InsertedDate));
+            if (!employees.Any())
+                return (false, "No available employees found.", default!);
+
+            IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(employees);
+            return (true, "Available employees retrieved successfully.", employeeDtos);
+        }
+
+        /* GetAllOrOnlyActiveEmployeesPagedListAsync method can use for both only active or active and passive lists. */
+        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalEmployees)> GetAllOrOnlyActiveEmployeesPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
+        {
+            if (page < 1 || size < 1)
+                return (false, "Page and size must be greater than zero.", default!, 0);
+
+            IList<Employee> employees = await _unitOfWork.GetReadRepository<Employee>().GetAllByPagingAsync(
+                    enableTracking: false,
+                    includeDeleted: includeDeleted,
+                    currentPage: page,
+                    pageSize: size,
+                    orderBy: q => q.OrderByDescending(e => e.InsertedDate));
+
+            int totalEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(includeDeleted: includeDeleted);
+
+            if (!employees.Any())
+                return (false, "No employees found.", default!, totalEmployees);
+
+            IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(employees);
+            return (true, "Employees retrieved successfully.", employeeDtos, totalEmployees);
+        }
+
+        /* GetDeletedEmployeesPagedListAsync method can use for only and only passive list. */
+        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalDeletedEmployees)> GetDeletedEmployeesPagedListAsync(int page = 1, int size = 5)
+        {
+            if (page < 1 || size < 1)
+                return (false, "Page and size must be greater than zero.", default!, 0);
+
+            IList<Employee> deletedEmployees = await _unitOfWork.GetReadRepository<Employee>().GetAllByPagingAsync(
+                enableTracking: false,
+                includeDeleted: true,
+                predicate: e => e.IsDeleted,
+                currentPage: page,
+                pageSize: size,
+                orderBy: q => q.OrderByDescending(e => e.InsertedDate));
+
+            int totalDeletedEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(
+                    includeDeleted: true,
+                    predicate: e => e.IsDeleted);
+
+            if (!deletedEmployees.Any())
+                return (false, "No deleted employees found.", default!, totalDeletedEmployees);
+
+            IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(deletedEmployees);
+            return (true, "Deleted employees retrieved successfully.", employeeDtos, totalDeletedEmployees);
         }
     }
 }

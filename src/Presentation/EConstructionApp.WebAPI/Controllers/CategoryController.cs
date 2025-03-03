@@ -19,47 +19,17 @@ namespace EConstructionApp.WebAPI.Controllers
         {
             (bool IsSuccess, string Message) = await _categoryService.InsertAsync(name);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { message = $"Category '{name}' inserted successfully." });
         }
 
-        [HttpGet("GetAllOrOnlyActiveCategoriesList")]
-        public async Task<IActionResult> GetAllOrOnlyActiveCategoriesList([FromQuery] bool includeDeleted = false)
-        {
-            (bool IsSuccess, string Message, IList<CategoryDto> Categories) = await _categoryService.GetAllOrOnlyActiveCategoriesListAsync(includeDeleted);
-            if (!IsSuccess || Categories == default)
-                return NotFound(new { error = Message });
-
-            return Ok(new { Message, Categories });
-        }
-
-        [HttpGet("GetAllOrOnlyActiveCategoriesPagedList")]
-        public async Task<IActionResult> GetAllOrOnlyActiveCategoriesPagedList([FromQuery] int page, [FromQuery] int size, [FromQuery] bool includeDeleted = false)
-        {
-            (bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalCategories) = await _categoryService.GetAllOrOnlyActiveCategoriesPagedListAsync(page, size, includeDeleted);
-            if (!IsSuccess || Categories == default)
-                return NotFound(new { error = Message, TotalCategories });
-
-            return Ok(new { Message, TotalCategories, Categories });
-        }
-
-        [HttpGet("GetDeletedCategoriesPagedList")]
-        public async Task<IActionResult> GetDeletedCategoriesPagedList([FromQuery] int page, [FromQuery] int size)
-        {
-            (bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalDeletedCategories) = await _categoryService.GetDeletedCategoriesPagedListAsync(page, size);
-            if (!IsSuccess || Categories == default)
-                return NotFound(new { error = Message, TotalDeletedCategories });
-
-            return Ok(new { Message, TotalDeletedCategories, Categories });
-        }
-
-        [HttpPut("{categoryId}")]
+        [HttpPut("UpdateCategory/{categoryId}")]
         public async Task<IActionResult> UpdateCategory(Guid categoryId, [FromBody] string newName)
         {
             (bool IsSuccess, string Message) = await _categoryService.UpdateCategoryAsync(categoryId, newName);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { Message });
         }
@@ -69,7 +39,7 @@ namespace EConstructionApp.WebAPI.Controllers
         {
             (bool IsSuccess, string Message) = await _categoryService.SafeDeleteCategoryAsync(categoryId);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { Message });
         }
@@ -79,9 +49,49 @@ namespace EConstructionApp.WebAPI.Controllers
         {
             (bool IsSuccess, string Message) = await _categoryService.RestoreDeletedCategoryAsync(categoryId);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { Message });
+        }
+
+        [HttpGet("GetCategoryCounts")]
+        public async Task<IActionResult> GetCategoryCounts()
+        {
+            (bool IsSuccess, string Message, int ActiveCategories, int TotalCategories) = await _categoryService.GetCategoryCountsAsync();
+            if (!IsSuccess)
+                return NotFound(new { IsSuccess, Message });
+
+            return Ok(new { IsSuccess, Message, ActiveCategories, TotalCategories });
+        }
+
+        [HttpGet("GetAllOrOnlyActiveCategoriesList")]
+        public async Task<IActionResult> GetAllOrOnlyActiveCategoriesList([FromQuery] bool includeDeleted = false)
+        {
+            (bool IsSuccess, string Message, IList<CategoryDto> Categories) = await _categoryService.GetAllOrOnlyActiveCategoriesListAsync(includeDeleted);
+            if (!IsSuccess || Categories == default)
+                return NotFound(new { Message });
+
+            return Ok(new { Message, Categories });
+        }
+
+        [HttpGet("GetAllOrOnlyActiveCategoriesPagedList")]
+        public async Task<IActionResult> GetAllOrOnlyActiveCategoriesPagedList([FromQuery] int page, [FromQuery] int size, [FromQuery] bool includeDeleted = false)
+        {
+            (bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalCategories) = await _categoryService.GetAllOrOnlyActiveCategoriesPagedListAsync(page, size, includeDeleted);
+            if (!IsSuccess || Categories == default)
+                return NotFound(new { Message, TotalCategories });
+
+            return Ok(new { Message, TotalCategories, Categories });
+        }
+
+        [HttpGet("GetDeletedCategoriesPagedList")]
+        public async Task<IActionResult> GetDeletedCategoriesPagedList([FromQuery] int page, [FromQuery] int size)
+        {
+            (bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalDeletedCategories) = await _categoryService.GetDeletedCategoriesPagedListAsync(page, size);
+            if (!IsSuccess || Categories == default)
+                return NotFound(new { Message, TotalDeletedCategories });
+
+            return Ok(new { Message, TotalDeletedCategories, Categories });
         }
     }
 }

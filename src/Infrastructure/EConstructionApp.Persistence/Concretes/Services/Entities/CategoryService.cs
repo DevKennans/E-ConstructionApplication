@@ -41,70 +41,6 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, $"Category '{name}' inserted successfully.");
         }
 
-        /* GetAllOrOnlyActiveCategoriesListAsync method can use for both only active or active and passive lists. */
-        public async Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories)> GetAllOrOnlyActiveCategoriesListAsync(bool includeDeleted = false)
-        {
-            IList<Category> categories = await _unitOfWork.GetReadRepository<Category>()
-                .GetAllAsync(
-                    enableTracking: false,
-                    includeDeleted: includeDeleted,
-                    orderBy: q => q.OrderByDescending(c => c.InsertedDate));
-            if (!categories.Any())
-                return (false, "No categories found.", default!);
-
-            IList<CategoryDto> categoryDtos = _mapper.Map<IList<CategoryDto>>(categories);
-            return (true, "Categories retrieved successfully.", categoryDtos);
-        }
-
-        /* GetAllOrOnlyActiveCategoriesPagedListAsync method can use for both only active or active and passive lists. */
-        public async Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalCategories)> GetAllOrOnlyActiveCategoriesPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
-        {
-            if (page < 1 || size < 1)
-                return (false, "Page and size must be greater than zero.", default!, 0);
-
-            IList<Category> categories = await _unitOfWork.GetReadRepository<Category>()
-                .GetAllByPagingAsync(
-                    enableTracking: false,
-                    includeDeleted: includeDeleted,
-                    currentPage: page,
-                    pageSize: size,
-                    orderBy: q => q.OrderByDescending(c => c.InsertedDate));
-
-            int totalCategories = await _unitOfWork.GetReadRepository<Category>().CountAsync(includeDeleted: includeDeleted);
-
-            if (!categories.Any())
-                return (false, "No categories found.", default!, totalCategories);
-
-            IList<CategoryDto> categoryDtos = _mapper.Map<IList<CategoryDto>>(categories);
-            return (true, "Categories retrieved successfully.", categoryDtos, totalCategories);
-        }
-
-        /* GetDeletedCategoriesPagedListAsync method can use for only and only passive list. */
-        public async Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalDeletedCategories)> GetDeletedCategoriesPagedListAsync(int page = 1, int size = 5)
-        {
-            if (page < 1 || size < 1)
-                return (false, "Page and size must be greater than zero.", default!, 0);
-
-            IList<Category> deletedCategories = await _unitOfWork.GetReadRepository<Category>()
-                .GetAllByPagingAsync(
-                    enableTracking: false,
-                    includeDeleted: true,
-                    predicate: c => c.IsDeleted,
-                    currentPage: page,
-                    pageSize: size,
-                    orderBy: q => q.OrderByDescending(c => c.InsertedDate));
-
-            int totalDeletedCategories = await _unitOfWork.GetReadRepository<Category>().CountAsync(
-                    includeDeleted: true,
-                    predicate: c => c.IsDeleted);
-
-            if (!deletedCategories.Any())
-                return (false, "No deleted categories found.", default!, totalDeletedCategories);
-
-            IList<CategoryDto> categoryDtos = _mapper.Map<IList<CategoryDto>>(deletedCategories);
-            return (true, "Deleted categories retrieved successfully.", categoryDtos, totalDeletedCategories);
-        }
-
         public async Task<(bool IsSuccess, string Message)> UpdateCategoryAsync(Guid categoryId, string newName)
         {
             if (string.IsNullOrWhiteSpace(newName))
@@ -216,6 +152,83 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 _ => $"Category '{category.Name}' and {materials.Count} associated materials have been restored."
             };
             return (true, materialMessage);
+        }
+
+        public async Task<(bool IsSuccess, string Message, int ActiveCategories, int TotalCategories)> GetCategoryCountsAsync()
+        {
+            int totalCategories = await _unitOfWork.GetReadRepository<Category>().CountAsync(includeDeleted: true);
+            if (totalCategories == 0)
+                return (false, "No categories found.", default!, default!);
+
+            int activeCategories = await _unitOfWork.GetReadRepository<Category>().CountAsync(
+                    includeDeleted: true,
+                    predicate: c => !c.IsDeleted);
+
+            return (true, "Category counts retrieved successfully.", activeCategories, totalCategories);
+        }
+
+        /* GetAllOrOnlyActiveCategoriesListAsync method can use for both only active or active and passive lists. */
+        public async Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories)> GetAllOrOnlyActiveCategoriesListAsync(bool includeDeleted = false)
+        {
+            IList<Category> categories = await _unitOfWork.GetReadRepository<Category>()
+                .GetAllAsync(
+                    enableTracking: false,
+                    includeDeleted: includeDeleted,
+                    orderBy: q => q.OrderByDescending(c => c.InsertedDate));
+            if (!categories.Any())
+                return (false, "No categories found.", default!);
+
+            IList<CategoryDto> categoryDtos = _mapper.Map<IList<CategoryDto>>(categories);
+            return (true, "Categories retrieved successfully.", categoryDtos);
+        }
+
+        /* GetAllOrOnlyActiveCategoriesPagedListAsync method can use for both only active or active and passive lists. */
+        public async Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalCategories)> GetAllOrOnlyActiveCategoriesPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
+        {
+            if (page < 1 || size < 1)
+                return (false, "Page and size must be greater than zero.", default!, 0);
+
+            IList<Category> categories = await _unitOfWork.GetReadRepository<Category>()
+                .GetAllByPagingAsync(
+                    enableTracking: false,
+                    includeDeleted: includeDeleted,
+                    currentPage: page,
+                    pageSize: size,
+                    orderBy: q => q.OrderByDescending(c => c.InsertedDate));
+
+            int totalCategories = await _unitOfWork.GetReadRepository<Category>().CountAsync(includeDeleted: includeDeleted);
+
+            if (!categories.Any())
+                return (false, "No categories found.", default!, totalCategories);
+
+            IList<CategoryDto> categoryDtos = _mapper.Map<IList<CategoryDto>>(categories);
+            return (true, "Categories retrieved successfully.", categoryDtos, totalCategories);
+        }
+
+        /* GetDeletedCategoriesPagedListAsync method can use for only and only passive list. */
+        public async Task<(bool IsSuccess, string Message, IList<CategoryDto> Categories, int TotalDeletedCategories)> GetDeletedCategoriesPagedListAsync(int page = 1, int size = 5)
+        {
+            if (page < 1 || size < 1)
+                return (false, "Page and size must be greater than zero.", default!, 0);
+
+            IList<Category> deletedCategories = await _unitOfWork.GetReadRepository<Category>()
+                .GetAllByPagingAsync(
+                    enableTracking: false,
+                    includeDeleted: true,
+                    predicate: c => c.IsDeleted,
+                    currentPage: page,
+                    pageSize: size,
+                    orderBy: q => q.OrderByDescending(c => c.InsertedDate));
+
+            int totalDeletedCategories = await _unitOfWork.GetReadRepository<Category>().CountAsync(
+                    includeDeleted: true,
+                    predicate: c => c.IsDeleted);
+
+            if (!deletedCategories.Any())
+                return (false, "No deleted categories found.", default!, totalDeletedCategories);
+
+            IList<CategoryDto> categoryDtos = _mapper.Map<IList<CategoryDto>>(deletedCategories);
+            return (true, "Deleted categories retrieved successfully.", categoryDtos, totalDeletedCategories);
         }
     }
 }

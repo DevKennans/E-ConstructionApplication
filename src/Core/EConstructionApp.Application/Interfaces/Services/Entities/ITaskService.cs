@@ -6,6 +6,8 @@ namespace EConstructionApp.Application.Interfaces.Services.Entities
     {
         Task<(bool IsSuccess, string Message)> InsertAsync(TaskInsertDto dto);
 
+        Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTaskCountsAsync();
+
         Task<(bool IsSuccess, string Message, IList<TaskDto> Tasks)> GetAllActiveTasksListAsync();
     }
 }

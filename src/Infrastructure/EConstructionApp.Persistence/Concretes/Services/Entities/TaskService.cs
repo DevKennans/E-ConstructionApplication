@@ -48,6 +48,19 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, GenerateTaskCreationSuccessMessage(task.Title, employeeResult.AssignedCount, materialResult.AssignedCount));
         }
 
+        public async Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTaskCountsAsync()
+        {
+            int totalTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(includeDeleted: true);
+            if (totalTasks == 0)
+                return (false, "No tasks found.", 0, 0);
+
+            int activeTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(
+                includeDeleted: false,
+                predicate: c => !c.IsDeleted);
+
+            return (true, "Task counts retrieved successfully.", activeTasks, totalTasks);
+        }
+
         /* GetAllActiveTasksListAsync method can use for only and only active list. */
         public async Task<(bool IsSuccess, string Message, IList<TaskDto> Tasks)> GetAllActiveTasksListAsync()
         {

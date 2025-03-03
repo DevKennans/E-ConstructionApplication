@@ -15,51 +15,21 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("InsertEmployee")]
-        public async Task<IActionResult> InsertEmployee([FromBody] EmployeeInsertDto Dto)
+        public async Task<IActionResult> InsertEmployee([FromBody] EmployeeInsertDto dto)
         {
-            (bool IsSuccess, string Message) = await _employeeService.InsertAsync(Dto);
+            (bool IsSuccess, string Message) = await _employeeService.InsertAsync(dto);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { Message });
         }
 
-        [HttpGet("GetAvailableEmployeesList")]
-        public async Task<IActionResult> GetAvailableEmployeesList()
-        {
-            (bool IsSuccess, string Message, IList<EmployeeDto> Employees) = await _employeeService.GetAvailableEmployeesListAsync();
-            if (!IsSuccess)
-                return NotFound(new { error = Message });
-
-            return Ok(new { Message, Employees });
-        }
-
-        [HttpGet("GetAllOrOnlyActiveEmployeesPagedList")]
-        public async Task<IActionResult> GetAllOrOnlyActiveEmployeesPagedList([FromQuery] int Page, [FromQuery] int Size, [FromQuery] bool IncludeDeleted = false)
-        {
-            (bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalEmployees) = await _employeeService.GetAllOrOnlyActiveEmployeesPagedListAsync(Page, Size, IncludeDeleted);
-            if (!IsSuccess || Employees == default)
-                return NotFound(new { error = Message, TotalEmployees });
-
-            return Ok(new { Message, TotalEmployees, Employees });
-        }
-
-        [HttpGet("GetDeletedEmployeesPagedList")]
-        public async Task<IActionResult> GetDeletedEmployeesPagedList([FromQuery] int Page, [FromQuery] int Size)
-        {
-            (bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalDeletedEmployees) = await _employeeService.GetDeletedEmployeesPagedListAsync(Page, Size);
-            if (!IsSuccess)
-                return NotFound(new { error = Message, TotalDeletedEmployees });
-
-            return Ok(new { Message, TotalDeletedEmployees, Employees });
-        }
-
         [HttpPut("UpdateEmployee")]
-        public async Task<IActionResult> UpdateEmployee([FromBody] EmployeeUpdateDto Dto)
+        public async Task<IActionResult> UpdateEmployee([FromBody] EmployeeUpdateDto dto)
         {
-            (bool IsSuccess, string Message) = await _employeeService.UpdateAsync(Dto);
+            (bool IsSuccess, string Message) = await _employeeService.UpdateAsync(dto);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { Message });
         }
@@ -82,6 +52,46 @@ namespace EConstructionApp.WebAPI.Controllers
                 return BadRequest(new { Message });
 
             return Ok(new { Message });
+        }
+
+        [HttpGet("GetEmployeeCounts")]
+        public async Task<IActionResult> GetEmployeeCounts()
+        {
+            (bool IsSuccess, string Message, int ActiveEmployees, int TotalEmployees) = await _employeeService.GetEmployeeCountsAsync();
+            if (!IsSuccess)
+                return NotFound(new { IsSuccess, Message });
+
+            return Ok(new { IsSuccess, Message, ActiveEmployees, TotalEmployees });
+        }
+
+        [HttpGet("GetAvailableEmployeesList")]
+        public async Task<IActionResult> GetAvailableEmployeesList()
+        {
+            (bool IsSuccess, string Message, IList<EmployeeDto> Employees) = await _employeeService.GetAvailableEmployeesListAsync();
+            if (!IsSuccess)
+                return NotFound(new { Message });
+
+            return Ok(new { Message, Employees });
+        }
+
+        [HttpGet("GetAllOrOnlyActiveEmployeesPagedList")]
+        public async Task<IActionResult> GetAllOrOnlyActiveEmployeesPagedList([FromQuery] int page, [FromQuery] int size, [FromQuery] bool IncludeDeleted = false)
+        {
+            (bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalEmployees) = await _employeeService.GetAllOrOnlyActiveEmployeesPagedListAsync(page, size, IncludeDeleted);
+            if (!IsSuccess || Employees == default)
+                return NotFound(new { Message, TotalEmployees });
+
+            return Ok(new { Message, TotalEmployees, Employees });
+        }
+
+        [HttpGet("GetDeletedEmployeesPagedList")]
+        public async Task<IActionResult> GetDeletedEmployeesPagedList([FromQuery] int page, [FromQuery] int size)
+        {
+            (bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalDeletedEmployees) = await _employeeService.GetDeletedEmployeesPagedListAsync(page, size);
+            if (!IsSuccess)
+                return NotFound(new { Message, TotalDeletedEmployees });
+
+            return Ok(new { Message, TotalDeletedEmployees, Employees });
         }
     }
 }

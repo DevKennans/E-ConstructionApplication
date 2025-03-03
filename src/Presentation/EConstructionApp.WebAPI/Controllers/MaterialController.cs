@@ -22,50 +22,17 @@ namespace EConstructionApp.WebAPI.Controllers
 
             (bool IsSuccess, string? Message) = await _materialService.InsertAsync(dto);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { Message });
         }
 
-        [HttpGet("GetAllOrOnlyActiveMaterialsList")]
-        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsList()
-        {
-            (bool IsSuccess, string Message, IList<MaterialDto> Materials) =
-                await _materialService.GetAvailableMaterialsListAsync();
-            if (!IsSuccess || Materials == default)
-                return NotFound(new { error = Message });
-
-            return Ok(new { Message, Materials });
-        }
-
-        [HttpGet("GetAllOrOnlyActiveMaterialsPagedList")]
-        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsPagedList([FromQuery] int Page, [FromQuery] int Size, [FromQuery] bool IncludeDeleted = false)
-        {
-            (bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalMaterials) =
-                await _materialService.GetAllOrOnlyActiveMaterialsPagedListAsync(Page, Size, IncludeDeleted);
-            if (!IsSuccess || Materials == default)
-                return NotFound(new { error = Message, TotalMaterials });
-
-            return Ok(new { Message, TotalMaterials, Materials });
-        }
-
-        [HttpGet("GetDeletedMaterialsPagedList")]
-        public async Task<IActionResult> GetDeletedMaterialsPagedList([FromQuery] int Page, [FromQuery] int Size)
-        {
-            (bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalDeletedMaterials) =
-                await _materialService.GetDeletedMaterialsPagedListAsync(Page, Size);
-            if (!IsSuccess || Materials == default)
-                return NotFound(new { error = Message, TotalDeletedMaterials });
-
-            return Ok(new { Message, TotalDeletedMaterials, Materials });
-        }
-
         [HttpPut("UpdateMaterial")]
-        public async Task<IActionResult> UpdateMaterial([FromBody] MaterialUpdateDto Dto)
+        public async Task<IActionResult> UpdateMaterial([FromBody] MaterialUpdateDto dto)
         {
-            (bool IsSuccess, string Message) = await _materialService.UpdateAsync(Dto);
+            (bool IsSuccess, string Message) = await _materialService.UpdateAsync(dto);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { Message });
         }
@@ -75,7 +42,7 @@ namespace EConstructionApp.WebAPI.Controllers
         {
             (bool IsSuccess, string Message) = await _materialService.SafeDeleteMaterialAsync(materialId);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { Message });
         }
@@ -85,9 +52,52 @@ namespace EConstructionApp.WebAPI.Controllers
         {
             (bool IsSuccess, string Message) = await _materialService.RestoreMaterialAsync(materialId);
             if (!IsSuccess)
-                return BadRequest(new { error = Message });
+                return BadRequest(new { Message });
 
             return Ok(new { Message });
+        }
+
+        [HttpGet("GetMaterialCounts")]
+        public async Task<IActionResult> GetMaterialCounts()
+        {
+            (bool IsSuccess, string Message, int ActiveMaterials, int TotalMaterials) = await _materialService.GetMaterialCountsAsync();
+            if (!IsSuccess)
+                return NotFound(new { IsSuccess, Message });
+
+            return Ok(new { IsSuccess, Message, ActiveMaterials, TotalMaterials });
+        }
+
+        [HttpGet("GetAllOrOnlyActiveMaterialsList")]
+        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsList()
+        {
+            (bool IsSuccess, string Message, IList<MaterialDto> Materials) =
+                await _materialService.GetAvailableMaterialsListAsync();
+            if (!IsSuccess || Materials == default)
+                return NotFound(new { Message });
+
+            return Ok(new { Message, Materials });
+        }
+
+        [HttpGet("GetAllOrOnlyActiveMaterialsPagedList")]
+        public async Task<IActionResult> GetAllOrOnlyActiveMaterialsPagedList([FromQuery] int page, [FromQuery] int size, [FromQuery] bool includeDeleted = false)
+        {
+            (bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalMaterials) =
+                await _materialService.GetAllOrOnlyActiveMaterialsPagedListAsync(page, size, includeDeleted);
+            if (!IsSuccess || Materials == default)
+                return NotFound(new { Message, TotalMaterials });
+
+            return Ok(new { Message, TotalMaterials, Materials });
+        }
+
+        [HttpGet("GetDeletedMaterialsPagedList")]
+        public async Task<IActionResult> GetDeletedMaterialsPagedList([FromQuery] int page, [FromQuery] int size)
+        {
+            (bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalDeletedMaterials) =
+                await _materialService.GetDeletedMaterialsPagedListAsync(page, size);
+            if (!IsSuccess || Materials == default)
+                return NotFound(new { Message, TotalDeletedMaterials });
+
+            return Ok(new { Message, TotalDeletedMaterials, Materials });
         }
     }
 }

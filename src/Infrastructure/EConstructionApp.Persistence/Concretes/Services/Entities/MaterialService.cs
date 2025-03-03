@@ -62,71 +62,6 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, $"Material '{dto.Name.Trim()}' has been successfully inserted under category '{category.Name}'.");
         }
 
-        /* GetAvailableMaterialsListAsync method can use for all available materials list for assign any task. */
-        public async Task<(bool IsSuccess, string Message, IList<MaterialDto> Materials)> GetAvailableMaterialsListAsync()
-        {
-            IList<Material> materials = await _unitOfWork.GetReadRepository<Material>().GetAllAsync(
-                    enableTracking: false,
-                    includeDeleted: false,
-                    predicate: m => !m.IsDeleted && m.StockQuantity > 0,
-                    include: entity => entity.Include(m => m.Category),
-                    orderBy: q => q.OrderByDescending(m => m.InsertedDate));
-            if (!materials.Any())
-                return (false, "No materials found.", default!);
-
-            IList<MaterialDto> materialDtos = _mapper.Map<IList<MaterialDto>>(materials);
-            return (true, "Materials retrieved successfully.", materialDtos);
-        }
-
-        /* GetAllOrOnlyActiveMaterialsPagedListAsync method can use for both only active or active and passive lists. */
-        public async Task<(bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalMaterials)> GetAllOrOnlyActiveMaterialsPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
-        {
-            if (page < 1 || size < 1)
-                return (false, "Page and size must be greater than zero.", default!, 0);
-
-            IList<Material> materials = await _unitOfWork.GetReadRepository<Material>().GetAllByPagingAsync(
-                    enableTracking: false,
-                    includeDeleted: includeDeleted,
-                    include: entity => entity.Include(m => m.Category),
-                    currentPage: page,
-                    pageSize: size,
-                    orderBy: q => q.OrderByDescending(m => m.InsertedDate));
-
-            int totalMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(includeDeleted: includeDeleted);
-
-            if (!materials.Any())
-                return (false, "No materials found.", default!, totalMaterials);
-
-            IList<MaterialDto> materialDtos = _mapper.Map<IList<MaterialDto>>(materials);
-            return (true, "Materials retrieved successfully.", materialDtos, totalMaterials);
-        }
-
-        /* GetDeletedMaterialsPagedListAsync method can use for only and only passive list. */
-        public async Task<(bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalDeletedMaterials)> GetDeletedMaterialsPagedListAsync(int page = 1, int size = 5)
-        {
-            if (page < 1 || size < 1)
-                return (false, "Page and size must be greater than zero.", default!, 0);
-
-            IList<Material> deletedMaterials = await _unitOfWork.GetReadRepository<Material>().GetAllByPagingAsync(
-                enableTracking: false,
-                includeDeleted: true,
-                predicate: m => m.IsDeleted,
-                include: entity => entity.Include(m => m.Category),
-                currentPage: page,
-                pageSize: size,
-                orderBy: q => q.OrderByDescending(m => m.InsertedDate));
-
-            int totalDeletedMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(
-                    includeDeleted: true,
-                    predicate: m => m.IsDeleted);
-
-            if (!deletedMaterials.Any())
-                return (false, "No deleted materials found.", default!, totalDeletedMaterials);
-
-            IList<MaterialDto> materialDtos = _mapper.Map<IList<MaterialDto>>(deletedMaterials);
-            return (true, "Deleted materials retrieved successfully.", materialDtos, totalDeletedMaterials);
-        }
-
         public async Task<(bool IsSuccess, string Message)> UpdateAsync(MaterialUpdateDto dto)
         {
             if (dto is null)
@@ -242,6 +177,84 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             await _unitOfWork.SaveAsync();
 
             return (true, $"Material '{material.Name}' has been restored.");
+        }
+
+        public async Task<(bool IsSuccess, string Message, int ActiveMaterials, int TotalMaterials)> GetMaterialCountsAsync()
+        {
+            int totalMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(includeDeleted: true);
+            if (totalMaterials == 0)
+                return (false, "No materials found.", default!, default!);
+
+            int activeMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(
+                    includeDeleted: true,
+                    predicate: c => !c.IsDeleted);
+
+            return (true, "Material counts retrieved successfully.", activeMaterials, totalMaterials);
+        }
+
+        /* GetAvailableMaterialsListAsync method can use for all available materials list for assign any task. */
+        public async Task<(bool IsSuccess, string Message, IList<MaterialDto> Materials)> GetAvailableMaterialsListAsync()
+        {
+            IList<Material> materials = await _unitOfWork.GetReadRepository<Material>().GetAllAsync(
+                    enableTracking: false,
+                    includeDeleted: false,
+                    predicate: m => !m.IsDeleted && m.StockQuantity > 0,
+                    include: entity => entity.Include(m => m.Category),
+                    orderBy: q => q.OrderByDescending(m => m.InsertedDate));
+            if (!materials.Any())
+                return (false, "No materials found.", default!);
+
+            IList<MaterialDto> materialDtos = _mapper.Map<IList<MaterialDto>>(materials);
+            return (true, "Materials retrieved successfully.", materialDtos);
+        }
+
+        /* GetAllOrOnlyActiveMaterialsPagedListAsync method can use for both only active or active and passive lists. */
+        public async Task<(bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalMaterials)> GetAllOrOnlyActiveMaterialsPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
+        {
+            if (page < 1 || size < 1)
+                return (false, "Page and size must be greater than zero.", default!, 0);
+
+            IList<Material> materials = await _unitOfWork.GetReadRepository<Material>().GetAllByPagingAsync(
+                    enableTracking: false,
+                    includeDeleted: includeDeleted,
+                    include: entity => entity.Include(m => m.Category),
+                    currentPage: page,
+                    pageSize: size,
+                    orderBy: q => q.OrderByDescending(m => m.InsertedDate));
+
+            int totalMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(includeDeleted: includeDeleted);
+
+            if (!materials.Any())
+                return (false, "No materials found.", default!, totalMaterials);
+
+            IList<MaterialDto> materialDtos = _mapper.Map<IList<MaterialDto>>(materials);
+            return (true, "Materials retrieved successfully.", materialDtos, totalMaterials);
+        }
+
+        /* GetDeletedMaterialsPagedListAsync method can use for only and only passive list. */
+        public async Task<(bool IsSuccess, string Message, IList<MaterialDto> Materials, int TotalDeletedMaterials)> GetDeletedMaterialsPagedListAsync(int page = 1, int size = 5)
+        {
+            if (page < 1 || size < 1)
+                return (false, "Page and size must be greater than zero.", default!, 0);
+
+            IList<Material> deletedMaterials = await _unitOfWork.GetReadRepository<Material>().GetAllByPagingAsync(
+                enableTracking: false,
+                includeDeleted: true,
+                predicate: m => m.IsDeleted,
+                include: entity => entity.Include(m => m.Category),
+                currentPage: page,
+                pageSize: size,
+                orderBy: q => q.OrderByDescending(m => m.InsertedDate));
+
+            int totalDeletedMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(
+                    includeDeleted: true,
+                    predicate: m => m.IsDeleted);
+
+            if (!deletedMaterials.Any())
+                return (false, "No deleted materials found.", default!, totalDeletedMaterials);
+
+            IList<MaterialDto> materialDtos = _mapper.Map<IList<MaterialDto>>(deletedMaterials);
+            return (true, "Deleted materials retrieved successfully.", materialDtos, totalDeletedMaterials);
         }
     }
 }
