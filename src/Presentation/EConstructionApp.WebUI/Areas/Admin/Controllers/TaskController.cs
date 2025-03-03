@@ -64,12 +64,35 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         public async Task<IActionResult> GetTasks()
         {
             var result = await _taskService.GetAllActiveTasksListAsync();
+            var model = new TaskViewModel();
+
             if (!result.IsSuccess)
             {
                 TempData["ErrorMessage"] = result.Message;
-                return View(new List<TaskDto>());
+                model.Tasks = new List<TaskDto>(); 
             }
-            return View(result.Tasks);
+            else
+            {
+                model.Tasks = result.Tasks;
+            }
+
+            return View(model);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> EditTask(TaskDetailsUpdateDto viewModel)
+        {
+            var (isSuccess, message) = await _taskService.UpdateTaskDetailsAsync(viewModel);
+            if (!isSuccess)
+            {
+                TempData["ErrorMessage"] = message;
+            }
+            else
+            {
+                TempData["SuccessMessage"] = message;
+            }
+            return RedirectToAction("GetTasks"); 
+        }
+
     }
 }
