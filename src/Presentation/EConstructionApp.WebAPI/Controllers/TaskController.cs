@@ -27,6 +27,17 @@ namespace EConstructionApp.WebAPI.Controllers
             return Ok(new { Success = true, Message });
         }
 
+        [HttpGet("GetTaskCounts")]
+        public async Task<IActionResult> GetTaskCounts()
+        {
+            var (IsSuccess, Message, ActiveTasks, TotalTasks) = await _taskService.GetTaskCountsAsync();
+
+            if (!IsSuccess)
+                return NotFound(new { IsSuccess, Message });
+
+            return Ok(new { IsSuccess, Message, ActiveTasks, TotalTasks });
+        }
+
         [HttpGet("GetAllActiveTasksList")]
         public async Task<IActionResult> GetAllActiveTasksList()
         {
