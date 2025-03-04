@@ -64,18 +64,20 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         public async Task<IActionResult> GetTasks()
         {
             var result = await _taskService.GetAllActiveTasksListAsync();
+            var res = await _employeeService.GetAvailableEmployeesListAsync();
             var model = new TaskViewModel();
 
             if (!result.IsSuccess)
             {
                 TempData["ErrorMessage"] = result.Message;
                 model.Tasks = new List<TaskDto>(); 
+                model.Employees = new List<EmployeeDto>();
             }
             else
             {
                 model.Tasks = result.Tasks;
+                model.Employees = res.Employees;
             }
-
             return View(model);
         }
 

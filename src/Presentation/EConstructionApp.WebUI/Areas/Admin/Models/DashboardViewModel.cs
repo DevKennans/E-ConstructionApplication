@@ -1,4 +1,7 @@
-﻿namespace EConstructionApp.WebUI.Areas.Admin.Models
+﻿using EConstructionApp.Application.DTOs.Categories.Relations;
+using EConstructionApp.Application.DTOs.Tasks.Relations;
+
+namespace EConstructionApp.WebUI.Areas.Admin.Models
 {
     public class DashboardViewModel
     {
@@ -10,5 +13,7 @@
         public int TotalEmployees { get; set; }
         public int ActiveTasks { get; set; }
         public int TotalTasks { get; set; }
+        public IList<CategoryMaterialCountDto> TopCategories { get; set; }
+        public IList<TaskStatusCountsDto> TaskStatusCounts { get; set; }
     }
 }

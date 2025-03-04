@@ -4,6 +4,7 @@
     ViewData["Title"] = "Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="row">
     <div class="col-lg-3 col-6">
@@ -16,9 +17,11 @@
                 <i class="fas fa-users"></i>
             </div>
             <a href="@Url.Action("GetEmployees", "Employee", new { area = "Admin" })" class="small-box-footer">
-                More info <i class="fas fa-arrow-circle-right"></i></a>
+                More info <i class="fas fa-arrow-circle-right"></i>
+            </a>
         </div>
     </div>
+
     <div class="col-lg-3 col-6">
         <div class="small-box bg-danger">
             <div class="inner">
@@ -29,9 +32,11 @@
                 <i class="fas fa-folder"></i>
             </div>
             <a href="@Url.Action("GetCategories", "Category", new { area = "Admin" })" class="small-box-footer">
-                More info <i class="fas fa-arrow-circle-right"></i></a>
+                More info <i class="fas fa-arrow-circle-right"></i>
+            </a>
         </div>
     </div>
+
     <div class="col-lg-3 col-6">
         <div class="small-box bg-primary">
             <div class="inner">
@@ -42,9 +47,11 @@
                 <i class="fas fa-box"></i>
             </div>
             <a href="@Url.Action("GetMaterial", "Material", new { area = "Admin" })" class="small-box-footer">
-                More info <i class="fas fa-arrow-circle-right"></i></a>
+                More info <i class="fas fa-arrow-circle-right"></i>
+            </a>
         </div>
     </div>
+
     <div class="col-lg-3 col-6">
         <div class="small-box bg-warning">
             <div class="inner">
@@ -59,6 +66,137 @@
             </a>
         </div>
     </div>
-
-
 </div>
+
+<div class="row mt-3">
+    <div class="col-lg-6 col-12">
+        <div class="card shadow-lg border-light">
+            <div class="card-header text-center bg-dark text-white">
+                <h3>Top Categories by Material Count</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="topCategoriesChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-12 w-[500px] h-[330px]">
+        <div class="card shadow-lg border-light">
+            <div class="card-header text-center bg-dark text-white">
+                <h3>Task Status Distribution</h3>
+            </div>
+            <div class="card-body mx-auto">
+                <canvas id="taskStatusChart" width="300" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var topCategories = @Html.Raw(Json.Serialize(Model.TopCategories));
+    var categoryNames = topCategories.map(function (category) {
+        return category.categoryName;
+    });
+    var materialCounts = topCategories.map(function (category) {
+        return category.materialCounts;
+    });
+    var categoryColors = ['#007bff', '#dc3545', '#ffc107', '#28a745', '#e83e8c']; 
+    var ctxBar = document.getElementById('topCategoriesChart').getContext('2d');
+    var topCategoriesChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: categoryNames,
+            datasets: [{
+                label: 'Material Count',
+                data: materialCounts,
+                backgroundColor: categoryColors.slice(0, categoryNames.length),
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Material Count'
+                    },
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            size: 14,
+                        },
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Categories'
+                    },
+                    ticks: {
+                        font: {
+                            size: 14,
+                        },
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false,
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return 'Count: ' + tooltipItem.raw;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    var taskStatusCounts = @Html.Raw(Json.Serialize(Model.TaskStatusCounts));
+    var statusLabels = ['Pending', 'Accepted', 'InProgress', 'Completed', 'Cancelled'];  
+    var taskStatusNames = taskStatusCounts.map(function (status) {
+        return statusLabels[status.status];  
+    });
+    var taskStatusValues = taskStatusCounts.map(function (status) {
+        return status.count;
+    });
+    var statusColors = ['#007bff', '#dc3545', '#ffc107', '#28a745', '#e83e8c']; 
+    var ctxPie = document.getElementById('taskStatusChart').getContext('2d');
+    var taskStatusChart = new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: taskStatusNames,  
+            datasets: [{
+                label: 'Task Status Distribution',
+                data: taskStatusValues,
+                backgroundColor: statusColors.slice(0, taskStatusNames.length),
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return tooltipItem.label + ': ' + tooltipItem.raw;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    #taskStatusChart {
+        width: 100% !important;
+        height: 350px !important; 
+        max-width: 350px;
+    }
+</style>

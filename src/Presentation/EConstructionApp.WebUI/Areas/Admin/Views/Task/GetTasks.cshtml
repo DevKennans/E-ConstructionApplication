@@ -103,7 +103,7 @@ else
                                 <button class="btn btn-warning mb-2 edit-material-btn" data-material="@task.MaterialAssignments">
                                     <i class="fas fa-box"></i> Edit Material
                                 </button>
-                                <button class="btn btn-success mb-2 edit-employee-btn" data-employee="@task.Employees">
+                                <button class="btn btn-success mb-2 edit-employee-btn" data-id="@task.Id" data-employee='@Html.Raw(Json.Serialize(task.Employees))'>
                                     <i class="fas fa-user-cog"></i> Edit Employee
                                 </button>
                             </div>
@@ -194,6 +194,44 @@ else
     </div>
 </div>
 
+
+
+<div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editEmployeeModalLabel">Edit Employees</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editEmployeeForm" method="post" action="@Url.Action("EditTaskEmployees", "Task")">
+                    <input type="hidden" id="taskEmployeeId" name="TaskId">
+
+                    <div class="form-group">
+                        <label for="EmployeeIds">Employees:</label>
+                        <select id="EmployeeIds" name="EmployeeIds" class="form-control" multiple>
+                            @if (Model.Employees != null && Model.Employees.Any())
+                            {
+                                @foreach (var emp in Model.Employees)
+                                {
+                                    <option value="@emp.Id">@emp.FirstName @emp.LastName</option>
+                                }
+                            }
+                            else
+                            {
+                                <option disabled>No employees available</option>
+                            }
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 mt-3">Save Employees</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
@@ -246,7 +284,33 @@ else
                     console.log("Edit Material button clicked", this.dataset.material);
                 }
                 else if (this.classList.contains('edit-employee-btn')) {
-                    console.log("Edit Employee button clicked", this.dataset.employee);
+                    const taskId = this.dataset.id;
+                    const employees = JSON.parse(this.dataset.employee || "[]");
+
+                    console.log("Task ID:", taskId);
+                    console.log("Employees JSON:", this.dataset.employee);
+                    console.log("Parsed Employees:", employees);
+                    console.log("acildi");
+                    document.getElementById('taskEmployeeId').value = taskId;
+
+                    const employeeSelect = document.getElementById('EmployeeIds');
+
+                    employees.forEach(emp => {
+                        let existingOption = Array.from(employeeSelect.options).find(option => option.value == emp.id);
+                        console.log("exist", existingOption);
+                        if (!existingOption) {
+                            const option = document.createElement("option");
+                            option.value = emp.id;
+                            option.textContent = emp.firstName + " " + emp.lastName;
+                            employeeSelect.appendChild(option);
+                        }
+                    });
+
+                    Array.from(employeeSelect.options).forEach(option => {
+                        option.selected = employees.some(emp => emp.id == option.value);
+                    });
+
+                    $('#editEmployeeModal').modal('show');
                 }
             });
         });
