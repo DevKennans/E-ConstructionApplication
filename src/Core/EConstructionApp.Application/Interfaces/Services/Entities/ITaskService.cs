@@ -5,16 +5,18 @@ namespace EConstructionApp.Application.Interfaces.Services.Entities
 {
     public interface ITaskService
     {
-        Task<(bool IsSuccess, string Message)> InsertAsync(TaskInsertDto dto);
+        Task<(bool IsSuccess, string Message)> InsertAsync(TaskInsertDto? taskInsertDto);
 
-        Task<(bool IsSuccess, string Message)> UpdateTaskDetailsAsync(TaskDetailsUpdateDto dto);
+        Task<(bool IsSuccess, string Message)> UpdateTaskDetailsAsync(TaskDetailsUpdateDto? taskDetailsUpdateDto);
 
         Task<(bool IsSuccess, string Message)> UpdateTaskEmployeesAsync(Guid taskId, List<Guid> updatedEmployeeIds);
 
-        Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTaskCountsAsync();
+        Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTasksCountsAsync();
 
-        Task<(bool IsSuccess, string Message, IList<TaskDto> Tasks)> GetAllActiveTasksListAsync();
+        Task<(bool IsSuccess, string Message, TaskDto? Task)> GetEmployeeCurrentTaskAsync(Guid employeeId);
 
-        Task<(bool IsSuccess, string Message, IList<TaskStatusCountsDto> TaskCounts)> GetTaskCountsByStatusAsync();
+        Task<(bool IsSuccess, string Message, IList<TaskDto>? Tasks)> GetAllActiveTaskListAsync();
+
+        Task<(bool IsSuccess, string Message, IList<TaskStatusCountsDto>? TaskCount)> GetListOfTaskCountByStatusAsync();
     }
 }
