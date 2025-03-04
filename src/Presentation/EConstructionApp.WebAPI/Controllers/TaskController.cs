@@ -40,6 +40,16 @@ namespace EConstructionApp.WebAPI.Controllers
             return Ok(Message);
         }
 
+        [HttpPut("UpdateTaskEmployees")]
+        public async Task<IActionResult> UpdateTaskEmployees(Guid taskId, [FromBody] List<Guid> updatedEmployeeIds)
+        {
+            (bool IsSuccess, string Message) = await _taskService.UpdateTaskEmployeesAsync(taskId, updatedEmployeeIds);
+            if (!IsSuccess)
+                return BadRequest(new { Success = false, Message });
+
+            return Ok(new { Success = true, Message });
+        }
+
         [HttpGet("GetTaskCounts")]
         public async Task<IActionResult> GetTaskCounts()
         {

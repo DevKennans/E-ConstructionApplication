@@ -9,6 +9,8 @@ namespace EConstructionApp.Application.Interfaces.Services.Entities
 
         Task<(bool IsSuccess, string Message)> UpdateTaskDetailsAsync(TaskDetailsUpdateDto dto);
 
+        Task<(bool IsSuccess, string Message)> UpdateTaskEmployeesAsync(Guid taskId, List<Guid> updatedEmployeeIds);
+
         Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTaskCountsAsync();
 
         Task<(bool IsSuccess, string Message, IList<TaskDto> Tasks)> GetAllActiveTasksListAsync();
