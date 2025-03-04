@@ -5,6 +5,7 @@ using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
 using EConstructionApp.Domain.Entities;
 using EConstructionApp.Domain.Entities.Cross;
+using EConstructionApp.Persistence.Concretes.Services.Entities.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Task = EConstructionApp.Domain.Entities.Task;
 
@@ -22,71 +23,42 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             _mapper = mapper;
         }
 
-        public async Task<(bool IsSuccess, string Message)> InsertAsync(TaskInsertDto dto)
+        public async Task<(bool IsSuccess, string Message)> InsertAsync(TaskInsertDto? taskInsertDto)
         {
-            (bool IsSuccess, string Message) validationResult = ValidateTaskCreationDto(dto);
+            (bool IsSuccess, string Message) validationResult = TaskServiceHelper.ValidateTaskCreationDto(taskInsertDto!);
             if (!validationResult.IsSuccess)
                 return (false, validationResult.Message);
 
-            Task task = _mapper.Map<Task>(dto);
+            Task task = _mapper.Map<Task>(taskInsertDto);
 
-            (bool IsSuccess, string Message, IList<Employee> Employees, int AssignedCount) employeeResult = await AssignEmployeesAsync(dto.EmployeeIds!);
+            (bool IsSuccess, string Message, IList<Employee>? Employees, int AssignedCount) employeeResult = await AssignEmployeesAsync(taskInsertDto!.EmployeeIds!);
             if (!employeeResult.IsSuccess)
                 return (false, employeeResult.Message);
+            task.Employees = employeeResult.Employees!;
 
-            task.Employees = employeeResult.Employees;
-
-            (bool IsSuccess, string Message, IList<MaterialTask> MaterialTasks, int AssignedCount) materialResult = await AssignMaterialsAsync(dto.MaterialAssignments!);
+            (bool IsSuccess, string Message, IList<MaterialTask>? MaterialTasks, int AssignedCount) materialResult = await AssignMaterialsAsync(taskInsertDto.MaterialAssignments!);
             if (!materialResult.IsSuccess)
                 return (false, materialResult.Message);
-
-            task.MaterialTasks = materialResult.MaterialTasks;
+            task.MaterialTasks = materialResult.MaterialTasks!;
 
             await _unitOfWork.GetWriteRepository<Task>().AddAsync(task);
             await _unitOfWork.SaveAsync();
 
-            return (true, GenerateTaskCreationSuccessMessage(task.Title, employeeResult.AssignedCount, materialResult.AssignedCount));
+            return (true, TaskServiceHelper.GenerateTaskCreationSuccessMessage(task.Title, employeeResult.AssignedCount, materialResult.AssignedCount));
         }
 
-        private (bool IsSuccess, string Message) ValidateTaskCreationDto(TaskInsertDto dto)
-        {
-            if (dto is null)
-                return (false, "Invalid task data.");
-
-            List<string> errors = new List<string>();
-
-            if (string.IsNullOrWhiteSpace(dto.AssignedBy))
-                errors.Add("AssignedBy is required.");
-            if (string.IsNullOrWhiteSpace(dto.AssignedByPhone))
-                errors.Add("AssignedByPhone is required.");
-            if (string.IsNullOrWhiteSpace(dto.AssignedByEmail))
-                errors.Add("AssignedByEmail is required.");
-            if (string.IsNullOrWhiteSpace(dto.AssignedByAddress))
-                errors.Add("AssignedByAddress is required.");
-
-            if (string.IsNullOrWhiteSpace(dto.Title))
-                errors.Add("Task title is required.");
-            if (string.IsNullOrWhiteSpace(dto.Description))
-                errors.Add("Task description is required.");
-
-            if (dto.Deadline < DateOnly.FromDateTime(DateTime.UtcNow))
-                errors.Add("Deadline must be a future date.");
-
-            return errors.Any() ? (false, string.Join(" ", errors)) : (true, default!);
-        }
-
-        private async Task<(bool IsSuccess, string Message, IList<Employee> Employees, int AssignedCount)> AssignEmployeesAsync(IList<Guid> employeeIds)
+        private async Task<(bool IsSuccess, string Message, IList<Employee>? Employees, int AssignedCount)> AssignEmployeesAsync(IList<Guid> employeeIds)
         {
             if (employeeIds is null || !employeeIds.Any())
-                return (true, "No employees assigned.", default!, default!);
+                return (true, "No employees have been assigned to the task.", default!, default!);
 
             (bool IsSuccess, string Message, IList<Application.DTOs.Employees.EmployeeDto> AvailableEmployees) = await _employeeService.GetAvailableEmployeesListAsync();
             if (!IsSuccess)
-                return (false, "No available employees found for assignment.", default!, default!);
+                return (false, "There are no available employees to assign at the moment.", default!, default!);
 
             List<Application.DTOs.Employees.EmployeeDto> validEmployees = AvailableEmployees.Where(e => employeeIds.Contains(e.Id)).ToList();
             if (validEmployees.Count != employeeIds.Count)
-                return (false, "Some employees are either inactive or already assigned to another task.", default!, default!);
+                return (false, "Some of the employees are either unavailable or already assigned to other tasks.", default!, default!);
 
             IList<Employee> employeeEntities = _mapper.Map<IList<Employee>>(validEmployees);
             foreach (Employee employee in employeeEntities)
@@ -95,13 +67,13 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 await _unitOfWork.GetWriteRepository<Employee>().UpdateAsync(employee);
             }
 
-            return (true, default!, employeeEntities, employeeEntities.Count);
+            return (true, "Employees have been successfully assigned to the task.", employeeEntities, employeeEntities.Count);
         }
 
-        private async Task<(bool IsSuccess, string Message, IList<MaterialTask> MaterialTasks, int AssignedCount)> AssignMaterialsAsync(IList<MaterialAssignmentInsertDto> materialAssignments)
+        private async Task<(bool IsSuccess, string Message, IList<MaterialTask>? MaterialTasks, int AssignedCount)> AssignMaterialsAsync(IList<MaterialAssignmentInsertDto> materialAssignments)
         {
             if (materialAssignments is null || !materialAssignments.Any())
-                return (true, "No materials assigned.", default!, default!);
+                return (true, "No materials have been assigned to the task.", default!, default!);
 
             List<MaterialAssignmentInsertDto> groupedAssignments = materialAssignments
                 .GroupBy(m => m.MaterialId)
@@ -118,7 +90,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                     includeDeleted: true,
                     predicate: m => materialIds.Contains(m.Id) && !m.IsDeleted);
             if (validMaterials.Count != materialIds.Count)
-                return (false, "Some materials are inactive and cannot be assigned.", default!, default!);
+                return (false, "Some materials are either inactive or cannot be assigned at the moment.", default!, default!);
 
             List<string> errorMessages = new List<string>();
             List<MaterialTask> materialTasks = new List<MaterialTask>();
@@ -130,9 +102,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                     continue;
 
                 if (assignment.Quantity <= 0)
-                    errorMessages.Add($"Invalid quantity for material '{material.Name}'. Quantity must be greater than zero.");
+                    errorMessages.Add($"The quantity for material '{material.Name}' is invalid. Please specify a quantity greater than zero.");
                 else if (material.StockQuantity < assignment.Quantity)
-                    errorMessages.Add($"Material '{material.Name}' has insufficient stock. Available: {material.StockQuantity}, requested: {assignment.Quantity}.");
+                    errorMessages.Add($"Insufficient stock for material '{material.Name}'. Insufficient stock. Material '{material.Name}' has {material.StockQuantity} available, but {assignment.Quantity} was requested.");
                 else
                 {
                     material.StockQuantity -= assignment.Quantity;
@@ -149,62 +121,30 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             if (errorMessages.Any())
                 return (false, string.Join(" ", errorMessages), default!, default!);
 
-            return (true, "Materials assigned successfully.", materialTasks, materialTasks.Count);
+            return (true, "Materials have been successfully assigned to the task.", materialTasks, materialTasks.Count);
         }
 
-        private string GenerateTaskCreationSuccessMessage(string taskTitle, int employeeCount, int materialCount)
+        public async Task<(bool IsSuccess, string Message)> UpdateTaskDetailsAsync(TaskDetailsUpdateDto? taskDetailsUpdateDto)
         {
-            string message = $"Task '{taskTitle}' has been successfully created.";
-            List<string> details = new();
-
-            if (employeeCount == 1)
-                details.Add("1 employee assigned");
-            else if (employeeCount > 1)
-                details.Add($"{employeeCount} employees assigned");
-
-            if (materialCount == 1)
-                details.Add("1 material assigned");
-            else if (materialCount > 1)
-                details.Add($"{materialCount} materials assigned");
-
-            if (details.Any())
-                message += $" ({string.Join(", ", details)}).";
-
-            return message;
-        }
-
-        public async Task<(bool IsSuccess, string Message)> UpdateTaskDetailsAsync(TaskDetailsUpdateDto dto)
-        {
-            (bool IsSuccess, string Message, Task? Task) = await GetTaskWithRelationsByIdAsync(dto.Id);
-            if (!IsSuccess)
-                return (false, Message);
-
-            (bool IsSuccess, string Message) validation = ValidateTaskUpdate(dto, Task!);
+            (bool IsSuccess, string Message) validation = TaskServiceHelper.ValidateTaskUpdateDto(taskDetailsUpdateDto);
             if (!validation.IsSuccess)
                 return (false, validation.Message);
 
-            List<string> updates = ApplyTaskUpdates(dto, Task!);
+            (bool IsSuccess, string Message, Task? Task) = await GetTaskWithRelationsByIdAsync(taskDetailsUpdateDto!.Id);
+            if (!IsSuccess)
+                return (false, Message);
+
+            List<string> updates = ApplyTaskUpdates(taskDetailsUpdateDto, Task!);
             if (!updates.Any())
-                return (false, "No changes detected. Task details remain the same.");
+                return (false, "No updates detected. The task details remain unchanged.");
 
             await _unitOfWork.GetWriteRepository<Task>().UpdateAsync(Task!);
             await _unitOfWork.SaveAsync();
 
-            return (true, $"Task '{Task!.Title}' updated successfully. {string.Join(" ", updates)}");
+            return (true, $"Task '{Task!.Title}' has been updated successfully! {string.Join(" ", updates)}");
         }
 
-        private (bool IsSuccess, string Message) ValidateTaskUpdate(TaskDetailsUpdateDto dto, Task task)
-        {
-            if (dto is null)
-                return (false, "Invalid task update data.");
-
-            if (dto.Deadline < DateOnly.FromDateTime(DateTime.UtcNow))
-                return (false, "Deadline cannot be a past date.");
-
-            return (true, default!);
-        }
-
-        private List<string> ApplyTaskUpdates(TaskDetailsUpdateDto dto, Task task)
+        private List<string> ApplyTaskUpdates(TaskDetailsUpdateDto taskDetailsUpdateDto, Task task)
         {
             List<string> updates = new List<string>();
 
@@ -213,19 +153,19 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 if (!EqualityComparer<T>.Default.Equals(newValue, oldValue))
                 {
                     setter(newValue);
-                    updates.Add($"{fieldName} updated.");
+                    updates.Add($"{fieldName} has been updated.");
                 }
             }
 
-            UpdateField(dto.AssignedBy, task.AssignedBy, newValue => task.AssignedBy = newValue, "AssignedBy");
-            UpdateField(dto.AssignedByPhone, task.AssignedByPhone, newValue => task.AssignedByPhone = newValue, "AssignedByPhone");
-            UpdateField(dto.AssignedByEmail, task.AssignedByEmail, newValue => task.AssignedByEmail = newValue, "AssignedByEmail");
-            UpdateField(dto.AssignedByAddress, task.AssignedByAddress, newValue => task.AssignedByAddress = newValue, "AssignedByAddress");
-            UpdateField(dto.Title, task.Title, newValue => task.Title = newValue, "Title");
-            UpdateField(dto.Description, task.Description, newValue => task.Description = newValue, "Description");
-            UpdateField(dto.Deadline, task.Deadline, newValue => task.Deadline = newValue, "Deadline");
-            UpdateField(dto.Priority, task.Priority, newValue => task.Priority = newValue, "Priority");
-            UpdateField(dto.Status, task.Status, newValue => task.Status = newValue, "Status");
+            UpdateField(taskDetailsUpdateDto.AssignedBy, task.AssignedBy, newValue => task.AssignedBy = newValue, "AssignedBy");
+            UpdateField(taskDetailsUpdateDto.AssignedByPhone, task.AssignedByPhone, newValue => task.AssignedByPhone = newValue, "AssignedByPhone");
+            UpdateField(taskDetailsUpdateDto.AssignedByEmail, task.AssignedByEmail, newValue => task.AssignedByEmail = newValue, "AssignedByEmail");
+            UpdateField(taskDetailsUpdateDto.AssignedByAddress, task.AssignedByAddress, newValue => task.AssignedByAddress = newValue, "AssignedByAddress");
+            UpdateField(taskDetailsUpdateDto.Title, task.Title, newValue => task.Title = newValue, "Title");
+            UpdateField(taskDetailsUpdateDto.Description, task.Description, newValue => task.Description = newValue, "Description");
+            UpdateField(taskDetailsUpdateDto.Deadline, task.Deadline, newValue => task.Deadline = newValue, "Deadline");
+            UpdateField(taskDetailsUpdateDto.Priority, task.Priority, newValue => task.Priority = newValue, "Priority");
+            UpdateField(taskDetailsUpdateDto.Status, task.Status, newValue => task.Status = newValue, "Status");
 
             return updates;
         }
@@ -306,17 +246,16 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return $"Task employees updated successfully. {resultMessage}";
         }
 
-        public async Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTaskCountsAsync()
+        public async Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTasksCountsAsync()
         {
             int totalTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(includeDeleted: true);
             if (totalTasks == 0)
-                return (false, "No tasks found.", 0, 0);
+                return (false, "No tasks found in the system. Please ensure tasks are added or check your filters", default!, default!);
 
             int activeTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(
-                includeDeleted: false,
-                predicate: c => !c.IsDeleted);
+            includeDeleted: false);
 
-            return (true, "Task counts retrieved successfully.", activeTasks, totalTasks);
+            return (true, "Tasks' counts have been successfully retrieved.", activeTasks, totalTasks);
         }
 
         private async Task<(bool IsSuccess, string Message, Task? TaskEntity)> GetTaskWithRelationsByIdAsync(Guid taskId)
@@ -336,21 +275,44 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, "Task retrieved successfully.", task);
         }
 
-        /* GetAllActiveTasksListAsync method can use for only and only active list. */
-        public async Task<(bool IsSuccess, string Message, IList<TaskDto> Tasks)> GetAllActiveTasksListAsync()
+        public async Task<(bool IsSuccess, string Message, TaskDto? Task)> GetEmployeeCurrentTaskAsync(Guid employeeId)
+        {
+            Employee? employee = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
+                enableTracking: false,
+                includeDeleted: true,
+                predicate: e => e.Id == employeeId,
+                include: q => q.Include(e => e.CurrentTask)
+                               .ThenInclude(t => t!.MaterialTasks)
+                               .ThenInclude(mt => mt.Material)
+                               .ThenInclude(m => m.Category));
+            if (employee is null)
+                return (false, "No employee found with the given ID. Please check the ID and try again.", default!);
+            if (employee.IsDeleted)
+                return (false, $"The employee '{employee.FirstName} {employee.LastName}' is no longer active in the system.", default!);
+            if (employee.CurrentTask is null)
+                return (false, $"The employee '{employee.FirstName} {employee.LastName}' is currently not assigned to any task.", default!);
+
+            TaskDto taskDto = _mapper.Map<TaskDto>(employee.CurrentTask);
+            taskDto.TotalCost = employee.CurrentTask.MaterialTasks
+                .Where(mt => mt.Material is not null)
+                .Sum(mt => mt.Quantity * mt.Material.Price);
+
+            return (true, $"The employee '{employee.FirstName} {employee.LastName}' is currently working on the task '{taskDto.Title}'.", taskDto);
+        }
+
+        /* GetAllActiveTaskListAsync method can use for only and only active list. */
+        public async Task<(bool IsSuccess, string Message, IList<TaskDto>? Tasks)> GetAllActiveTaskListAsync()
         {
             IList<Task> tasks = await _unitOfWork.GetReadRepository<Task>().GetAllAsync(
                     enableTracking: true,
-                    includeDeleted: true,
-                    predicate: t => !t.IsDeleted,
-                    include: q => q
-                        .Include(t => t.Employees)
-                        .Include(t => t.MaterialTasks)
-                            .ThenInclude(mt => mt.Material)
-                                .ThenInclude(m => m.Category),
+                    includeDeleted: false,
+                    include: q => q.Include(t => t.Employees)
+                                   .Include(t => t.MaterialTasks)
+                                   .ThenInclude(mt => mt.Material)
+                                   .ThenInclude(m => m.Category),
                     orderBy: q => q.OrderByDescending(t => t.InsertedDate));
             if (!tasks.Any())
-                return (false, "No active tasks found.", default!);
+                return (false, "No active tasks found. Please ensure there are tasks that are not marked as deleted.", default!);
 
             IList<TaskDto> taskDtos = _mapper.Map<IList<TaskDto>>(tasks);
             foreach (TaskDto taskDto in taskDtos)
@@ -366,18 +328,17 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 taskDto.TotalCost = totalCost;
             }
 
-            return (true, "Active tasks retrieved successfully.", taskDtos);
+            return (true, "Active tasks have been successfully retrieved and processed.", taskDtos);
         }
 
-        public async Task<(bool IsSuccess, string Message, IList<TaskStatusCountsDto> TaskCounts)> GetTaskCountsByStatusAsync()
+        public async Task<(bool IsSuccess, string Message, IList<TaskStatusCountsDto>? TaskCount)> GetListOfTaskCountByStatusAsync()
         {
             IList<Task> taskCounts = await _unitOfWork.GetReadRepository<Task>()
                 .GetAllAsync(
                     enableTracking: false,
-                    includeDeleted: false,
-                    predicate: t => !t.IsDeleted);
+                    includeDeleted: false);
             if (!taskCounts.Any())
-                return (false, "No active tasks found.", default!);
+                return (false, "No active tasks found. Please ensure there are tasks with active statuses.", default!);
 
             List<TaskStatusCountsDto> statusCounts = taskCounts
                 .GroupBy(t => t.Status)
@@ -386,7 +347,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                     Status = (TaskStatus)group.Key,
                     Count = group.Count()
                 }).ToList();
-            return (true, "Task status counts retrieved successfully.", statusCounts);
+            return (true, "Tasks' counts grouped by status have been successfully retrieved.", statusCounts);
         }
     }
 }
