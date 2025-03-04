@@ -26,7 +26,8 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (materialSuccess, materialMessage, activeMaterials, totalMaterials) = await _materialService.GetMaterialCountsAsync();
             var (employeeSuccess, employeeMessage, activeEmployees, totalEmployees) = await _employeeService.GetEmployeeCountsAsync();
             var (taskSuccess, taskMessage, activeTasks, totalTasks) = await _taskService.GetTaskCountsAsync();
-
+            var (topCategoriesSuccess, topCategoriesMessage, topCategories) = await _categoryService.GetTopUsedCategoriesWithMaterialCountsAsync(5);
+            var (taskStatusSuccess, taskStatusMessage, taskStatusCounts) = await _taskService.GetTaskCountsByStatusAsync();
             if (!categorySuccess)
             {
                 TempData["ErrorMessage"] = categoryMessage;
@@ -56,7 +57,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                 ActiveEmployees = activeEmployees,
                 TotalEmployees = totalEmployees,
                 ActiveTasks = activeTasks,
-                TotalTasks = totalTasks
+                TotalTasks = totalTasks,
+                TopCategories = topCategories,
+                TaskStatusCounts = taskStatusCounts
             };
 
             return View(model);
