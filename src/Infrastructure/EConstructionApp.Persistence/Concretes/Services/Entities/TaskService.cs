@@ -230,6 +230,82 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return updates;
         }
 
+        public async Task<(bool IsSuccess, string Message)> UpdateTaskEmployeesAsync(Guid taskId, List<Guid> updatedEmployeeIds)
+        {
+            (bool IsSuccess, string Message, Task? Task) = await GetTaskWithRelationsByIdAsync(taskId);
+            if (!IsSuccess)
+                return (false, Message);
+
+            List<Guid> currentEmployeeIds = Task!.Employees.Select(e => e.Id).ToList();
+
+            List<Guid> employeesToRemove = currentEmployeeIds.Except(updatedEmployeeIds).ToList();
+            List<Guid> employeesToAdd = updatedEmployeeIds.Except(currentEmployeeIds).ToList();
+
+            if (!employeesToRemove.Any() && !employeesToAdd.Any())
+                return (true, "No changes detected. Task employees remain the same.");
+
+            IList<Employee> employeesToBeRemoved = new List<Employee>();
+            IList<Employee> employeesToBeAdded = new List<Employee>();
+
+            if (employeesToRemove.Any())
+            {
+                employeesToBeRemoved = await _unitOfWork.GetReadRepository<Employee>().GetAllAsync(
+                        enableTracking: true,
+                        includeDeleted: false,
+                        predicate: e => employeesToRemove.Contains(e.Id) && e.IsCurrentlyWorking);
+            }
+            if (employeesToAdd.Any())
+            {
+                employeesToBeAdded = await _unitOfWork.GetReadRepository<Employee>().GetAllAsync(
+                        enableTracking: true,
+                        includeDeleted: false,
+                        predicate: e => employeesToAdd.Contains(e.Id) && !e.IsCurrentlyWorking);
+            }
+
+            int removedCount = 0, addedCount = 0;
+
+            foreach (Employee emp in employeesToBeRemoved)
+            {
+                emp.IsCurrentlyWorking = false;
+                Task.Employees.Remove(emp);
+
+                removedCount++;
+            }
+            foreach (Employee emp in employeesToBeAdded)
+            {
+                emp.IsCurrentlyWorking = true;
+                Task.Employees.Add(emp);
+
+                addedCount++;
+            }
+
+            await _unitOfWork.SaveAsync();
+
+            foreach (Employee emp in employeesToBeRemoved)
+                UpdateEmployeeTaskRelationship(emp, null);
+            foreach (Employee emp in employeesToBeAdded)
+                UpdateEmployeeTaskRelationship(emp, taskId);
+
+            await _unitOfWork.SaveAsync();
+
+            return (true, GenerateTaskEmployeeUpdateMessage(addedCount, removedCount));
+        }
+
+        private void UpdateEmployeeTaskRelationship(Employee employee, Guid? taskId)
+        {
+            employee.CurrentTaskId = taskId;
+        }
+
+        private string GenerateTaskEmployeeUpdateMessage(int addedCount, int removedCount)
+        {
+            string addedMsg = addedCount > 0 ? $"{addedCount} employee{(addedCount > 1 ? "s" : "")} added" : "";
+            string removedMsg = removedCount > 0 ? $"{removedCount} employee{(removedCount > 1 ? "s" : "")} removed" : "";
+
+            string resultMessage = $"{(addedMsg + (addedMsg != "" && removedMsg != "" ? ", " : "") + removedMsg).Trim()}.";
+
+            return $"Task employees updated successfully. {resultMessage}";
+        }
+
         public async Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTaskCountsAsync()
         {
             int totalTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(includeDeleted: true);
@@ -246,7 +322,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
         private async Task<(bool IsSuccess, string Message, Task? TaskEntity)> GetTaskWithRelationsByIdAsync(Guid taskId)
         {
             Task? task = await _unitOfWork.GetReadRepository<Task>().GetAsync(
-                predicate: t => t.Id == taskId && !t.IsDeleted,
+                enableTracking: false,
+                includeDeleted: false,
+                predicate: t => t.Id == taskId,
                 include: q => q
                     .Include(t => t.Employees)
                     .Include(t => t.MaterialTasks)
@@ -262,7 +340,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
         public async Task<(bool IsSuccess, string Message, IList<TaskDto> Tasks)> GetAllActiveTasksListAsync()
         {
             IList<Task> tasks = await _unitOfWork.GetReadRepository<Task>().GetAllAsync(
-                    enableTracking: false,
+                    enableTracking: true,
                     includeDeleted: true,
                     predicate: t => !t.IsDeleted,
                     include: q => q
