@@ -121,7 +121,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-   
+
     document.addEventListener('DOMContentLoaded', function () {
         var today = new Date();
         var tomorrow = new Date(today);
@@ -158,14 +158,14 @@
         let container = $("#materialsContainer");
         let index = container.children().length;
         let div = $(`
-            <div class="d-flex gap-2 mt-2 material-item">
-                <select class="form-select materialSelect" name="Task.MaterialAssignments[${index}].MaterialId">
-                    <option value="" disabled selected>Choose Material</option>
-                </select>
-                <input type="number" name="Task.MaterialAssignments[${index}].Quantity" class="form-control" min="1" step="1" placeholder="Quantity" value="1">
-                <button type="button" class="btn btn-danger remove-material">Remove</button>
-            </div>
-        `);
+                <div class="d-flex gap-2 mt-2 material-item">
+                    <select class="form-select materialSelect" name="Task.MaterialAssignments[${index}].MaterialId">
+                        <option value="" disabled selected>Choose Material</option>
+                    </select>
+                    <input type="number" name="Task.MaterialAssignments[${index}].Quantity" class="form-control" min="1" step="1" placeholder="Quantity" value="1">
+                    <button type="button" class="btn btn-danger remove-material">Remove</button>
+                </div>
+            `);
         container.append(div);
         loadMaterials(div.find(".materialSelect"));
         updateMaterialSelections();

@@ -2,10 +2,8 @@
 using EConstructionApp.Application.DTOs.Materials;
 using EConstructionApp.Application.DTOs.Tasks;
 using EConstructionApp.Application.Interfaces.Services.Entities;
-using EConstructionApp.Persistence.Concretes.Services.Entities;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
@@ -63,14 +61,14 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
         public async Task<IActionResult> GetTasks()
         {
-            var result = await _taskService.GetAllActiveTasksListAsync();
+            var result = await _taskService.GetAllActiveTaskListAsync();
             var res = await _employeeService.GetAvailableEmployeesListAsync();
             var model = new TaskViewModel();
 
             if (!result.IsSuccess)
             {
                 TempData["ErrorMessage"] = result.Message;
-                model.Tasks = new List<TaskDto>(); 
+                model.Tasks = new List<TaskDto>();
                 model.Employees = new List<EmployeeDto>();
             }
             else
@@ -93,8 +91,27 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             {
                 TempData["SuccessMessage"] = message;
             }
-            return RedirectToAction("GetTasks"); 
+            return RedirectToAction("GetTasks");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateTaskEmployees(Guid taskId, List<Guid> updatedEmployeeIds)
+        {
+            // Call the service method to update the employees for the task
+            var (isSuccess, message) = await _taskService.UpdateTaskEmployeesAsync(taskId, updatedEmployeeIds);
+
+            // Handle success or failure and provide feedback to the user
+            if (isSuccess)
+            {
+                TempData["SuccessMessage"] = message;
+            }
+            else
+            {
+                TempData["ErrorMessage"] = message;
+            }
+
+            // Redirect back to the task details page or the page that lists tasks
+            return RedirectToAction("GetTasks");
+        }
     }
 }

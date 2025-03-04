@@ -1,5 +1,4 @@
 ﻿using EConstructionApp.Application.Interfaces.Services.Entities;
-using EConstructionApp.Persistence.Concretes.Services.Entities;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,9 +24,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (categorySuccess, categoryMessage, activeCategories, totalCategories) = await _categoryService.GetCategoryCountsAsync();
             var (materialSuccess, materialMessage, activeMaterials, totalMaterials) = await _materialService.GetMaterialCountsAsync();
             var (employeeSuccess, employeeMessage, activeEmployees, totalEmployees) = await _employeeService.GetEmployeeCountsAsync();
-            var (taskSuccess, taskMessage, activeTasks, totalTasks) = await _taskService.GetTaskCountsAsync();
+            var (taskSuccess, taskMessage, activeTasks, totalTasks) = await _taskService.GetTasksCountsAsync();
             var (topCategoriesSuccess, topCategoriesMessage, topCategories) = await _categoryService.GetTopUsedCategoriesWithMaterialCountsAsync(5);
-            var (taskStatusSuccess, taskStatusMessage, taskStatusCounts) = await _taskService.GetTaskCountsByStatusAsync();
+            var (taskStatusSuccess, taskStatusMessage, taskStatusCounts) = await _taskService.GetListOfTaskCountByStatusAsync();
             if (!categorySuccess)
             {
                 TempData["ErrorMessage"] = categoryMessage;

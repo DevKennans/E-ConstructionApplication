@@ -206,25 +206,17 @@ else
                 </button>
             </div>
             <div class="modal-body">
-                <form id="editEmployeeForm" method="post" action="@Url.Action("EditTaskEmployees", "Task")">
+                <form id="editEmployeeForm" method="post" action="@Url.Action("UpdateTaskEmployees", "Task")">
                     <input type="hidden" id="taskEmployeeId" name="TaskId">
 
-                    <div class="form-group">
-                        <label for="EmployeeIds">Employees:</label>
-                        <select id="EmployeeIds" name="EmployeeIds" class="form-control" multiple>
-                            @if (Model.Employees != null && Model.Employees.Any())
-                            {
-                                @foreach (var emp in Model.Employees)
-                                {
-                                    <option value="@emp.Id">@emp.FirstName @emp.LastName</option>
-                                }
-                            }
-                            else
-                            {
-                                <option disabled>No employees available</option>
-                            }
-                        </select>
-                    </div>
+                    <!-- New employee button -->
+                    <button type="button" id="addEmployeeBtn" class="btn btn-secondary mb-2" onclick="addEmployee()">
+                        <i class="fas fa-plus"></i> Add Employee
+                    </button>
+                    <input type="hidden" id="updatedEmployeeIds" name="updatedEmployeeIds" />
+
+                    <!-- Employee selection container -->
+                    <div id="employeeSelectsContainer"></div>
 
                     <button type="submit" class="btn btn-success w-100 mt-3">Save Employees</button>
                 </form>
@@ -236,6 +228,10 @@ else
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Initialize the selected employee IDs
+        let selectedEmployeeIds = [];
+
+        // Set the minimum date for the deadline input to tomorrow
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
@@ -243,9 +239,9 @@ else
         const month = ('0' + (tomorrow.getMonth() + 1)).slice(-2);
         const day = ('0' + tomorrow.getDate()).slice(-2);
         const minDate = `${year}-${month}-${day}`;
-
         document.getElementById('taskDeadline').setAttribute('min', minDate);
 
+        // Success and error message handling (hides after 3 seconds)
         const successMessage = document.querySelector('.alert-success');
         const errorMessage = document.querySelector('.alert-danger');
 
@@ -265,6 +261,77 @@ else
             }, 3000);
         }
 
+        // Employee selection handling
+        document.getElementById("addEmployeeBtn").addEventListener("click", addEmployee);
+
+        // Function to load employees into the dropdown
+        function loadEmployees(selectElement) {
+            let employees = @Html.Raw(Json.Serialize(Model.Employees));
+
+            selectElement.empty();
+            selectElement.append(new Option('Choose Employee', '', true, true));
+
+            employees.forEach(emp => {
+                let optionText = `${emp.firstName} ${emp.lastName}`;
+                let option = new Option(optionText, emp.id);
+                selectElement.append(option);
+            });
+
+            selectElement.on('change', function () {
+                let prevValue = $(this).data('prevValue');
+                let selectedValue = $(this).val();
+
+                // Remove previously selected employee if changed
+                if (prevValue) {
+                    selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== prevValue);
+                }
+
+                // Add the new selected employee if it's not already in the list
+                if (selectedValue && !selectedEmployeeIds.includes(selectedValue)) {
+                    selectedEmployeeIds.push(selectedValue);
+                    $(this).data('prevValue', selectedValue);
+                }
+
+                updateEmployeeSelections();
+            });
+        }
+
+        // Function to update employee selections (disable already selected ones)
+        function updateEmployeeSelections() {
+            $(".employeeSelect").each(function () {
+                let currentVal = $(this).val();
+
+                $(this).find("option").each(function () {
+                    let optionVal = $(this).val();
+                    if (optionVal && selectedEmployeeIds.includes(optionVal) && optionVal !== currentVal) {
+                        $(this).prop("disabled", true);
+                    } else {
+                        $(this).prop("disabled", false);
+                    }
+                });
+            });
+        }
+
+        // Function to add a new employee select dropdown
+        function addEmployee() {
+            let container = $("#employeeSelectsContainer");
+            let index = container.children().length;
+            let div = $(`
+                        <div class="d-flex gap-2 mt-2 employee-item">
+                            <select class="form-select employeeSelect" name="EmployeeIds[]">
+                                <option value="" disabled selected>Choose Employee</option>
+                            </select>
+                            <button type="button" class="btn btn-danger remove-employee">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </div>
+                    `);
+            container.append(div);
+            loadEmployees(div.find(".employeeSelect"));
+            updateEmployeeSelections();
+        }
+
+        // Handle task edit button actions (open corresponding modal)
         document.querySelectorAll('.edit-datas-btn, .edit-material-btn, .edit-employee-btn').forEach(button => {
             button.addEventListener('click', function () {
                 if (this.classList.contains('edit-datas-btn')) {
@@ -287,56 +354,93 @@ else
                     const taskId = this.dataset.id;
                     const employees = JSON.parse(this.dataset.employee || "[]");
 
-                    console.log("Task ID:", taskId);
-                    console.log("Employees JSON:", this.dataset.employee);
-                    console.log("Parsed Employees:", employees);
-                    console.log("acildi");
                     document.getElementById('taskEmployeeId').value = taskId;
 
-                    const employeeSelect = document.getElementById('EmployeeIds');
+                    const employeeSelectsContainer = document.getElementById('employeeSelectsContainer');
 
-                    employees.forEach(emp => {
-                        let existingOption = Array.from(employeeSelect.options).find(option => option.value == emp.id);
-                        console.log("exist", existingOption);
-                        if (!existingOption) {
-                            const option = document.createElement("option");
-                            option.value = emp.id;
-                            option.textContent = emp.firstName + " " + emp.lastName;
-                            employeeSelect.appendChild(option);
-                        }
+                    // Clear the container to avoid adding multiple selects
+                    employeeSelectsContainer.innerHTML = '';
+
+                    // Create a select box for each employee
+                    employees.forEach((emp, index) => {
+                        const div = document.createElement("div");
+                        div.classList.add("d-flex", "gap-2", "mt-2", "employee-item");
+
+                        const select = document.createElement("select");
+                        select.classList.add("form-control");
+                        select.name = "EmployeeIds[]"; // Adjust the name to match the form submission
+
+                        const option = document.createElement("option");
+                        option.value = emp.id;
+                        option.textContent = emp.firstName + " " + emp.lastName;
+                        select.appendChild(option);
+
+                        const removeButton = document.createElement("button");
+                        removeButton.type = "button";
+                        removeButton.classList.add("btn", "btn-danger", "remove-employee");
+                        removeButton.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+                        div.appendChild(select);
+                        div.appendChild(removeButton);
+
+                        employeeSelectsContainer.appendChild(div);
                     });
 
-                    Array.from(employeeSelect.options).forEach(option => {
-                        option.selected = employees.some(emp => emp.id == option.value);
-                    });
-
+                    // Show the modal
                     $('#editEmployeeModal').modal('show');
                 }
             });
         });
 
-        const form = document.getElementById('editTaskModal');
-        form.addEventListener('submit', function (e) {
-            let isValid = true;
+        // Remove employee from the list when delete button is clicked
+        $(document).on('click', '.remove-employee', function () {
+            let parentDiv = $(this).closest('.employee-item');
+            let selectedEmployeeId = parentDiv.find('.employeeSelect').val();
 
-            form.querySelectorAll('input, select, textarea').forEach(input => {
-                if (!input.checkValidity()) {
-                    input.classList.add('is-invalid');
-                    input.parentElement.querySelector('.invalid-feedback').style.display = 'block'; 
-                    isValid = false;
-                } else {
-                    input.classList.remove('is-invalid');
-                    input.parentElement.querySelector('.invalid-feedback').style.display = 'none'; 
+            if (selectedEmployeeId) {
+                selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== selectedEmployeeId);
+            }
+
+            parentDiv.remove();
+            updateEmployeeSelections();
+        });
+
+        // Gather the employee IDs before submitting the form
+        function gatherEmployeeIds() {
+            let employeeIds = [];
+            $(".employeeSelect").each(function () {
+                let selectedValue = $(this).val();
+                if (selectedValue) {
+                    employeeIds.push(selectedValue);
                 }
             });
 
-            if (!isValid) {
-                e.preventDefault();
-            }
+            // Set the updated employee IDs into the hidden input field
+            const hiddenInput = document.getElementById('updatedEmployeeIds');
+            hiddenInput.value = employeeIds.join(','); // Use join() to create a comma-separated string
+        }
+
+        // Trigger the gatherEmployeeIds function before form submission
+        document.getElementById('editEmployeeForm').addEventListener('submit', function (e) {
+            // Prevent form submission to gather employee IDs first
+            e.preventDefault();
+
+            // Call the function to gather employee IDs
+            gatherEmployeeIds();
+
+            // Check if employee IDs are set correctly
+            console.log("Selected Employee IDs:", document.getElementById('updatedEmployeeIds').value);
+
+            // Submit the form manually after the employee IDs have been gathered
+            this.submit();
         });
     });
-
 </script>
+
+
+
+
+
+
 <style>
     .invalid-feedback {
         display: none;
