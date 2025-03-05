@@ -1,9 +1,11 @@
 ﻿using EConstructionApp.Application.DTOs.Employees;
 using EConstructionApp.Application.DTOs.Materials;
 using EConstructionApp.Application.DTOs.Tasks;
+using EConstructionApp.Application.DTOs.Tasks.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
@@ -63,6 +65,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             var result = await _taskService.GetAllActiveTaskListAsync();
             var res = await _employeeService.GetAvailableEmployeesListAsync();
+            var r = await _materialService.GetAvailableMaterialsListAsync();
             var model = new TaskViewModel();
 
             if (!result.IsSuccess)
@@ -70,11 +73,13 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                 TempData["ErrorMessage"] = result.Message;
                 model.Tasks = new List<TaskDto>();
                 model.Employees = new List<EmployeeDto>();
+                model.Materials = new List<MaterialDto>();
             }
             else
             {
                 model.Tasks = result.Tasks;
                 model.Employees = res.Employees;
+                model.Materials = r.Materials;
             }
             return View(model);
         }
@@ -95,12 +100,14 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateTaskEmployees(Guid taskId, List<Guid> updatedEmployeeIds)
+        public async Task<IActionResult> UpdateTaskEmployees(Guid taskId, string? updatedEmployeeIds)
         {
-            // Call the service method to update the employees for the task
-            var (isSuccess, message) = await _taskService.UpdateTaskEmployeesAsync(taskId, updatedEmployeeIds);
-
-            // Handle success or failure and provide feedback to the user
+            var employeeIdList = updatedEmployeeIds?.Split(',')
+                                           .Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
+                                           .Where(guid => guid.HasValue)
+                                           .Select(guid => guid.Value)
+                                           .ToList() ?? new List<Guid>();
+            var (isSuccess, message) = await _taskService.UpdateTaskEmployeesAsync(taskId, employeeIdList);
             if (isSuccess)
             {
                 TempData["SuccessMessage"] = message;
@@ -110,8 +117,28 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                 TempData["ErrorMessage"] = message;
             }
 
-            // Redirect back to the task details page or the page that lists tasks
             return RedirectToAction("GetTasks");
         }
+        [HttpPost]
+        public async Task<IActionResult> UpdateTaskMaterials(Guid taskId, string updatedMaterialIds)
+        {
+            List<MaterialAssignmentInsertDto> updatedMaterials;
+            try
+            {
+                updatedMaterials = JsonConvert.DeserializeObject<List<MaterialAssignmentInsertDto>>(updatedMaterialIds);
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Invalid material data!";
+                return RedirectToAction("GetTasks");
+            }
+            var (isSuccess, message) = await _taskService.UpdateTaskMaterialsAsync(taskId, updatedMaterials);
+
+            TempData[isSuccess ? "SuccessMessage" : "ErrorMessage"] = message;
+            return RedirectToAction("GetTasks");
+        }
+
+
+
     }
 }
