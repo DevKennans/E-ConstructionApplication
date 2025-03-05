@@ -246,6 +246,148 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return $"Task employees updated successfully. {resultMessage}";
         }
 
+        public async Task<(bool IsSuccess, string Message)> UpdateTaskMaterialsAsync(Guid taskId, List<MaterialAssignmentInsertDto>? updatedMaterials)
+        {
+            Task? task = await _unitOfWork.GetReadRepository<Task>().GetAsync(
+                enableTracking: true,
+                includeDeleted: false,
+                predicate: t => t.Id == taskId,
+                include: q => q.Include(t => t.Employees)
+                               .Include(t => t.MaterialTasks)
+                               .ThenInclude(mt => mt.Material)
+                               .ThenInclude(m => m.Category));
+            if (task is null)
+                return (false, $"Task with ID '{taskId}' not found or has been deleted.");
+
+            List<MaterialTask> currentMaterials = task.MaterialTasks.ToList();
+            List<Guid> currentMaterialIds = currentMaterials.Select(m => m.MaterialId).ToList();
+            List<Guid> updatedMaterialIds = updatedMaterials!.Select(m => m.MaterialId).ToList();
+
+            List<Guid> materialsToRemove = currentMaterialIds.Except(updatedMaterialIds).ToList();
+
+            IList<Material> validMaterials = await _unitOfWork.GetReadRepository<Material>().GetAllAsync(
+                    enableTracking: true,
+                    includeDeleted: false,
+                    predicate: m => updatedMaterialIds.Contains(m.Id) || materialsToRemove.Contains(m.Id));
+            List<Guid> missingMaterialIds = updatedMaterialIds.Except(validMaterials.Select(m => m.Id)).ToList();
+            if (missingMaterialIds.Any())
+            {
+                return (false, $"One or more materials are invalid or inactive. Missing Material IDs: {string.Join(", ", missingMaterialIds)}");
+            }
+
+            List<MaterialAssignmentInsertDto> groupedMaterials = updatedMaterials!
+                .GroupBy(m => m.MaterialId)
+                .Select(g => new MaterialAssignmentInsertDto
+                {
+                    MaterialId = g.Key,
+                    Quantity = g.Sum(m => m.Quantity)
+                }).ToList();
+
+            int removedCount = await RemoveMaterials(task, validMaterials, materialsToRemove, currentMaterials);
+
+            List<MaterialAssignmentInsertDto> materialsToAdd = groupedMaterials.Where(m => !currentMaterialIds.Contains(m.MaterialId)).ToList();
+            int addedCount = await AddMaterials(task, validMaterials, materialsToAdd);
+
+            List<MaterialAssignmentInsertDto> materialsToUpdate = groupedMaterials
+                .Where(m => currentMaterialIds.Contains(m.MaterialId) &&
+                            currentMaterials.FirstOrDefault(cm => cm.MaterialId == m.MaterialId)?.Quantity != m.Quantity)
+                .ToList();
+
+            int updatedCount = await UpdateMaterials(task, validMaterials, materialsToUpdate, currentMaterials);
+
+            return (true, TaskServiceHelper.GenerateTaskMaterialUpdateMessage(addedCount, removedCount, updatedCount));
+        }
+
+        private async Task<int> RemoveMaterials(Task task, IList<Material> validMaterials, List<Guid> materialsToRemove, List<MaterialTask> currentMaterials)
+        {
+            int removedCount = 0;
+
+            foreach (Guid materialId in materialsToRemove)
+            {
+                MaterialTask? materialTask = currentMaterials.FirstOrDefault(m => m.MaterialId == materialId);
+                Material? material = validMaterials.FirstOrDefault(m => m.Id == materialId);
+
+                if (materialTask is not null && material is not null)
+                {
+                    RestoreStock(material, materialTask.Quantity);
+                    task.MaterialTasks.Remove(materialTask);
+
+                    removedCount++;
+                }
+            }
+            await _unitOfWork.SaveAsync();
+
+            return removedCount;
+        }
+
+        private async Task<int> AddMaterials(Task task, IList<Material> validMaterials, List<MaterialAssignmentInsertDto> materialsToAdd)
+        {
+            int addedCount = 0;
+
+            foreach (MaterialAssignmentInsertDto materialDto in materialsToAdd)
+            {
+                Material? material = validMaterials.FirstOrDefault(m => m.Id == materialDto.MaterialId);
+                if (material is null || material.IsDeleted || material.StockQuantity < materialDto.Quantity)
+                    continue;
+
+                DeductStock(material, materialDto.Quantity);
+
+                MaterialTask materialTask = new MaterialTask
+                {
+                    MaterialId = materialDto.MaterialId,
+                    TaskId = task.Id,
+                    Quantity = materialDto.Quantity
+                };
+                task.MaterialTasks.Add(materialTask);
+
+                addedCount++;
+            }
+            await _unitOfWork.SaveAsync();
+
+            return addedCount;
+        }
+
+        private async Task<int> UpdateMaterials(Task task, IList<Material> validMaterials, List<MaterialAssignmentInsertDto> materialsToUpdate, List<MaterialTask> currentMaterials)
+        {
+            int updatedCount = 0;
+
+            foreach (MaterialAssignmentInsertDto materialDto in materialsToUpdate)
+            {
+                MaterialTask? existingTaskMaterial = currentMaterials.FirstOrDefault(m => m.MaterialId == materialDto.MaterialId);
+                Material? material = validMaterials.FirstOrDefault(m => m.Id == materialDto.MaterialId);
+
+                if (existingTaskMaterial is not null && material is not null)
+                {
+                    int quantityDifference = (int)Math.Round(materialDto.Quantity - existingTaskMaterial.Quantity);
+                    if (quantityDifference > 0 && material.StockQuantity < quantityDifference)
+                        continue;
+
+                    AdjustStock(material, quantityDifference);
+                    existingTaskMaterial.Quantity = materialDto.Quantity;
+
+                    updatedCount++;
+                }
+            }
+            await _unitOfWork.SaveAsync();
+
+            return updatedCount;
+        }
+
+        private void RestoreStock(Material material, decimal quantity)
+        {
+            material.StockQuantity += quantity;
+        }
+
+        private void DeductStock(Material material, decimal quantity)
+        {
+            material.StockQuantity -= quantity;
+        }
+
+        private void AdjustStock(Material material, decimal quantityDifference)
+        {
+            material.StockQuantity -= quantityDifference;
+        }
+
         public async Task<(bool IsSuccess, string Message, int ActiveTasks, int TotalTasks)> GetTasksCountsAsync()
         {
             int totalTasks = await _unitOfWork.GetReadRepository<Task>().CountAsync(includeDeleted: true);

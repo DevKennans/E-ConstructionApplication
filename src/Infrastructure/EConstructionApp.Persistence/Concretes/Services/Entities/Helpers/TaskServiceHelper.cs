@@ -34,7 +34,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Helpers
         public static string GenerateTaskCreationSuccessMessage(string taskTitle, int employeeCount, int materialCount)
         {
             string message = $"Task '{taskTitle}' has been successfully created.";
-            List<string> details = new();
+            List<string> details = new List<string>();
 
             if (employeeCount == 1)
                 details.Add("1 employee has been assigned");
@@ -61,6 +61,21 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Helpers
                 return (false, "The deadline must be a future date. Please choose a valid due date.");
 
             return (true, default!);
+        }
+
+        public static string GenerateTaskMaterialUpdateMessage(int addedCount, int removedCount, int updatedCount)
+        {
+            List<string> messages = new List<string>();
+
+            if (addedCount > 0)
+                messages.Add($"{addedCount} material{(addedCount > 1 ? "s" : "")} added");
+            if (removedCount > 0)
+                messages.Add($"{removedCount} material{(removedCount > 1 ? "s" : "")} removed");
+            if (updatedCount > 0)
+                messages.Add($"{updatedCount} material{(updatedCount > 1 ? "s" : "")} updated");
+
+            string resultMessage = string.Join(", ", messages);
+            return resultMessage.Length > 0 ? $"Task materials updated successfully. {resultMessage}." : "No changes detected. Task materials remain the same.";
         }
     }
 }
