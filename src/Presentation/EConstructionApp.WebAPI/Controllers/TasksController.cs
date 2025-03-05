@@ -1,4 +1,5 @@
 ﻿using EConstructionApp.Application.DTOs.Tasks;
+using EConstructionApp.Application.DTOs.Tasks.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +15,7 @@ namespace EConstructionApp.WebAPI.Controllers
             _taskService = taskService;
         }
 
-        [HttpPost("InsertTasks")]
+        [HttpPost]
         public async Task<IActionResult> InsertTasks(TaskInsertDto taskInsertDtodto)
         {
             (bool IsSuccess, string Message) = await _taskService.InsertAsync(taskInsertDtodto);
@@ -42,6 +43,16 @@ namespace EConstructionApp.WebAPI.Controllers
                 return BadRequest(new { Success = false, Message });
 
             return Ok(new { Success = true, Message });
+        }
+
+        [HttpPut("UpdateTaskMaterials")]
+        public async Task<IActionResult> UpdateTaskMaterials(Guid taskId, [FromBody] List<MaterialAssignmentInsertDto> updatedMaterials)
+        {
+            (bool IsSuccess, string Message) = await _taskService.UpdateTaskMaterialsAsync(taskId, updatedMaterials);
+            if (!IsSuccess)
+                return BadRequest(new { IsSuccess, Message });
+
+            return Ok(new { IsSuccess, Message });
         }
 
         [HttpGet("GetTasksCounts")]
