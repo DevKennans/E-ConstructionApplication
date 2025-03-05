@@ -45,7 +45,7 @@ internal class Program
 
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Auth}/{action=Login}/{id?}",
+            pattern: "{controller=Task}/{action=GetTasks}/{id?}",
             defaults: new { area = "Admin" });
 
 

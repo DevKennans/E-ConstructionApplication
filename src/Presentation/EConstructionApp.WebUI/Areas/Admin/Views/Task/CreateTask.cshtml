@@ -171,7 +171,7 @@
         updateMaterialSelections();
     }
 
-    function loadMaterials(selectElement) {
+    function loadMaterials(selectElement, selectedMaterialId = null) {
         let materials = @Html.Raw(Json.Serialize(Model.Materials));
 
         selectElement.empty();
@@ -180,11 +180,19 @@
         materials.forEach(mat => {
             let optionText = `${mat.name} - ${mat.category.name}`;
             let option = new Option(optionText, mat.id);
-            if (selectedMaterialIds.includes(mat.id)) {
+
+            // Əgər material artıq seçilibsə, onu disable et
+            if (selectedMaterialIds.includes(mat.id) && mat.id !== selectedMaterialId) {
                 option.disabled = true;
             }
+
             selectElement.append(option);
         });
+
+        // Əgər bu funksiya `edit` üçün çağırılıbsa, seçilmiş materialı aktiv et
+        if (selectedMaterialId) {
+            selectElement.val(selectedMaterialId);
+        }
 
         selectElement.on('change', function () {
             let prevValue = $(this).data('prevValue');
@@ -202,6 +210,7 @@
             updateMaterialSelections();
         });
     }
+
 
     $(document).on('click', '.remove-material', function () {
         let parentDiv = $(this).closest('.material-item');
