@@ -3,9 +3,12 @@ using EConstructionApp.Application.DTOs.Materials;
 using EConstructionApp.Application.DTOs.Tasks;
 using EConstructionApp.Application.DTOs.Tasks.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
+using EConstructionApp.Domain.Enums.Tasks;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
+using TaskStatus = EConstructionApp.Domain.Enums.Tasks.TaskStatus;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
@@ -29,7 +32,14 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var model = new TaskCreateViewModel
             {
                 Employees = employeeResult.Employees ?? new List<EmployeeDto>(),
-                Materials = materialResult.Materials ?? new List<MaterialDto>()
+                Materials = materialResult.Materials ?? new List<MaterialDto>(),
+                Priorities = Enum.GetValues(typeof(TaskPriority))
+                        .Cast<TaskPriority>()
+                        .Select(e => new SelectListItem
+                        {
+                            Value = e.ToString(),
+                            Text = e.ToString()
+                        }).ToList()
             };
             return View(model);
         }
@@ -66,23 +76,34 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var result = await _taskService.GetAllActiveTaskListAsync();
             var res = await _employeeService.GetAvailableEmployeesListAsync();
             var r = await _materialService.GetAvailableMaterialsListAsync();
-            var model = new TaskViewModel();
+
+            var model = new TaskViewModel
+            {
+                Tasks = result.IsSuccess ? result.Tasks : new List<TaskDto>(),
+                Employees = result.IsSuccess ? res.Employees : new List<EmployeeDto>(),
+                Materials = result.IsSuccess ? r.Materials : new List<MaterialDto>(),
+                Priorities = Enum.GetValues(typeof(TaskPriority))
+                                 .Cast<TaskPriority>()
+                                 .Select(e => new SelectListItem
+                                 {
+                                     Value = e.ToString(),
+                                     Text = e.ToString()
+                                 }).ToList(),
+                Statuses = Enum.GetValues(typeof(TaskStatus))
+                               .Cast<TaskStatus>()
+                               .Select(e => new SelectListItem
+                               {
+                                   Value = e.ToString(),
+                                   Text = e.ToString()
+                               }).ToList()
+            };
 
             if (!result.IsSuccess)
-            {
                 TempData["ErrorMessage"] = result.Message;
-                model.Tasks = new List<TaskDto>();
-                model.Employees = new List<EmployeeDto>();
-                model.Materials = new List<MaterialDto>();
-            }
-            else
-            {
-                model.Tasks = result.Tasks;
-                model.Employees = res.Employees;
-                model.Materials = r.Materials;
-            }
+
             return View(model);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> EditTask(TaskDetailsUpdateDto viewModel)

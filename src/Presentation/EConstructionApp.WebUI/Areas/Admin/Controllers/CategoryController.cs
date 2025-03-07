@@ -25,13 +25,10 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _categoryService.InsertAsync(name);
             if (!isSuccess)
             {
-                ViewBag.Message = message;
-
+                TempData["ErrorMessage"] = message;
                 return View();
             }
-
-            ViewBag.Success = message;
-
+            TempData["SuccessMessage"] = message;
             return View();
         }
 
