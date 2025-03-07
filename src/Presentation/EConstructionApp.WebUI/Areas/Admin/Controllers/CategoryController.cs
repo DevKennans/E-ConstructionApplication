@@ -2,7 +2,6 @@
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
@@ -14,10 +13,12 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             _categoryService = categoryService;
         }
+
         public IActionResult AddCategory()
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> AddCategory(string name)
         {
@@ -25,22 +26,25 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             if (!isSuccess)
             {
                 ViewBag.Message = message;
+
                 return View();
             }
+
             ViewBag.Success = message;
+
             return View();
         }
 
         public async Task<IActionResult> GetCategories(int page = 1, int size = 5)
         {
-            var (isSuccess, message, categories, totalCategories) = await _categoryService.GetAllOrOnlyActiveCategoriesPagedListAsync(page, size);
-
-            if (!isSuccess || categories == null)
+            var (isSuccess, message, categories, totalCategories) = await _categoryService.GetOnlyActiveCategoriesPagedListAsync(page, size);
+            if (!isSuccess)
             {
                 TempData["ErrorMessage"] = message;
+
                 return View(new CategoryListViewModel
                 {
-                    Categories = new List<CategoryDto>(), 
+                    Categories = new List<CategoryDto>(),
                     CurrentPage = page,
                     TotalPages = 0
                 });
@@ -49,7 +53,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var totalPages = (int)Math.Ceiling((double)totalCategories / size);
             var model = new CategoryListViewModel
             {
-                Categories = categories, 
+                Categories = categories!,
                 CurrentPage = page,
                 TotalPages = totalPages
             };
@@ -60,10 +64,10 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         public async Task<IActionResult> GetDeletedCategories(int page = 1, int size = 5)
         {
             var (isSuccess, message, categories, totalCategories) = await _categoryService.GetDeletedCategoriesPagedListAsync(page, size);
-
-            if (!isSuccess || categories == null)
+            if (!isSuccess)
             {
                 TempData["ErrorMessage"] = message;
+
                 return View(new CategoryListViewModel
                 {
                     Categories = new List<CategoryDto>(),
@@ -71,58 +75,56 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                     TotalPages = 0
                 });
             }
+
             var totalPages = (int)Math.Ceiling((double)totalCategories / size);
             var model = new CategoryListViewModel
             {
-                Categories = categories,
+                Categories = categories!,
                 CurrentPage = page,
                 TotalPages = totalPages
             };
 
             return View(model);
         }
+
         [HttpPost]
         public async Task<IActionResult> RestoreDeletedCategory(Guid categoryId)
         {
-            var (isSuccess, message) = await _categoryService.RestoreDeletedCategoryAsync(categoryId);
+            var (isSuccess, message) = await _categoryService.RestoreDeletedAsync(categoryId);
             if (!isSuccess)
-            {
                 TempData["ErrorMessage"] = message;
-            }
             else
-            {
                 TempData["SuccessMessage"] = message;
-            }
+
             return RedirectToAction("GetDeletedCategories");
         }
+
         [HttpPost]
         public async Task<IActionResult> EditCategory(CategoryDto viewModel)
         {
-            var (isSuccess, message) = await _categoryService.UpdateCategoryAsync(viewModel.Id, viewModel.Name);
-
+            var (isSuccess, message) = await _categoryService.UpdateAsync(viewModel.Id, viewModel.Name);
             if (!isSuccess)
-            {
-                TempData["ErrorMessage"] = message; 
-            }
+                TempData["ErrorMessage"] = message;
             else
-            {
-                TempData["SuccessMessage"] = message; 
-            }
-            return RedirectToAction("GetCategories"); 
+                TempData["SuccessMessage"] = message;
+
+            return RedirectToAction("GetCategories");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCategory(Guid categoryId)
         {
-            var (isSuccess, message) = await _categoryService.SafeDeleteCategoryAsync(categoryId);
-
+            var (isSuccess, message) = await _categoryService.SafeDeleteAsync(categoryId);
             if (!isSuccess)
             {
                 TempData["ErrorMessage"] = message;
+
                 return RedirectToAction("GetCategories");
             }
+
             TempData["SuccessMessage"] = message;
+
             return RedirectToAction("GetCategories");
         }
     }

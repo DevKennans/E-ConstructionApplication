@@ -10,9 +10,14 @@ namespace EConstructionApp.Persistence.Configurations
         {
             builder.HasKey(c => c.Id);
 
-            builder.Property(c => c.Name).IsRequired().HasMaxLength(250);
+            builder.Property(c => c.Name)
+                .IsRequired()
+                .HasMaxLength(250);
+            builder.ToTable(tb => tb.HasCheckConstraint("CK_Category_Name_Length", "LEN(Name) >= 2"));
 
-            builder.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
+            builder.Property(e => e.IsDeleted)
+                .IsRequired()
+                .HasDefaultValue(false);
         }
     }
 }

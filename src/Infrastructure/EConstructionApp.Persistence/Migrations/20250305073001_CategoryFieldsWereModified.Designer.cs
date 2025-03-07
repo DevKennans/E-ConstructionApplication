@@ -4,6 +4,7 @@ using EConstructionApp.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EConstructionApp.Persistence.Migrations
 {
     [DbContext(typeof(EConstructionDbContext))]
-    partial class EConstructionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250305073001_CategoryFieldsWereModified")]
+    partial class CategoryFieldsWereModified
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -197,14 +200,7 @@ namespace EConstructionApp.Persistence.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Materials", t =>
-                        {
-                            t.HasCheckConstraint("CK_Material_Name_Length", "LEN(Name) >= 2");
-
-                            t.HasCheckConstraint("CK_Material_Price", "Price > 0");
-
-                            t.HasCheckConstraint("CK_Material_StockQuantity", "StockQuantity >= 0");
-                        });
+                    b.ToTable("Materials");
                 });
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Task", b =>
