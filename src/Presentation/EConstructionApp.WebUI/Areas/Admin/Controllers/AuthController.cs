@@ -29,10 +29,23 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             }
             return View(model);
         }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
         [HttpPost]
         public IActionResult Logout()
         {
             return RedirectToAction("Login", "Auth");
+        }
+
+        [HttpGet]
+        public IActionResult Settings()
+        {
+            return View();
         }
     }
 }

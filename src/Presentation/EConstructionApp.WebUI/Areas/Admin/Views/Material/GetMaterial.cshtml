@@ -130,24 +130,26 @@
                     <input type="hidden" id="materialId" name="Id" />
                     <div class="form-group">
                         <label for="materialName">Material Name</label>
-                        <input type="text" id="materialName" name="Name" class="form-control" required />
+                        <input type="text" id="materialName" name="Name" class="form-control" required minlength="2" maxlength="250" />
                     </div>
                     <div class="form-group">
                         <label for="materialQuantity">Quantity</label>
-                        <input type="number" id="materialQuantity" name="StockQuantity" class="form-control" required />
+                        <input type="number" id="materialQuantity" name="StockQuantity" class="form-control" required min="1" step="1"/>
                     </div>
                     <div class="form-group">
                         <label for="materialPrice">Price</label>
-                        <input type="text" id="materialPrice" name="Price" class="form-control" step="0.01" required />
+                        <input type="number" id="materialPrice" name="Price" class="form-control" step="0.01" required min="0.01"/>
                     </div>
                     <div class="form-group">
                         <label for="materialMeasure">Measure</label>
                         <select id="materialMeasure" name="Measure" class="form-control" required>
-                            <option value="Kilogram">Kilogram</option>
-                            <option value="Meter">Meter</option>
-                            <option value="Unit">Unit</option>
+                            @foreach (var measure in Model.MeasureList)
+                            {
+                                <option value="@measure.Value">@measure.Text</option>
+                            }
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label for="materialCategory">Category</label>
                         <select id="materialCategory" name="CategoryId" class="form-control" required>
@@ -199,6 +201,9 @@
                 materialQuantityField.value = button.getAttribute('data-quantity');
                 materialPriceField.value = button.getAttribute('data-price');
                 materialMeasureField.value = button.getAttribute('data-measure');
+                console.log("Selected measure value: ", materialMeasureField.value);
+                console.log("Available options: ", [...materialMeasureField.options].map(opt => opt.value));
+
                 const selectedCategoryId = button.getAttribute('data-category-id');
                 if (selectedCategoryId) {
                     materialCategoryField.value = selectedCategoryId;

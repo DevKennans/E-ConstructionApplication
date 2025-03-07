@@ -31,15 +31,15 @@
                         @Html.AntiForgeryToken()
                         <div class="mb-4">
                             <label for="materialName" class="form-label fs-5 fw-bold">Material Name</label>
-                            <input type="text" id="materialName" name="Material.Name" class="form-control form-control-lg" placeholder="Enter material name" required />
+                            <input type="text" id="materialName" name="Material.Name" class="form-control form-control-lg" placeholder="Enter material name" required minlength="2" maxlength="250" />
                         </div>
                         <div class="mb-4">
                             <label for="stockCount" class="form-label fs-5 fw-bold">Stock Count</label>
-                            <input type="number" id="stockCount" name="Material.StockQuantity" class="form-control form-control-lg" placeholder="Enter stock count" required min="1" />
+                            <input type="number" id="stockCount" name="Material.StockQuantity" class="form-control form-control-lg" placeholder="Enter stock count" required min="1" step="1"/>
                         </div>
                         <div class="mb-4">
                             <label for="materialPrice" class="form-label fs-5 fw-bold">Material Price ($)</label>
-                            <input type="text" id="materialPrice" name="Material.Price" class="form-control form-control-lg" placeholder="Enter material price" step="0.01" required />
+                            <input type="number" id="materialPrice" name="Material.Price" class="form-control form-control-lg" placeholder="Enter material price" step="0.01" required min="0.01"/>
                         </div>
                         <div class="mb-4">
                             <label for="materialCategory" class="form-label fs-5 fw-bold">Material Category</label>
@@ -67,9 +67,10 @@
                             <div class="custom-select-container">
                                 <select id="materialMeasure" name="Material.Measure" class="form-select form-select-lg" required>
                                     <option value="" disabled selected>Select a measure</option>
-                                    <option value="Kilogram">Kilogram</option>
-                                    <option value="Meter">Meter</option>
-                                    <option value="Unit">Unit</option>
+                                    @foreach (var measure in Model.MeasureList)
+                                    {
+                                        <option value="@measure.Value">@measure.Text</option>
+                                    }
                                 </select>
                             </div>
                         </div>
