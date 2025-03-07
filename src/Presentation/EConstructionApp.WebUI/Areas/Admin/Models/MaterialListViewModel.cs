@@ -1,5 +1,6 @@
 ﻿using EConstructionApp.Application.DTOs.Categories;
 using EConstructionApp.Application.DTOs.Materials;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Models
 {
@@ -10,5 +11,6 @@ namespace EConstructionApp.WebUI.Areas.Admin.Models
         public int TotalPages { get; set; }
         public IEnumerable<CategoryDto> Categories { get; set; } = new List<CategoryDto>();
         public IEnumerable<MaterialUpdateDto> Material { get; set; } = new List<MaterialUpdateDto>();
+        public IEnumerable<SelectListItem> MeasureList { get; set; } = new List<SelectListItem>();
     }
 }

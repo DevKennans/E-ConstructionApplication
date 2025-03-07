@@ -1,8 +1,10 @@
 ﻿using EConstructionApp.Application.DTOs.Categories;
 using EConstructionApp.Application.DTOs.Materials;
 using EConstructionApp.Application.Interfaces.Services.Entities;
+using EConstructionApp.Domain.Enums;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
@@ -28,7 +30,15 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var model = new CreateMaterialViewModel
             {
                 Categories = categories ?? new List<CategoryDto>(),
-                Material = new MaterialInsertDto()
+                Material = new MaterialInsertDto(),
+                MeasureList = Enum.GetValues(typeof(Measure))
+                                  .Cast<Measure>()
+                                  .Select(m => new SelectListItem
+                                  {
+                                      Value = m.ToString(),
+                                      Text = m.ToString()
+                                  })
+                                  .ToList()
             };
 
             return View(model);
@@ -81,7 +91,15 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                 Materials = materials!,
                 CurrentPage = page,
                 TotalPages = totalPages,
-                Categories = categories!
+                Categories = categories!,
+                MeasureList = Enum.GetValues(typeof(Measure))
+                          .Cast<Measure>()
+                          .Select(m => new SelectListItem
+                          {
+                              Value = m.ToString(),
+                              Text = m.ToString()
+                          })
+                          .ToList()
             };
 
             return View(model);

@@ -57,6 +57,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Helpers
             return material.Name.Trim() != dto.Name.Trim() ||
                    material.Price != dto.Price ||
                    material.StockQuantity != dto.StockQuantity ||
+                   material.Measure != dto.Measure ||
                    material.CategoryId != dto.CategoryId;
         }
 
