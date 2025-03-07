@@ -1,9 +1,74 @@
-﻿using EConstructionApp.Application.DTOs.Tasks;
+﻿using EConstructionApp.Application.DTOs.Materials;
+using EConstructionApp.Application.DTOs.Tasks;
+using EConstructionApp.Domain.Entities;
 
 namespace EConstructionApp.Persistence.Concretes.Services.Entities.Helpers
 {
-    public static class TaskServiceHelper
+    public static class ServiceUtils
     {
+        #region Category
+        private const int MinCategoryNameLength = 2;
+        private const int MaxCategoryNameLength = 250;
+
+        public static string ValidateCategoryNameForInsert(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return "Category name cannot be empty.";
+
+            name = name.Trim();
+
+            if (name.Length < MinCategoryNameLength)
+                return $"Category name must be at least {MinCategoryNameLength} characters long.";
+            if (name.Length > MaxCategoryNameLength)
+                return $"Category name cannot exceed {MaxCategoryNameLength} characters.";
+
+            return string.Empty;
+        }
+
+        public static string ValidateCategoryNameForUpdate(string? name)
+        {
+            return ValidateCategoryNameForInsert(name);
+        }
+
+        public static string GenerateCategorySafeDeleteMessage(Category category, int materialCount)
+        {
+            return materialCount switch
+            {
+                0 => $"Category '{category.Name}' has been safely deleted.",
+                1 => $"Category '{category.Name}' and 1 associated material have been safely deleted.",
+                _ => $"Category '{category.Name}' and {materialCount} associated materials have been safely deleted."
+            };
+        }
+
+        public static string GenerateCategoryRestoreMessage(Category category, int materialCount)
+        {
+            return materialCount switch
+            {
+                0 => $"Category '{category.Name}' has been restored.",
+                1 => $"Category '{category.Name}' and 1 associated material have been restored.",
+                _ => $"Category '{category.Name}' and {materialCount} associated materials have been restored."
+            };
+        }
+        #endregion
+
+        #region Material
+        public static bool HasMaterialChanges(Material material, MaterialUpdateDto dto)
+        {
+            return material.Name.Trim() != dto.Name.Trim() ||
+                   material.Price != dto.Price ||
+                   material.StockQuantity != dto.StockQuantity ||
+                   material.CategoryId != dto.CategoryId;
+        }
+
+        public static (bool IsSuccess, string Message) CheckForNoMaterialChanges(Material material, MaterialUpdateDto dto)
+        {
+            if (!HasMaterialChanges(material, dto))
+                return (true, "No changes detected. The update was skipped.");
+
+            return (false, string.Empty);
+        }
+        #endregion
+
         public static (bool IsSuccess, string Message) ValidateTaskCreationDto(TaskInsertDto taskInsertDto)
         {
             if (taskInsertDto is null)

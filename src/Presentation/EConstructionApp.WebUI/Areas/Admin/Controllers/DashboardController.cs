@@ -11,7 +11,6 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         private readonly IMaterialService _materialService;
         private readonly IEmployeeService _employeeService;
         private readonly ITaskService _taskService;
-
         public DashboardController(ICategoryService categoryService, IMaterialService materialService, IEmployeeService employeeService, ITaskService taskService)
         {
             _categoryService = categoryService;
@@ -19,33 +18,28 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             _employeeService = employeeService;
             _taskService = taskService;
         }
+
         public async Task<IActionResult> Index()
         {
-            var (categorySuccess, categoryMessage, activeCategories, totalCategories) = await _categoryService.GetCategoryCountsAsync();
-            var (materialSuccess, materialMessage, activeMaterials, totalMaterials) = await _materialService.GetMaterialCountsAsync();
-            var (employeeSuccess, employeeMessage, activeEmployees, totalEmployees) = await _employeeService.GetEmployeeCountsAsync();
-            var (taskSuccess, taskMessage, activeTasks, totalTasks) = await _taskService.GetTasksCountsAsync();
-            var (topCategoriesSuccess, topCategoriesMessage, topCategories) = await _categoryService.GetTopUsedCategoriesWithMaterialCountsAsync(5);
-            var (taskStatusSuccess, taskStatusMessage, taskStatusCounts) = await _taskService.GetListOfTaskCountByStatusAsync();
+            var (categorySuccess, categoryMessage, activeCategories, totalCategories) = await _categoryService.GetBothActiveAndTotalCountsAsync();
             if (!categorySuccess)
-            {
                 TempData["ErrorMessage"] = categoryMessage;
-            }
 
+            var (materialSuccess, materialMessage, activeMaterials, totalMaterials) = await _materialService.GetBothActiveAndTotalCountsAsync();
             if (!materialSuccess)
-            {
                 TempData["ErrorMessage"] = materialMessage;
-            }
 
+            var (employeeSuccess, employeeMessage, activeEmployees, totalEmployees) = await _employeeService.GetEmployeeCountsAsync();
             if (!employeeSuccess)
-            {
                 TempData["ErrorMessage"] = employeeMessage;
-            }
 
+            var (taskSuccess, taskMessage, activeTasks, totalTasks) = await _taskService.GetTasksCountsAsync();
+
+            var (topCategoriesSuccess, topCategoriesMessage, topCategories) = await _categoryService.GetTopUsedCategoriesWithMaterialsCountsAsync(5);
+
+            var (taskStatusSuccess, taskStatusMessage, taskStatusCounts) = await _taskService.GetListOfTaskCountByStatusAsync();
             if (!taskSuccess)
-            {
                 TempData["ErrorMessage"] = taskMessage;
-            }
 
             var model = new DashboardViewModel
             {
@@ -57,14 +51,11 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                 TotalEmployees = totalEmployees,
                 ActiveTasks = activeTasks,
                 TotalTasks = totalTasks,
-                TopCategories = topCategories,
-                TaskStatusCounts = taskStatusCounts
+                TopCategories = topCategories!,
+                TaskStatusCounts = taskStatusCounts!
             };
 
             return View(model);
         }
-
-
-
     }
 }

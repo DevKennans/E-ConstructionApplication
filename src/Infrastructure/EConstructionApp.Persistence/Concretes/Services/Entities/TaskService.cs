@@ -25,7 +25,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
         public async Task<(bool IsSuccess, string Message)> InsertAsync(TaskInsertDto? taskInsertDto)
         {
-            (bool IsSuccess, string Message) validationResult = TaskServiceHelper.ValidateTaskCreationDto(taskInsertDto!);
+            (bool IsSuccess, string Message) validationResult = ServiceUtils.ValidateTaskCreationDto(taskInsertDto!);
             if (!validationResult.IsSuccess)
                 return (false, validationResult.Message);
 
@@ -44,7 +44,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             await _unitOfWork.GetWriteRepository<Task>().AddAsync(task);
             await _unitOfWork.SaveAsync();
 
-            return (true, TaskServiceHelper.GenerateTaskCreationSuccessMessage(task.Title, employeeResult.AssignedCount, materialResult.AssignedCount));
+            return (true, ServiceUtils.GenerateTaskCreationSuccessMessage(task.Title, employeeResult.AssignedCount, materialResult.AssignedCount));
         }
 
         private async Task<(bool IsSuccess, string Message, IList<Employee>? Employees, int AssignedCount)> AssignEmployeesAsync(IList<Guid> employeeIds)
@@ -126,22 +126,29 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
         public async Task<(bool IsSuccess, string Message)> UpdateTaskDetailsAsync(TaskDetailsUpdateDto? taskDetailsUpdateDto)
         {
-            (bool IsSuccess, string Message) validation = TaskServiceHelper.ValidateTaskUpdateDto(taskDetailsUpdateDto);
+            (bool IsSuccess, string Message) validation = ServiceUtils.ValidateTaskUpdateDto(taskDetailsUpdateDto);
             if (!validation.IsSuccess)
                 return (false, validation.Message);
 
-            (bool IsSuccess, string Message, Task? Task) = await GetTaskWithRelationsByIdAsync(taskDetailsUpdateDto!.Id);
-            if (!IsSuccess)
-                return (false, Message);
+            Task? task = await _unitOfWork.GetReadRepository<Task>().GetAsync(
+                enableTracking: true,
+                includeDeleted: false,
+                predicate: t => t.Id == taskDetailsUpdateDto!.Id,
+                include: q => q.Include(t => t.Employees)
+                               .Include(t => t.MaterialTasks)
+                               .ThenInclude(mt => mt.Material)
+                               .ThenInclude(m => m.Category));
+            if (task is null)
+                return (false, $"Task with ID '{taskDetailsUpdateDto!.Id}' not found or has been deleted.");
 
-            List<string> updates = ApplyTaskUpdates(taskDetailsUpdateDto, Task!);
+            List<string> updates = ApplyTaskUpdates(taskDetailsUpdateDto!, task!);
             if (!updates.Any())
                 return (false, "No updates detected. The task details remain unchanged.");
 
-            await _unitOfWork.GetWriteRepository<Task>().UpdateAsync(Task!);
+            await _unitOfWork.GetWriteRepository<Task>().UpdateAsync(task!);
             await _unitOfWork.SaveAsync();
 
-            return (true, $"Task '{Task!.Title}' has been updated successfully! {string.Join(" ", updates)}");
+            return (true, $"Task '{task!.Title}' has been updated successfully! {string.Join(" ", updates)}");
         }
 
         private List<string> ApplyTaskUpdates(TaskDetailsUpdateDto taskDetailsUpdateDto, Task task)
@@ -295,7 +302,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             int updatedCount = await UpdateMaterials(task, validMaterials, materialsToUpdate, currentMaterials);
 
-            return (true, TaskServiceHelper.GenerateTaskMaterialUpdateMessage(addedCount, removedCount, updatedCount));
+            return (true, ServiceUtils.GenerateTaskMaterialUpdateMessage(addedCount, removedCount, updatedCount));
         }
 
         private async Task<int> RemoveMaterials(Task task, IList<Material> validMaterials, List<Guid> materialsToRemove, List<MaterialTask> currentMaterials)
