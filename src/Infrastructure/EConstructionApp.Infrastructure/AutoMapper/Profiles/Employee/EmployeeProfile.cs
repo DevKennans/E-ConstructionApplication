@@ -9,9 +9,9 @@ namespace EConstructionApp.Infrastructure.AutoMapper.Profiles.Employee
         {
             CreateMap<EmployeeInsertDto, Domain.Entities.Employee>().ReverseMap();
 
-            CreateMap<EmployeeDto, Domain.Entities.Employee>().ReverseMap();
-
             CreateMap<EmployeeUpdateDto, Domain.Entities.Employee>().ReverseMap();
+
+            CreateMap<EmployeeDto, Domain.Entities.Employee>().ReverseMap();
         }
     }
 }

@@ -2,7 +2,9 @@
 using EConstructionApp.Application.DTOs.Employees;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
+using EConstructionApp.Application.Validations.Entities.Employees;
 using EConstructionApp.Domain.Entities;
+using EConstructionApp.Persistence.Concretes.Services.Entities.Helpers;
 
 namespace EConstructionApp.Persistence.Concretes.Services.Entities
 {
@@ -16,99 +18,78 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             _mapper = mapper;
         }
 
-        public async Task<(bool IsSuccess, string Message)> InsertAsync(EmployeeInsertDto dto)
+        public async Task<(bool IsSuccess, string Message)> InsertAsync(EmployeeInsertDto? employeeInsertDto)
         {
-            if (dto is null)
-                return (false, "Invalid employee data.");
+            if (employeeInsertDto is null)
+                return (false, "Invalid employee data. Please ensure all required fields are provided.");
 
-            List<string> validationErrors = new List<string>();
+            EmployeeInsertDtoValidator validator = new EmployeeInsertDtoValidator();
+            FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(employeeInsertDto);
+            if (!validationResult.IsValid)
+                return (false, string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage)));
 
-            if (string.IsNullOrWhiteSpace(dto.FirstName))
-                validationErrors.Add("First name cannot be empty.");
-            if (string.IsNullOrWhiteSpace(dto.LastName))
-                validationErrors.Add("Last name cannot be empty.");
+            Employee? existingEmployeeWithPhoneNumber = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
+                enableTracking: false,
+                includeDeleted: true,
+                predicate: e => e.PhoneNumber == employeeInsertDto.PhoneNumber);
+            if (existingEmployeeWithPhoneNumber is not null)
+                return (false, "An employee with the same phone number already exists. Please use a different number.");
 
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-            if (dto.DateOfBirth > today.AddYears(-18))
-                validationErrors.Add("Employee must be at least 18 years old.");
 
-            if (string.IsNullOrWhiteSpace(dto.PhoneNumber))
-                validationErrors.Add("Phone number is required.");
-            if (string.IsNullOrWhiteSpace(dto.Address))
-                validationErrors.Add("Address is required.");
-            if (dto.Salary <= 0)
-                validationErrors.Add("Salary must be greater than zero.");
-
-            if (validationErrors.Any())
-                return (false, string.Join(" ", validationErrors));
-
-            Employee employee = _mapper.Map<Employee>(dto);
+            Employee employee = _mapper.Map<Employee>(employeeInsertDto);
 
             await _unitOfWork.GetWriteRepository<Employee>().AddAsync(employee);
             await _unitOfWork.SaveAsync();
 
-            return (true, $"Employee '{dto.FirstName} {dto.LastName}' has been successfully added.");
+            return (true, $"Employee '{employeeInsertDto.FirstName} {employeeInsertDto.LastName}' has been successfully added.");
         }
 
-        public async Task<(bool IsSuccess, string Message)> UpdateAsync(EmployeeUpdateDto dto)
+        public async Task<(bool IsSuccess, string Message)> UpdateAsync(EmployeeUpdateDto? employeeUpdateDto)
         {
-            if (dto is null)
-                return (false, "Invalid employee data.");
+            if (employeeUpdateDto is null)
+                return (false, "Invalid employee data. Please ensure all required fields are provided.");
 
             Employee? employee = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
                 enableTracking: true,
                 includeDeleted: true,
-                predicate: e => e.Id == dto.Id);
+                predicate: e => e.Id == employeeUpdateDto.Id);
             if (employee is null)
-                return (false, "Employee not found.");
+                return (false, "The selected employee could not be found in the system. Please check and try again.");
             if (employee.IsDeleted)
-                return (false, "Cannot update a deleted employee. Please restore it first.");
+                return (false, "The selected employee is inactive. Please restore it before proceeding.");
 
-            List<string> validationErrors = new List<string>();
+            EmployeeUpdateDtoValidator validator = new EmployeeUpdateDtoValidator();
+            FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(employeeUpdateDto);
+            if (!validationResult.IsValid)
+                return (false, string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage)));
 
-            if (string.IsNullOrWhiteSpace(dto.FirstName))
-                validationErrors.Add("First name cannot be empty.");
-            if (string.IsNullOrWhiteSpace(dto.LastName))
-                validationErrors.Add("Last name cannot be empty.");
+            Employee? existingEmployeeWithPhoneNumber = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
+                enableTracking: false,
+                includeDeleted: true,
+                predicate: e => e.PhoneNumber == employeeUpdateDto.PhoneNumber && e.Id != employeeUpdateDto.Id);
+            if (existingEmployeeWithPhoneNumber is not null)
+                return (false, "An employee with the same phone number already exists. Please use a different number.");
 
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-            if (dto.DateOfBirth > today.AddYears(-18))
-                validationErrors.Add("Employee must be at least 18 years old.");
+            (bool IsSuccess, string Message) checkChanges = ServiceUtils.CheckForNoEmployeeChanges(employee, employeeUpdateDto);
+            if (checkChanges.IsSuccess)
+                return checkChanges;
 
-            if (string.IsNullOrWhiteSpace(dto.PhoneNumber))
-                validationErrors.Add("Phone number is required.");
-            if (string.IsNullOrWhiteSpace(dto.Address))
-                validationErrors.Add("Address is required.");
-            if (dto.Salary <= 0)
-                validationErrors.Add("Salary must be greater than zero.");
-
-            if (validationErrors.Any())
-                return (false, string.Join(" ", validationErrors));
-
-            if (employee.FirstName == dto.FirstName.Trim() &&
-                employee.LastName == dto.LastName.Trim() &&
-                employee.DateOfBirth == dto.DateOfBirth &&
-                employee.PhoneNumber == dto.PhoneNumber.Trim() &&
-                employee.Address == dto.Address.Trim() &&
-                employee.Salary == dto.Salary)
-                return (true, "No changes detected. Update skipped.");
-
-            _mapper.Map(dto, employee);
+            _mapper.Map(employeeUpdateDto, employee);
 
             await _unitOfWork.GetWriteRepository<Employee>().UpdateAsync(employee);
             await _unitOfWork.SaveAsync();
 
-            return (true, $"Employee '{dto.FirstName} {dto.LastName}' has been successfully updated.");
+            return (true, $"Employee '{employeeUpdateDto.FirstName} {employeeUpdateDto.LastName}' has been successfully updated.");
         }
 
-        public async Task<(bool IsSuccess, string Message)> SafeDeleteEmployeeAsync(Guid employeeId)
+        public async Task<(bool IsSuccess, string Message)> SafeDeleteAsync(Guid employeeId)
         {
             Employee? employee = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
                 enableTracking: true,
                 includeDeleted: true,
                 predicate: e => e.Id == employeeId);
             if (employee is null)
-                return (false, "Employee not found.");
+                return (false, "Employee not found in the system. Please ensure the employee exists.");
             if (employee.IsDeleted)
                 return (false, "Employee is already marked as deleted.");
             if (employee.IsCurrentlyWorking)
@@ -122,38 +103,38 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, $"Employee '{employee.FirstName} {employee.LastName}' has been safely deleted.");
         }
 
-        public async Task<(bool IsSuccess, string Message)> RestoreEmployeeAsync(Guid employeeId)
+        public async Task<(bool IsSuccess, string Message)> RestoreDeletedAsync(Guid employeeId)
         {
             Employee? employee = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
                 enableTracking: true,
                 includeDeleted: true,
-                predicate: e => e.Id == employeeId && e.IsDeleted);
+                predicate: e => e.Id == employeeId);
             if (employee is null)
-                return (false, "Employee not found or already active.");
+                return (false, "Employee not found in the system. Please ensure the employee exists.");
+            if (!employee.IsDeleted)
+                return (false, "Employee is already active.");
 
             employee.IsDeleted = false;
 
             await _unitOfWork.GetWriteRepository<Employee>().UpdateAsync(employee);
             await _unitOfWork.SaveAsync();
 
-            return (true, $"Employee '{employee.FirstName} {employee.LastName}' has been restored.");
+            return (true, $"Employee '{employee.FirstName} {employee.LastName}' has been successfully restored.");
         }
 
-        public async Task<(bool IsSuccess, string Message, int ActiveEmployees, int TotalEmployees)> GetEmployeeCountsAsync()
+        public async Task<(bool IsSuccess, string Message, int ActiveEmployees, int TotalEmployees)> GetBothActiveAndTotalCountsAsync()
         {
             int totalEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(includeDeleted: true);
             if (totalEmployees == 0)
-                return (false, "No employees found.", default!, default!);
+                return (false, "No employees found in the system.", default!, default!);
 
             int activeEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(
-                    includeDeleted: true,
-                    predicate: c => !c.IsDeleted);
+                    includeDeleted: false);
 
-            return (true, "Employee counts retrieved successfully.", activeEmployees, totalEmployees);
+            return (true, $"Currently, {activeEmployees} out of {totalEmployees} employees are active.", activeEmployees, totalEmployees);
         }
 
-        /* GetAvailableEmployeesListAsync method retrieves all non-deleted employees who are currently not assigned to any task. */
-        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto> Employees)> GetAvailableEmployeesListAsync()
+        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto>? Employees)> GetAvailableEmployeesListAsync()
         {
             IList<Employee> employees = await _unitOfWork.GetReadRepository<Employee>().GetAllAsync(
                     enableTracking: false,
@@ -161,46 +142,46 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                     predicate: e => !e.IsDeleted && !e.IsCurrentlyWorking,
                     orderBy: q => q.OrderByDescending(e => e.InsertedDate));
             if (!employees.Any())
-                return (false, "No available employees found.", default!);
+                return (false, "No available employees found.", null);
 
             IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(employees);
-            return (true, "Available employees retrieved successfully.", employeeDtos);
+            return (true, "Available employees have been successfully retrieved.", employeeDtos);
         }
 
-        /* GetAllOrOnlyActiveEmployeesPagedListAsync method can use for both only active or active and passive lists. */
-        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalEmployees)> GetAllOrOnlyActiveEmployeesPagedListAsync(int page = 1, int size = 5, bool includeDeleted = false)
+        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto>? Employees, int TotalEmployees)> GetOnlyActiveEmployeesPagedListAsync(int pages = 1, int sizes = 5)
         {
-            if (page < 1 || size < 1)
-                return (false, "Page and size must be greater than zero.", default!, 0);
+            (bool IsValid, string? ErrorMessage) validation = ServiceUtils.ValidatePagination(pages, sizes);
+            if (!validation.IsValid)
+                return (false, validation.ErrorMessage!, null, default!);
 
             IList<Employee> employees = await _unitOfWork.GetReadRepository<Employee>().GetAllByPagingAsync(
                     enableTracking: false,
-                    includeDeleted: includeDeleted,
-                    currentPage: page,
-                    pageSize: size,
+                    includeDeleted: false,
+                    currentPage: pages,
+                    pageSize: sizes,
                     orderBy: q => q.OrderByDescending(e => e.InsertedDate));
 
-            int totalEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(includeDeleted: includeDeleted);
+            int totalEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(includeDeleted: false);
 
             if (!employees.Any())
-                return (false, "No employees found.", default!, totalEmployees);
+                return (false, "No active employees found.", null, totalEmployees);
 
             IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(employees);
-            return (true, "Employees retrieved successfully.", employeeDtos, totalEmployees);
+            return (true, "Active employees have been successfully retrieved.", employeeDtos, totalEmployees);
         }
 
-        /* GetDeletedEmployeesPagedListAsync method can use for only and only passive list. */
-        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto> Employees, int TotalDeletedEmployees)> GetDeletedEmployeesPagedListAsync(int page = 1, int size = 5)
+        public async Task<(bool IsSuccess, string Message, IList<EmployeeDto>? Employees, int TotalDeletedEmployees)> GetDeletedEmployeesPagedListAsync(int pages = 1, int sizes = 5)
         {
-            if (page < 1 || size < 1)
-                return (false, "Page and size must be greater than zero.", default!, 0);
+            (bool IsValid, string? ErrorMessage) validation = ServiceUtils.ValidatePagination(pages, sizes);
+            if (!validation.IsValid)
+                return (false, validation.ErrorMessage!, null, default!);
 
             IList<Employee> deletedEmployees = await _unitOfWork.GetReadRepository<Employee>().GetAllByPagingAsync(
                 enableTracking: false,
                 includeDeleted: true,
                 predicate: e => e.IsDeleted,
-                currentPage: page,
-                pageSize: size,
+                currentPage: pages,
+                pageSize: sizes,
                 orderBy: q => q.OrderByDescending(e => e.InsertedDate));
 
             int totalDeletedEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(
@@ -208,10 +189,10 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                     predicate: e => e.IsDeleted);
 
             if (!deletedEmployees.Any())
-                return (false, "No deleted employees found.", default!, totalDeletedEmployees);
+                return (false, "No deleted employees found.", null, totalDeletedEmployees);
 
             IList<EmployeeDto> employeeDtos = _mapper.Map<IList<EmployeeDto>>(deletedEmployees);
-            return (true, "Deleted employees retrieved successfully.", employeeDtos, totalDeletedEmployees);
+            return (true, "Deleted employees have been successfully retrieved.", employeeDtos, totalDeletedEmployees);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace EConstructionApp.Infrastructure.AutoMapper.Profiles.Task
         {
             CreateMap<TaskInsertDto, Domain.Entities.Task>()
                 .ForMember(dest => dest.MaterialTasks, opt => opt.MapFrom(src =>
-                    src.MaterialAssignments.Select(ma => new MaterialTask
+                    src.MaterialAssignments!.Select(ma => new MaterialTask
                     {
                         MaterialId = ma.MaterialId,
                         Quantity = ma.Quantity

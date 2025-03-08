@@ -29,15 +29,15 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             if (!materialSuccess)
                 TempData["ErrorMessage"] = materialMessage;
 
-            var (employeeSuccess, employeeMessage, activeEmployees, totalEmployees) = await _employeeService.GetEmployeeCountsAsync();
+            var (employeeSuccess, employeeMessage, activeEmployees, totalEmployees) = await _employeeService.GetBothActiveAndTotalCountsAsync();
             if (!employeeSuccess)
                 TempData["ErrorMessage"] = employeeMessage;
 
-            var (taskSuccess, taskMessage, activeTasks, totalTasks) = await _taskService.GetTasksCountsAsync();
+            var (taskSuccess, taskMessage, activeTasks, totalTasks) = await _taskService.GetBothActiveAndTotalCountsAsync();
 
             var (topCategoriesSuccess, topCategoriesMessage, topCategories) = await _categoryService.GetTopUsedCategoriesWithMaterialsCountsAsync(5);
 
-            var (taskStatusSuccess, taskStatusMessage, taskStatusCounts) = await _taskService.GetListOfTaskCountByStatusAsync();
+            var (taskStatusSuccess, taskStatusMessage, taskStatusCounts) = await _taskService.GetListOfTasksCountsByStatusAsync();
             if (!taskSuccess)
                 TempData["ErrorMessage"] = taskMessage;
 

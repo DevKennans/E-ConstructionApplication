@@ -181,13 +181,14 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 return (false, "No active categories found.", null);
 
             IList<CategoryDto> categoryDtos = _mapper.Map<IList<CategoryDto>>(categories);
-            return (true, "Active categories have been successfully retrieved.", categoryDtos);
+            return (true, "Available categories have been successfully retrieved.", categoryDtos);
         }
 
         public async Task<(bool IsSuccess, string Message, IList<CategoryDto>? Categories, int TotalCategories)> GetOnlyActiveCategoriesPagedListAsync(int pages = 1, int sizes = 5)
         {
-            if (pages < 1 || sizes < 1)
-                return (false, "Page number and page size must be greater than zero.", null, default!);
+            (bool IsValid, string? ErrorMessage) validation = ServiceUtils.ValidatePagination(pages, sizes);
+            if (!validation.IsValid)
+                return (false, validation.ErrorMessage!, null, default!);
 
             IList<Category> categories = await _unitOfWork.GetReadRepository<Category>()
                 .GetAllByPagingAsync(
@@ -208,8 +209,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
         public async Task<(bool IsSuccess, string Message, IList<CategoryDto>? Categories, int TotalDeletedCategories)> GetDeletedCategoriesPagedListAsync(int pages = 1, int sizes = 5)
         {
-            if (pages < 1 || sizes < 1)
-                return (false, "Page number and page size must be greater than zero.", null, default!);
+            (bool IsValid, string? ErrorMessage) validation = ServiceUtils.ValidatePagination(pages, sizes);
+            if (!validation.IsValid)
+                return (false, validation.ErrorMessage!, null, default!);
 
             IList<Category> deletedCategories = await _unitOfWork.GetReadRepository<Category>()
                 .GetAllByPagingAsync(

@@ -188,13 +188,14 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 return (false, "No active materials found.", null);
 
             IList<MaterialDto> materialDtos = _mapper.Map<IList<MaterialDto>>(materials);
-            return (true, "Materials have been successfully retrieved.", materialDtos);
+            return (true, "Available materials have been successfully retrieved.", materialDtos);
         }
 
         public async Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalMaterials)> GetOnlyActiveMaterialsPagedListAsync(int pages = 1, int sizes = 5)
         {
-            if (pages < 1 || sizes < 1)
-                return (false, "Page number and page size must be greater than zero.", null, default!);
+            (bool IsValid, string? ErrorMessage) validation = ServiceUtils.ValidatePagination(pages, sizes);
+            if (!validation.IsValid)
+                return (false, validation.ErrorMessage!, null, default!);
 
             IList<Material> materials = await _unitOfWork.GetReadRepository<Material>().GetAllByPagingAsync(
                     enableTracking: false,
@@ -215,8 +216,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
         public async Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalDeletedMaterials)> GetDeletedMaterialsPagedListAsync(int pages = 1, int sizes = 5)
         {
-            if (pages < 1 || sizes < 1)
-                return (false, "Page number and page size must be greater than zero.", null, default);
+            (bool IsValid, string? ErrorMessage) validation = ServiceUtils.ValidatePagination(pages, sizes);
+            if (!validation.IsValid)
+                return (false, validation.ErrorMessage!, null, default);
 
             IList<Material> deletedMaterials = await _unitOfWork.GetReadRepository<Material>().GetAllByPagingAsync(
                     enableTracking: false,

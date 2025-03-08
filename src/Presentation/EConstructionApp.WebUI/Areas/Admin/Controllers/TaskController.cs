@@ -24,6 +24,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             _employeeService = employeeService;
             _materialService = materialService;
         }
+
         public async Task<IActionResult> CreateTask()
         {
             var employeeResult = await _employeeService.GetAvailableEmployeesListAsync();
@@ -73,7 +74,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
         public async Task<IActionResult> GetTasks()
         {
-            var result = await _taskService.GetAllActiveTaskListAsync();
+            var result = await _taskService.GetAllActiveTasksListAsync();
             var res = await _employeeService.GetAvailableEmployeesListAsync();
             var r = await _materialService.GetAvailableMaterialsListAsync();
 
@@ -108,7 +109,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> EditTask(TaskDetailsUpdateDto viewModel)
         {
-            var (isSuccess, message) = await _taskService.UpdateTaskDetailsAsync(viewModel);
+            var (isSuccess, message) = await _taskService.UpdateTasksDetailsAsync(viewModel);
             if (!isSuccess)
             {
                 TempData["ErrorMessage"] = message;
@@ -128,7 +129,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                                            .Where(guid => guid.HasValue)
                                            .Select(guid => guid.Value)
                                            .ToList() ?? new List<Guid>();
-            var (isSuccess, message) = await _taskService.UpdateTaskEmployeesAsync(taskId, employeeIdList);
+            var (isSuccess, message) = await _taskService.UpdateTasksEmployeesAsync(taskId, employeeIdList);
             if (isSuccess)
             {
                 TempData["SuccessMessage"] = message;
@@ -140,6 +141,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
             return RedirectToAction("GetTasks");
         }
+
         [HttpPost]
         public async Task<IActionResult> UpdateTaskMaterials(Guid taskId, string updatedMaterialIds)
         {
@@ -153,13 +155,10 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                 TempData["ErrorMessage"] = "Invalid material data!";
                 return RedirectToAction("GetTasks");
             }
-            var (isSuccess, message) = await _taskService.UpdateTaskMaterialsAsync(taskId, updatedMaterials);
+            var (isSuccess, message) = await _taskService.UpdateTasksMaterialsAsync(taskId, updatedMaterials);
 
             TempData[isSuccess ? "SuccessMessage" : "ErrorMessage"] = message;
             return RedirectToAction("GetTasks");
         }
-
-
-
     }
 }
