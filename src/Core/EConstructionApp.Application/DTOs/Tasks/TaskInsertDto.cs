@@ -7,7 +7,6 @@ namespace EConstructionApp.Application.DTOs.Tasks
     {
         public string AssignedBy { get; set; }
         public string AssignedByPhone { get; set; }
-        public string AssignedByEmail { get; set; }
         public string AssignedByAddress { get; set; }
 
         public string Title { get; set; }

@@ -4,6 +4,7 @@ using EConstructionApp.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EConstructionApp.Persistence.Migrations
 {
     [DbContext(typeof(EConstructionDbContext))]
-    partial class EConstructionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250307174653_TaskFieldsWereModified")]
+    partial class TaskFieldsWereModified
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,8 +135,6 @@ namespace EConstructionApp.Persistence.Migrations
 
                     b.ToTable("Employees", t =>
                         {
-                            t.HasCheckConstraint("CK_Employee_Address_Length", "LEN(Address) >= 5");
-
                             t.HasCheckConstraint("CK_Employee_FirstName_Length", "LEN(FirstName) >= 2");
 
                             t.HasCheckConstraint("CK_Employee_LastName_Length", "LEN(LastName) >= 2");

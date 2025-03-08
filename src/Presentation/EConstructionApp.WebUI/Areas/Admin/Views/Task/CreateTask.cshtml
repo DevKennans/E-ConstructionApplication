@@ -45,11 +45,11 @@
                     @Html.ValidationMessageFor(model => model.Task.AssignedByPhone, "", new { @class = "invalid-feedback" })
                 </div>
 
-                <div class="mb-3">
+                @* <div class="mb-3">
                     <label class="form-label" for="AssignedByEmail">Email:</label>
                     <input type="email" id="AssignedByEmail" name="Task.AssignedByEmail" class="form-control" placeholder="Enter email (max 150 chars)" required maxlength="150" />
                     @Html.ValidationMessageFor(model => model.Task.AssignedByEmail, "", new { @class = "invalid-feedback" })
-                </div>
+                </div> *@
 
                 <div class="mb-3">
                     <label class="form-label" for="AssignedByAddress">Address:</label>

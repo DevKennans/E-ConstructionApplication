@@ -15,8 +15,8 @@ namespace EConstructionApp.WebAPI.Controllers
             _taskService = taskService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> InsertTasks(TaskInsertDto taskInsertDtodto)
+        [HttpPost("InsertTasks")]
+        public async Task<IActionResult> InsertTasks(TaskInsertDto? taskInsertDtodto)
         {
             (bool IsSuccess, string Message) = await _taskService.InsertAsync(taskInsertDtodto);
             if (!IsSuccess)
@@ -26,29 +26,29 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("UpdateTasksDetails")]
-        public async Task<IActionResult> UpdateTasksDetails([FromBody] TaskDetailsUpdateDto taskDetailsUpdateDtodto)
+        public async Task<IActionResult> UpdateTasksDetails([FromBody] TaskDetailsUpdateDto? taskDetailsUpdateDtodto)
         {
-            (bool IsSuccess, string Message) = await _taskService.UpdateTaskDetailsAsync(taskDetailsUpdateDtodto);
+            (bool IsSuccess, string Message) = await _taskService.UpdateTasksDetailsAsync(taskDetailsUpdateDtodto);
             if (!IsSuccess)
                 return BadRequest(new { IsSuccess, Message });
 
             return Ok(new { IsSuccess, Message });
         }
 
-        [HttpPut("UpdateTaskEmployees")]
-        public async Task<IActionResult> UpdateTaskEmployees(Guid taskId, [FromBody] List<Guid> updatedEmployeeIds)
+        [HttpPut("UpdateTasksEmployees")]
+        public async Task<IActionResult> UpdateTasksEmployees(Guid taskId, [FromBody] List<Guid>? updatedEmployeeIds)
         {
-            (bool IsSuccess, string Message) = await _taskService.UpdateTaskEmployeesAsync(taskId, updatedEmployeeIds);
+            (bool IsSuccess, string Message) = await _taskService.UpdateTasksEmployeesAsync(taskId, updatedEmployeeIds!);
             if (!IsSuccess)
-                return BadRequest(new { Success = false, Message });
+                return BadRequest(new { IsSuccess, Message });
 
-            return Ok(new { Success = true, Message });
+            return Ok(new { IsSuccess, Message });
         }
 
-        [HttpPut("UpdateTaskMaterials")]
-        public async Task<IActionResult> UpdateTaskMaterials(Guid taskId, [FromBody] List<MaterialAssignmentInsertDto> updatedMaterials)
+        [HttpPut("UpdateTasksMaterials")]
+        public async Task<IActionResult> UpdateTasksMaterials(Guid taskId, [FromBody] List<MaterialAssignmentInsertDto> updatedMaterials)
         {
-            (bool IsSuccess, string Message) = await _taskService.UpdateTaskMaterialsAsync(taskId, updatedMaterials);
+            (bool IsSuccess, string Message) = await _taskService.UpdateTasksMaterialsAsync(taskId, updatedMaterials);
             if (!IsSuccess)
                 return BadRequest(new { IsSuccess, Message });
 
@@ -58,7 +58,7 @@ namespace EConstructionApp.WebAPI.Controllers
         [HttpGet("GetTasksCounts")]
         public async Task<IActionResult> GetTasksCounts()
         {
-            (bool IsSuccess, string Message, int ActiveTasks, int TotalTasks) = await _taskService.GetTasksCountsAsync();
+            (bool IsSuccess, string Message, int ActiveTasks, int TotalTasks) = await _taskService.GetBothActiveAndTotalCountsAsync();
             if (!IsSuccess)
                 return NotFound(new { IsSuccess, Message });
 
@@ -75,20 +75,30 @@ namespace EConstructionApp.WebAPI.Controllers
             return Ok(new { IsSuccess, Message, Task });
         }
 
-        [HttpGet("GetAllActiveTaskList")]
-        public async Task<IActionResult> GetAllActiveTaskList()
+        [HttpGet("GetAllActiveTasksList")]
+        public async Task<IActionResult> GetAllActiveTasksList()
         {
-            (bool IsSuccess, string Message, IList<TaskDto>? Tasks) = await _taskService.GetAllActiveTaskListAsync();
+            (bool IsSuccess, string Message, IList<TaskDto>? Tasks) = await _taskService.GetAllActiveTasksListAsync();
             if (!IsSuccess)
                 return NotFound(new { IsSuccess, Message });
 
             return Ok(new { IsSuccess, Message, Tasks });
         }
 
-        [HttpGet("GetListOfTaskCountByStatus")]
-        public async Task<IActionResult> GetListOfTaskCountByStatus()
+        [HttpGet("GetOnlyActiveTasksPagedList")]
+        public async Task<IActionResult> GetOnlyActiveTasksPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
         {
-            (bool IsSuccess, string Message, IList<Application.DTOs.Tasks.Relations.TaskStatusCountsDto>? TaskCounts) = await _taskService.GetListOfTaskCountByStatusAsync();
+            (bool IsSuccess, string Message, IList<TaskDto>? Tasks, int TotalTasks) = await _taskService.GetOnlyActiveTasksPagedListAsync(pages, sizes);
+            if (!IsSuccess)
+                return NotFound(new { IsSuccess, Message });
+
+            return Ok(new { IsSuccess, Message, Tasks, TotalTasks });
+        }
+
+        [HttpGet("GetListOfTasksCountsByStatus")]
+        public async Task<IActionResult> GetListOfTasksCountsByStatus()
+        {
+            (bool IsSuccess, string Message, IList<TaskStatusCountsDto>? TaskCounts) = await _taskService.GetListOfTasksCountsByStatusAsync();
             if (!IsSuccess)
                 return NotFound(new { IsSuccess, Message });
 

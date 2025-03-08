@@ -1,5 +1,6 @@
 ﻿using EConstructionApp.Domain.Entities.Common;
 using EConstructionApp.Domain.Entities.Common.Abstractions;
+using EConstructionApp.Domain.Enums.Employees;
 
 namespace EConstructionApp.Domain.Entities
 {
@@ -11,6 +12,8 @@ namespace EConstructionApp.Domain.Entities
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
         public decimal Salary { get; set; }
+
+        public EmployeeRole Role { get; set; } = EmployeeRole.Laborer;
 
         public bool IsCurrentlyWorking { get; set; } = false;
 

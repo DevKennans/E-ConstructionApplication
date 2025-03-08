@@ -4,6 +4,7 @@ using EConstructionApp.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EConstructionApp.Persistence.Migrations
 {
     [DbContext(typeof(EConstructionDbContext))]
-    partial class EConstructionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250307054826_EmployeeFieldsWereModified")]
+    partial class EmployeeFieldsWereModified
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,8 +135,6 @@ namespace EConstructionApp.Persistence.Migrations
 
                     b.ToTable("Employees", t =>
                         {
-                            t.HasCheckConstraint("CK_Employee_Address_Length", "LEN(Address) >= 5");
-
                             t.HasCheckConstraint("CK_Employee_FirstName_Length", "LEN(FirstName) >= 2");
 
                             t.HasCheckConstraint("CK_Employee_LastName_Length", "LEN(LastName) >= 2");
@@ -241,6 +242,11 @@ namespace EConstructionApp.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<string>("AssignedByEmail")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<string>("AssignedByPhone")
                         .IsRequired()
                         .HasMaxLength(15)
@@ -280,20 +286,7 @@ namespace EConstructionApp.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tasks", t =>
-                        {
-                            t.HasCheckConstraint("CK_Task_AssignedByAddress_Length", "LEN(AssignedByAddress) >= 5");
-
-                            t.HasCheckConstraint("CK_Task_AssignedByPhone_Length", "LEN(AssignedByPhone) >= 10");
-
-                            t.HasCheckConstraint("CK_Task_AssignedBy_Length", "LEN(AssignedBy) >= 2");
-
-                            t.HasCheckConstraint("CK_Task_Deadline", "Deadline >= DATEADD(DAY, 1, GETDATE())");
-
-                            t.HasCheckConstraint("CK_Task_Description_Length", "LEN(Description) >= 10");
-
-                            t.HasCheckConstraint("CK_Task_Title_Length", "LEN(Title) >= 5");
-                        });
+                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Cross.MaterialTask", b =>

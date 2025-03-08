@@ -10,9 +10,15 @@ namespace EConstructionApp.Persistence.Configurations
         {
             builder.HasKey(ea => ea.Id);
 
-            builder.Property(ea => ea.Dairy).IsRequired().HasColumnType("date");
-            builder.Property(ea => ea.CheckInTime).HasColumnType("datetime");
-            builder.Property(ea => ea.CheckOutTime).HasColumnType("datetime");
+            builder.Property(ea => ea.Dairy)
+                .IsRequired()
+                .HasColumnType("date");
+
+            builder.Property(ea => ea.CheckInTime)
+                .HasColumnType("datetime");
+
+            builder.Property(ea => ea.CheckOutTime)
+                .HasColumnType("datetime");
 
             builder.HasOne(ea => ea.Employee)
                 .WithMany(e => e.EmployeeAttendances)

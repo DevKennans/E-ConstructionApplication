@@ -1,11 +1,22 @@
-﻿using EConstructionApp.Application.DTOs.Materials;
-using EConstructionApp.Application.DTOs.Tasks;
+﻿using EConstructionApp.Application.DTOs.Employees;
+using EConstructionApp.Application.DTOs.Materials;
 using EConstructionApp.Domain.Entities;
+using Task = EConstructionApp.Domain.Entities.Task;
 
 namespace EConstructionApp.Persistence.Concretes.Services.Entities.Helpers
 {
     public static class ServiceUtils
     {
+        #region General
+        public static (bool IsValid, string? ErrorMessage) ValidatePagination(int pages, int sizes)
+        {
+            if (pages < 1 || sizes < 1)
+                return (false, "Page number and page size must be greater than zero.");
+
+            return (true, null);
+        }
+        #endregion
+
         #region Category
         private const int MinCategoryNameLength = 2;
         private const int MaxCategoryNameLength = 250;
@@ -52,49 +63,54 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Helpers
         #endregion
 
         #region Material
-        public static bool HasMaterialChanges(Material material, MaterialUpdateDto dto)
+        public static bool HasMaterialChanges(Material material, MaterialUpdateDto materialUpdateDto)
         {
-            return material.Name.Trim() != dto.Name.Trim() ||
-                   material.Price != dto.Price ||
-                   material.StockQuantity != dto.StockQuantity ||
-                   material.Measure != dto.Measure ||
-                   material.CategoryId != dto.CategoryId;
+            return material.Name.Trim() != materialUpdateDto.Name.Trim() ||
+                   material.Price != materialUpdateDto.Price ||
+                   material.StockQuantity != materialUpdateDto.StockQuantity ||
+                   material.Measure != materialUpdateDto.Measure ||
+                   material.CategoryId != materialUpdateDto.CategoryId;
         }
 
-        public static (bool IsSuccess, string Message) CheckForNoMaterialChanges(Material material, MaterialUpdateDto dto)
+        public static (bool IsSuccess, string Message) CheckForNoMaterialChanges(Material material, MaterialUpdateDto materialUpdateDto)
         {
-            if (!HasMaterialChanges(material, dto))
+            if (!HasMaterialChanges(material, materialUpdateDto))
                 return (true, "No changes detected. The update was skipped.");
 
             return (false, string.Empty);
         }
         #endregion
 
-        public static (bool IsSuccess, string Message) ValidateTaskCreationDto(TaskInsertDto taskInsertDto)
+        #region Employee
+        public static bool HasEmployeeChanges(Employee employee, EmployeeUpdateDto employeeUpdateDto)
         {
-            if (taskInsertDto is null)
-                return (false, "Task details are missing. Please provide valid information.");
+            return employee.FirstName.Trim() != employeeUpdateDto.FirstName.Trim() ||
+                   employee.LastName.Trim() != employeeUpdateDto.LastName.Trim() ||
+                   employee.DateOfBirth != employeeUpdateDto.DateOfBirth ||
+                   employee.PhoneNumber.Trim() != employeeUpdateDto.PhoneNumber.Trim() ||
+                   employee.Address.Trim() != employeeUpdateDto.Address.Trim() ||
+                   employee.Salary != employeeUpdateDto.Salary ||
+                   employee.Role != employeeUpdateDto.Role;
+        }
 
-            List<string> errors = new List<string>();
+        public static (bool IsSuccess, string Message) CheckForNoEmployeeChanges(Employee employee, EmployeeUpdateDto employeeUpdateDto)
+        {
+            if (!HasEmployeeChanges(employee, employeeUpdateDto))
+                return (true, "No changes detected. The update was skipped.");
 
-            if (string.IsNullOrWhiteSpace(taskInsertDto.AssignedBy))
-                errors.Add("The person assigning the task must be specified.");
-            if (string.IsNullOrWhiteSpace(taskInsertDto.AssignedByPhone))
-                errors.Add("A contact phone number for the assigner is required.");
-            if (string.IsNullOrWhiteSpace(taskInsertDto.AssignedByEmail))
-                errors.Add("An email address for the assigner must be provided.");
-            if (string.IsNullOrWhiteSpace(taskInsertDto.AssignedByAddress))
-                errors.Add("The assigner's address cannot be empty.");
+            return (false, string.Empty);
+        }
+        #endregion
 
-            if (string.IsNullOrWhiteSpace(taskInsertDto.Title))
-                errors.Add("Please enter a title for the task.");
-            if (string.IsNullOrWhiteSpace(taskInsertDto.Description))
-                errors.Add("A task description is required to proceed.");
+        #region Task
+        public static string GenerateInvalidQuantityMessage(string materialName)
+        {
+            return $"The quantity for material '{materialName}' is invalid. Please specify a quantity greater than zero.";
+        }
 
-            if (taskInsertDto.Deadline < DateOnly.FromDateTime(DateTime.Now))
-                errors.Add("The deadline must be a future date. Please choose a valid due date.");
-
-            return errors.Any() ? (false, string.Join(" ", errors)) : (true, default!);
+        public static string GenerateInsufficientStockMessage(string materialName, decimal availableStock, decimal requestedQuantity)
+        {
+            return $"Insufficient stock. Material '{materialName}' has {availableStock} available, but {requestedQuantity} was requested.";
         }
 
         public static string GenerateTaskCreationSuccessMessage(string taskTitle, int employeeCount, int materialCount)
@@ -118,15 +134,14 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Helpers
             return message;
         }
 
-        public static (bool IsSuccess, string Message) ValidateTaskUpdateDto(TaskDetailsUpdateDto? taskDetailsUpdateDto)
+        public static string GenerateTaskEmployeeUpdateMessage(int addedCount, int removedCount)
         {
-            if (taskDetailsUpdateDto is null)
-                return (false, "Task details are missing. Please provide valid information.");
+            string addedMsg = addedCount > 0 ? $"{addedCount} employee{(addedCount > 1 ? "s" : "")} added" : "";
+            string removedMsg = removedCount > 0 ? $"{removedCount} employee{(removedCount > 1 ? "s" : "")} removed" : "";
 
-            if (taskDetailsUpdateDto.Deadline < DateOnly.FromDateTime(DateTime.Now))
-                return (false, "The deadline must be a future date. Please choose a valid due date.");
+            string resultMessage = $"{(addedMsg + (addedMsg != "" && removedMsg != "" ? ", " : "") + removedMsg).Trim()}.";
 
-            return (true, default!);
+            return $"Task employees updated successfully. {resultMessage}";
         }
 
         public static string GenerateTaskMaterialUpdateMessage(int addedCount, int removedCount, int updatedCount)
@@ -143,5 +158,13 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Helpers
             string resultMessage = string.Join(", ", messages);
             return resultMessage.Length > 0 ? $"Task materials updated successfully. {resultMessage}." : "No changes detected. Task materials remain the same.";
         }
+
+        public static decimal CalculateTotalTaskCost(Task task)
+        {
+            return task.MaterialTasks
+                .Where(mt => mt.Material is not null)
+                .Sum(mt => mt.Quantity * mt.Material.Price);
+        }
+        #endregion
     }
 }

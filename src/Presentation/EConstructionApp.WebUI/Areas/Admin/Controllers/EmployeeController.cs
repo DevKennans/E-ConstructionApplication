@@ -1,8 +1,5 @@
-﻿using EConstructionApp.Application.DTOs.Categories;
-using EConstructionApp.Application.DTOs.Employees;
-using EConstructionApp.Application.DTOs.Materials;
+﻿using EConstructionApp.Application.DTOs.Employees;
 using EConstructionApp.Application.Interfaces.Services.Entities;
-using EConstructionApp.Persistence.Concretes.Services.Entities;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +13,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             _employeeService = employeeService;
         }
+
         public IActionResult AddEmployee()
         {
             return View();
@@ -29,19 +27,22 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             if (!isSuccess)
             {
                 TempData["ErrorMessage"] = message;
+
                 return View();
             }
+
             TempData["SuccessMessage"] = message;
+
             return View();
         }
 
         public async Task<IActionResult> GetEmployees(int page = 1, int size = 5)
         {
-            var (isSuccess, message, employees, totalEmployees) = await _employeeService.GetAllOrOnlyActiveEmployeesPagedListAsync(page, size);
-
-            if (!isSuccess || employees == null)
+            var (isSuccess, message, employees, totalEmployees) = await _employeeService.GetOnlyActiveEmployeesPagedListAsync(page, size);
+            if (!isSuccess)
             {
                 TempData["ErrorMessage"] = message;
+
                 return View(new EmployeeListViewModel
                 {
                     Employees = new List<EmployeeDto>(),
@@ -53,7 +54,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var totalPages = (int)Math.Ceiling((double)totalEmployees / size);
             var model = new EmployeeListViewModel
             {
-                Employees = employees,
+                Employees = employees!,
                 CurrentPage = page,
                 TotalPages = totalPages
             };
@@ -64,7 +65,6 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         public async Task<IActionResult> GetDeletedEmployees(int page = 1, int size = 5)
         {
             var (isSuccess, message, employees, totalEmployees) = await _employeeService.GetDeletedEmployeesPagedListAsync(page, size);
-
             if (!isSuccess || employees == null)
             {
                 return View(new EmployeeListViewModel
@@ -74,6 +74,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                     TotalPages = 0
                 });
             }
+
             var totalPages = (int)Math.Ceiling((double)totalEmployees / size);
             var model = new EmployeeListViewModel
             {
@@ -81,21 +82,19 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                 CurrentPage = page,
                 TotalPages = totalPages
             };
+
             return View(model);
         }
 
         [HttpPost]
         public async Task<IActionResult> RestoreDeletedEmployee(Guid employeeId)
         {
-            var (isSuccess, message) = await _employeeService.RestoreEmployeeAsync(employeeId);
+            var (isSuccess, message) = await _employeeService.RestoreDeletedAsync(employeeId);
             if (!isSuccess)
-            {
                 TempData["ErrorMessage"] = message;
-            }
             else
-            {
                 TempData["SuccessMessage"] = message;
-            }
+
             return RedirectToAction("GetDeletedEmployees");
         }
 
@@ -103,13 +102,16 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteEmployee(Guid employeeId)
         {
-            var (isSuccess, message) = await _employeeService.SafeDeleteEmployeeAsync(employeeId);
+            var (isSuccess, message) = await _employeeService.SafeDeleteAsync(employeeId);
             if (!isSuccess)
             {
                 TempData["ErrorMessage"] = message;
+
                 return RedirectToAction("GetEmployees");
             }
+
             TempData["SuccessMessage"] = message;
+
             return RedirectToAction("GetEmployees");
         }
 
@@ -119,13 +121,10 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _employeeService.UpdateAsync(viewModel);
 
             if (!isSuccess)
-            {
                 TempData["ErrorMessage"] = message;
-            }
             else
-            {
                 TempData["SuccessMessage"] = message;
-            }
+
             return RedirectToAction("GetEmployees");
         }
     }

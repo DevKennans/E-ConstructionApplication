@@ -49,7 +49,7 @@ else
                             <div class="task-info">
                                 <p><strong>📌 Assigned By:</strong> @task.AssignedBy</p>
                                 <p><strong>📱 Phone:</strong> @task.AssignedByPhone</p>
-                                <p><strong>📧 Email:</strong> @task.AssignedByEmail</p>
+                                @* <p><strong>📧 Email:</strong> @task.AssignedByEmail</p> *@
                                 <p><strong>🏠 Address:</strong> @task.AssignedByAddress</p>
                                 <p><strong>⏳ Deadline:</strong> @task.Deadline</p>
                                 <p><strong>🔥 Priority:</strong> <span class="badge bg-danger">@task.Priority</span></p>
@@ -93,7 +93,7 @@ else
                                         data-description="@task.Description"
                                         data-assignedby="@task.AssignedBy"
                                         data-assignedbyphone="@task.AssignedByPhone"
-                                        data-assignedbyemail="@task.AssignedByEmail"
+                                        @* data-assignedbyemail="@task.AssignedByEmail" *@
                                         data-assignedbyaddress="@task.AssignedByAddress"
                                         data-deadline="@task.Deadline.ToString("yyyy-MM-dd")"
                                         data-priority="@task.Priority"

@@ -68,7 +68,7 @@ namespace EConstructionApp.WebAPI.Controllers
         public async Task<IActionResult> GetAvailableMaterialsList()
         {
             (bool IsSuccess, string Message, IList<MaterialDto>? Materials) = await _materialService.GetAvailableMaterialsListAsync();
-            if (!IsSuccess || Materials == default)
+            if (!IsSuccess)
                 return NotFound(new { IsSuccess, Message });
 
             return Ok(new { IsSuccess, Message, Materials });
@@ -89,7 +89,7 @@ namespace EConstructionApp.WebAPI.Controllers
         {
             (bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalDeletedMaterials) = await _materialService.GetDeletedMaterialsPagedListAsync(pages, sizes);
             if (!IsSuccess)
-                return NotFound(new { IsSuccess, Message, TotalDeletedMaterials });
+                return NotFound(new { IsSuccess, Message });
 
             return Ok(new { IsSuccess, Message, TotalDeletedMaterials, Materials });
         }
