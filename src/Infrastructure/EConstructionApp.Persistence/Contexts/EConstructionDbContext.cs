@@ -7,7 +7,7 @@ namespace EConstructionApp.Persistence.Contexts
 {
     public class EConstructionDbContext : DbContext
     {
-        protected EConstructionDbContext() { }
+        public EConstructionDbContext() { }
 
         public EConstructionDbContext(DbContextOptions options) : base(options)
         {
