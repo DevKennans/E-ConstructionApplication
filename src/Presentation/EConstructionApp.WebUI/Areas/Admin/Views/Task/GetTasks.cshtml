@@ -48,10 +48,14 @@ else
 
                             <div class="task-info">
                                 <p><strong>📌 Assigned By:</strong> @task.AssignedBy</p>
-                                <p><strong>📱 Phone:</strong> @task.AssignedByPhone</p>
-                                @* <p><strong>📧 Email:</strong> @task.AssignedByEmail</p> *@
+                                <p><strong>📱 Phone:</strong> +@task.AssignedByPhone</p>
                                 <p><strong>🏠 Address:</strong> @task.AssignedByAddress</p>
-                                <p><strong>⏳ Deadline:</strong> @task.Deadline</p>
+                                <p>
+                                    <strong>⏳ Deadline:</strong> @task.Deadline.ToString("yyyy-MM-dd")
+                                    <span class="text-muted">
+                                        (@((task.Deadline.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days) days left)
+                                    </span>
+                                </p>
                                 <p><strong>🔥 Priority:</strong> <span class="badge bg-danger">@task.Priority</span></p>
                                 <p><strong>⚙️ Status:</strong> <span class="badge bg-success">@task.Status</span></p>
                                 <p><strong>💰 Total Cost:</strong> <span class="text-success">$@task.TotalCost.ToString("N2")</span></p>
@@ -62,7 +66,7 @@ else
                                 <ul class="list-group list-group-flush" style="max-height: 150px; overflow-y: auto;">
                                     @foreach (var employee in task.Employees)
                                     {
-                                        <li class="list-group-item">@employee.FirstName @employee.LastName</li>
+                                        <li class="list-group-item">@employee.FirstName @employee.LastName [@employee.Role]</li>
                                     }
                                 </ul>
                             }
@@ -77,7 +81,7 @@ else
                                 <ul class="list-group list-group-flush" style="max-height: 150px; overflow-y: auto;">
                                     @foreach (var material in task.MaterialAssignments)
                                     {
-                                        <li class="list-group-item">@material.Material.Name, @material.Material.Category.Name [@material.Quantity]</li>
+                                        <li class="list-group-item">@material.Material.Name, @material.Material.Category.Name [@material.Quantity.ToString("0") @material.Material.Measure]</li>
                                     }
                                 </ul>
                             }
@@ -93,7 +97,6 @@ else
                                         data-description="@task.Description"
                                         data-assignedby="@task.AssignedBy"
                                         data-assignedbyphone="@task.AssignedByPhone"
-                                        @* data-assignedbyemail="@task.AssignedByEmail" *@
                                         data-assignedbyaddress="@task.AssignedByAddress"
                                         data-deadline="@task.Deadline.ToString("yyyy-MM-dd")"
                                         data-priority="@task.Priority"
@@ -113,8 +116,37 @@ else
                 </div>
             }
         </div>
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mt-4">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetTasks", new { page = Model.CurrentPage - 1, size = 6 })">
+                            « Previous
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                            <a class="page-link rounded-pill shadow-sm @(Model.CurrentPage == i ? "bg-primary text-white" : "")"
+                               href="@Url.Action("GetTasks", new { page = i, size = 6 })">
+                                @i
+                            </a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetTasks", new { page = Model.CurrentPage + 1, size = 6 })">
+                            Next »
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
     </div>
 }
+
+
+
 
 <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -130,34 +162,31 @@ else
                     <input type="hidden" id="taskId" name="Id">
                     <div class="form-group">
                         <label for="taskTitle">Title</label>
-                        <input type="text" class="form-control" id="taskTitle" name="Title" maxlength="250" required>
-                        <div class="invalid-feedback">Title is required and cannot exceed 250 characters.</div>
+                        <input type="text" class="form-control" id="taskTitle" name="Title" minlength="5" maxlength="250" required>
+                        <div class="invalid-feedback">Title must be between 5 and 250 characters.</div>
                     </div>
                     <div class="form-group">
                         <label for="taskDescription">Description</label>
-                        <textarea class="form-control" id="taskDescription" name="Description" maxlength="1000" required></textarea>
-                        <div class="invalid-feedback">Description is required and cannot exceed 1000 characters.</div>
+                        <textarea class="form-control" id="taskDescription" name="Description" minlength="10" maxlength="1000" required></textarea>
+                        <div class="invalid-feedback">Description must be between 10 and 1000 characters.</div>
                     </div>
                     <div class="form-group">
                         <label for="taskAssignedBy">Assigned By</label>
-                        <input type="text" class="form-control" id="taskAssignedBy" name="AssignedBy" maxlength="200" required>
-                        <div class="invalid-feedback">Assigned By is required and cannot exceed 200 characters.</div>
+                        <input type="text" class="form-control" id="taskAssignedBy" name="AssignedBy" minlength="2" maxlength="200" required>
+                        <div class="invalid-feedback">Assigned By must be between 2 and 200 characters.</div>
                     </div>
                     <div class="form-group">
                         <label for="taskAssignedByPhone">Assigned By Phone</label>
                         <input type="text" class="form-control" id="taskAssignedByPhone" name="AssignedByPhone"
-                               pattern="^\+(\d{1,3})\s?(\d{9,15})$" title="Phone number must be in the format +994553618907" required>
-                        <div class="invalid-feedback">Valid phone number is required (e.g., +994553618907).</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskAssignedByEmail">Assigned By Email</label>
-                        <input type="email" class="form-control" id="taskAssignedByEmail" name="AssignedByEmail" maxlength="150" required>
-                        <div class="invalid-feedback">A valid email is required.</div>
+                               pattern="^\d{10,15}$"
+                               title="Phone number must be between 10 and 15 digits without '+' sign (e.g., 994515268342)"
+                               placeholder="Enter phone number (10-15 digits)" required minlength="10" maxlength="15">
+                        <div class="invalid-feedback">Valid phone number is required (10-15 digits, without "+").</div>
                     </div>
                     <div class="form-group">
                         <label for="taskAssignedByAddress">Assigned By Address</label>
-                        <input type="text" class="form-control" id="taskAssignedByAddress" name="AssignedByAddress" maxlength="250" required>
-                        <div class="invalid-feedback">Assigned By Address is required and cannot exceed 250 characters.</div>
+                        <input type="text" class="form-control" id="taskAssignedByAddress" name="AssignedByAddress" minlength="5" maxlength="250" required>
+                        <div class="invalid-feedback">Assigned By Address must be between 5 and 250 characters.</div>
                     </div>
                     <div class="form-group">
                         <label for="taskDeadline">Deadline</label>
@@ -508,7 +537,6 @@ else
                 document.getElementById('taskDescription').value = this.dataset.description;
                 document.getElementById('taskAssignedBy').value = this.dataset.assignedby;
                 document.getElementById('taskAssignedByPhone').value = this.dataset.assignedbyphone;
-                document.getElementById('taskAssignedByEmail').value = this.dataset.assignedbyemail;
                 document.getElementById('taskAssignedByAddress').value = this.dataset.assignedbyaddress;
                 document.getElementById('taskDeadline').value = this.dataset.deadline;
                 document.getElementById('taskPriority').value = this.dataset.priority;
@@ -518,10 +546,6 @@ else
         });
     });
 </script>
-
-
-
-
 
 
 <style>

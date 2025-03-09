@@ -13,5 +13,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Models
         public IList<MaterialDto> Materials { get; set; }
         public List<SelectListItem> Priorities { get; set; } = new();
         public List<SelectListItem> Statuses { get; set; } = new();
+        public int CurrentPage { get; set; }
+        public int TotalPages { get; set; }
     }
 }

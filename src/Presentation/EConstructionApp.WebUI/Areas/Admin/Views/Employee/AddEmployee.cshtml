@@ -1,4 +1,5 @@
-﻿@model EConstructionApp.Application.DTOs.Employees.EmployeeInsertDto
+﻿@using EConstructionApp.Domain.Enums.Employees
+@model EConstructionApp.Application.DTOs.Employees.EmployeeInsertDto
 
 @{
     ViewData["Title"] = "Add New Employee";
@@ -35,32 +36,29 @@
                         <div class="mb-4">
                             <label for="FirstName" class="form-label fs-5 fw-bold">First Name</label>
                             <input name="FirstName" class="form-control form-control-lg" id="FirstName" placeholder="Enter First Name"
-                                   required pattern="^[a-zA-Z]+$" title="First Name should only contain letters" />
+                                   required minlength="2" maxlength="100" pattern="^[a-zA-Z]+$" title="First Name should only contain letters and must be between 2 to 100 characters" />
                             <span asp-validation-for="FirstName" class="text-danger"></span>
                         </div>
 
                         <div class="mb-4">
                             <label for="LastName" class="form-label fs-5 fw-bold">Last Name</label>
                             <input name="LastName" class="form-control form-control-lg" id="LastName" placeholder="Enter Last Name"
-                                   required pattern="^[a-zA-Z]+$" title="Last Name should only contain letters" />
+                                   required minlength="2" maxlength="100" pattern="^[a-zA-Z]+$" title="Last Name should only contain letters and must be between 2 to 100 characters" />
                             <span asp-validation-for="LastName" class="text-danger"></span>
                         </div>
 
                         <div class="mb-4">
                             <label for="Address" class="form-label fs-5 fw-bold">Address</label>
                             <input name="Address" class="form-control form-control-lg" id="Address" placeholder="Enter Address"
-                                   required maxlength="250" />
+                                   required minlength="5" maxlength="250" />
                             <span asp-validation-for="Address" class="text-danger"></span>
                         </div>
 
                         <div class="mb-4">
                             <label for="PhoneNumber" class="form-label fs-5 fw-bold">Phone Number</label>
                             <input name="PhoneNumber" class="form-control form-control-lg" id="PhoneNumber"
-                                   placeholder="Enter Phone Number"
-                                   required
-                                   pattern="^\+(\d{1,3})\s?(\d{9,15})$"
-                                   title="Phone number must be in the format +994553618907 (e.g., country code followed by a valid number)"
-                                   maxlength="15" />
+                                   pattern="^\d{10,15}$" title="Phone number must be between 10 and 15 digits without '+' sign (e.g., 994515268342)"
+                                   placeholder="Enter phone number" required minlength="10" maxlength="15" />
                             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
 
@@ -75,6 +73,21 @@
                             <input name="Salary" class="form-control form-control-lg" id="Salary" placeholder="Enter Salary"
                                    type="number" step="0.01" required min="0" />
                             <span asp-validation-for="Salary" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="Role" class="form-label fs-5 fw-bold">Role</label>
+                            <div class ="custom-select-container">
+                                <select name="Role" class="form-select form-control-lg" id="Role" required>
+                                    @foreach (var role in Enum.GetValues(typeof(EmployeeRole)).Cast<EmployeeRole>())
+                                    {
+                                        <option value="@role" selected="@(role == EmployeeRole.Laborer ? "selected" : null)">
+                                            @role
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <span asp-validation-for="Role" class="text-danger"></span>
                         </div>
 
                         <div class="d-grid gap-2">

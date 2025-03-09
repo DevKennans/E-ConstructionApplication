@@ -48,19 +48,19 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTask(TaskCreateViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                TempData["ErrorMessage"] = "Please correct the errors in the form.";
-                return View(model);
-            }
-
             var (isSuccess, message) = await _taskService.InsertAsync(model.Task);
             var employeeResult = await _employeeService.GetAvailableEmployeesListAsync();
             var materialResult = await _materialService.GetAvailableMaterialsListAsync();
 
             model.Employees = employeeResult.Employees;
             model.Materials = materialResult.Materials;
-
+            model.Priorities = Enum.GetValues(typeof(TaskPriority))
+                        .Cast<TaskPriority>()
+                        .Select(e => new SelectListItem
+                        {
+                            Value = e.ToString(),
+                            Text = e.ToString()
+                        }).ToList();
             if (isSuccess)
             {
                 TempData["SuccessMessage"] = message;
@@ -72,11 +72,13 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> GetTasks()
+        public async Task<IActionResult> GetTasks(int page = 1, int size = 6)
         {
-            var result = await _taskService.GetAllActiveTasksListAsync();
+            var result = await _taskService.GetOnlyActiveTasksPagedListAsync(page, size);
             var res = await _employeeService.GetAvailableEmployeesListAsync();
             var r = await _materialService.GetAvailableMaterialsListAsync();
+
+            var totalPages = (int)Math.Ceiling((double)result.TotalTasks / size);
 
             var model = new TaskViewModel
             {
@@ -96,7 +98,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                                {
                                    Value = e.ToString(),
                                    Text = e.ToString()
-                               }).ToList()
+                               }).ToList(),
+                CurrentPage = page,
+                TotalPages = totalPages
             };
 
             if (!result.IsSuccess)
@@ -104,6 +108,8 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
             return View(model);
         }
+
+
 
 
         [HttpPost]

@@ -1,7 +1,12 @@
-﻿using EConstructionApp.Application.DTOs.Employees;
+﻿using EConstructionApp.Application.DTOs.Categories;
+using EConstructionApp.Application.DTOs.Employees;
+using EConstructionApp.Application.DTOs.Materials;
 using EConstructionApp.Application.Interfaces.Services.Entities;
+using EConstructionApp.Domain.Enums;
+using EConstructionApp.Domain.Enums.Employees;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
