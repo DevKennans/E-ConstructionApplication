@@ -45,7 +45,7 @@
                     {
                         <tr>
                             <td>@material.Name</td>
-                            <td>@material.StockQuantity</td>
+                            <td>@material.StockQuantity.ToString("0")</td>
                             <td>@material.Measure</td>
                             <td>@material.Price</td>
                             <td>@(material.Category != null ? material.Category.Name : "No Category")</td>

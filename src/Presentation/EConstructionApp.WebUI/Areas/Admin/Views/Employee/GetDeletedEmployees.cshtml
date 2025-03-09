@@ -37,6 +37,7 @@
                         <th>Phone Number</th>
                         <th>Address</th>
                         <th>Salary</th>
+                        <th>Role</th>
                         <th>Task Status</th>
                         <th>Actions</th>
                     </tr>
@@ -47,9 +48,10 @@
                         <tr>
                             <td>@employee.FirstName @employee.LastName</td>
                             <td>@employee.DateOfBirth.ToString("yyyy-MM-dd")</td>
-                            <td>@employee.PhoneNumber</td>
+                            <td>+@employee.PhoneNumber</td>
                             <td>@employee.Address</td>
-                            <td>@employee.Salary$</td>
+                            <td>@employee.Salary.ToString("N2")$</td>
+                            <td>@employee.Role</td>
                             <td>
                                 @if (employee.IsCurrentlyWorking)
                                 {
