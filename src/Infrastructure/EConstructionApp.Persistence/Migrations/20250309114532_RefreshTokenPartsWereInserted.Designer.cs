@@ -4,6 +4,7 @@ using EConstructionApp.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EConstructionApp.Persistence.Migrations
 {
     [DbContext(typeof(EConstructionDbContext))]
-    partial class EConstructionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250309114532_RefreshTokenPartsWereInserted")]
+    partial class RefreshTokenPartsWereInserted
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -207,21 +210,21 @@ namespace EConstructionApp.Persistence.Migrations
                         new
                         {
                             Id = "18FF4584-E530-4CFE-ADC1-9485EBCC1982",
-                            ConcurrencyStamp = "a005bbe4-a447-4fd7-8702-81aed5f3741c",
+                            ConcurrencyStamp = "43693f47-56e3-4833-9f7b-0cef9e5ef63c",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "BA54FA79-8361-4560-B1A5-C55097FE6E63",
-                            ConcurrencyStamp = "4b94c496-a38b-4539-ae33-e5198a2bd6af",
+                            ConcurrencyStamp = "1ca9a86d-d352-4394-9331-c29ac21a362b",
                             Name = "Moderator",
                             NormalizedName = "MODERATOR"
                         },
                         new
                         {
                             Id = "A6975C7C-5397-4BBB-B450-2790781BCBAB",
-                            ConcurrencyStamp = "10ebcf35-e410-45f2-9e18-eae276d4f642",
+                            ConcurrencyStamp = "5593d5fe-45fb-4f4a-924d-e20af6868b6f",
                             Name = "Employee",
                             NormalizedName = "EMPLOYEE"
                         });
@@ -275,6 +278,12 @@ namespace EConstructionApp.Persistence.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenEndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -299,26 +308,26 @@ namespace EConstructionApp.Persistence.Migrations
                         {
                             Id = "43B64316-DE56-4300-AE86-C298AEA73C7B",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "6b3dc824-665b-4b59-a81d-c71119c407eb",
+                            ConcurrencyStamp = "ce0ab655-0226-4ac2-943c-431e29f7af9b",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAENwK6WhaDMD4uJ6OD1mXzrCl590nwoXQSk0dw8AwG8mokHIFclW2h62O+lb/f6rJkg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJYSL7vxjZzYOwHin6MiEF6uNmvfFjktqTPWln0YTKbnzBNBpg79OX6RS+AjJP2NKg==",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "0d3e002e-942f-4412-82b8-ca269bbd0056",
+                            SecurityStamp = "cd38bcfd-6f0b-43c9-bd9f-2599b7cb992b",
                             UserName = "admin"
                         },
                         new
                         {
                             Id = "99D74F43-7E23-41BE-9F98-10C5D6130312",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "20cc43b2-20cd-43fa-80c7-1c206279d857",
+                            ConcurrencyStamp = "9ab13702-d640-4eef-9976-eac2e2fdcd97",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedUserName = "MODERATOR",
-                            PasswordHash = "AQAAAAIAAYagAAAAECKEYFNZNBYsKIP0ShA4HA28blHf1EMwTf4Rd8hNCS2UVR73nFObUdqiOijjebsHpQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAj9ZiT68NtaZa1bGWb8LlXACX91WWmXcHor1wzo+/Q6Eo34flL4nXQZoEe9SwKPPg==",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "1e7d7196-0c23-474b-a51e-ac54d8f3e86a",
+                            SecurityStamp = "44cb9d76-203d-4816-af50-c90b125e79b5",
                             UserName = "moderator"
                         });
                 });

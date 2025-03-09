@@ -4,6 +4,7 @@ using EConstructionApp.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EConstructionApp.Persistence.Migrations
 {
     [DbContext(typeof(EConstructionDbContext))]
-    partial class EConstructionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250308183712_InitialIdentityStructureWasInserted")]
+    partial class InitialIdentityStructureWasInserted
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -202,29 +205,6 @@ namespace EConstructionApp.Persistence.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "18FF4584-E530-4CFE-ADC1-9485EBCC1982",
-                            ConcurrencyStamp = "a005bbe4-a447-4fd7-8702-81aed5f3741c",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = "BA54FA79-8361-4560-B1A5-C55097FE6E63",
-                            ConcurrencyStamp = "4b94c496-a38b-4539-ae33-e5198a2bd6af",
-                            Name = "Moderator",
-                            NormalizedName = "MODERATOR"
-                        },
-                        new
-                        {
-                            Id = "A6975C7C-5397-4BBB-B450-2790781BCBAB",
-                            ConcurrencyStamp = "10ebcf35-e410-45f2-9e18-eae276d4f642",
-                            Name = "Employee",
-                            NormalizedName = "EMPLOYEE"
-                        });
                 });
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Identification.AppUser", b =>
@@ -247,9 +227,11 @@ namespace EConstructionApp.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -278,6 +260,9 @@ namespace EConstructionApp.Persistence.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -293,34 +278,6 @@ namespace EConstructionApp.Persistence.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "43B64316-DE56-4300-AE86-C298AEA73C7B",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "6b3dc824-665b-4b59-a81d-c71119c407eb",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAENwK6WhaDMD4uJ6OD1mXzrCl590nwoXQSk0dw8AwG8mokHIFclW2h62O+lb/f6rJkg==",
-                            PhoneNumberConfirmed = true,
-                            SecurityStamp = "0d3e002e-942f-4412-82b8-ca269bbd0056",
-                            UserName = "admin"
-                        },
-                        new
-                        {
-                            Id = "99D74F43-7E23-41BE-9F98-10C5D6130312",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "20cc43b2-20cd-43fa-80c7-1c206279d857",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedUserName = "MODERATOR",
-                            PasswordHash = "AQAAAAIAAYagAAAAECKEYFNZNBYsKIP0ShA4HA28blHf1EMwTf4Rd8hNCS2UVR73nFObUdqiOijjebsHpQ==",
-                            PhoneNumberConfirmed = true,
-                            SecurityStamp = "1e7d7196-0c23-474b-a51e-ac54d8f3e86a",
-                            UserName = "moderator"
-                        });
                 });
 
             modelBuilder.Entity("EConstructionApp.Domain.Entities.Material", b =>
@@ -527,18 +484,6 @@ namespace EConstructionApp.Persistence.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = "43B64316-DE56-4300-AE86-C298AEA73C7B",
-                            RoleId = "18FF4584-E530-4CFE-ADC1-9485EBCC1982"
-                        },
-                        new
-                        {
-                            UserId = "99D74F43-7E23-41BE-9F98-10C5D6130312",
-                            RoleId = "BA54FA79-8361-4560-B1A5-C55097FE6E63"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>

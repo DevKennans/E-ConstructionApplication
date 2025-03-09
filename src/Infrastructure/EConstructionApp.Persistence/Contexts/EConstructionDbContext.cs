@@ -1,11 +1,13 @@
 ﻿using EConstructionApp.Domain.Entities;
 using EConstructionApp.Domain.Entities.Common;
 using EConstructionApp.Domain.Entities.Cross;
+using EConstructionApp.Domain.Entities.Identification;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace EConstructionApp.Persistence.Contexts
 {
-    public class EConstructionDbContext : DbContext
+    public class EConstructionDbContext : IdentityDbContext<AppUser, AppRole, string>
     {
         public EConstructionDbContext() { }
 
