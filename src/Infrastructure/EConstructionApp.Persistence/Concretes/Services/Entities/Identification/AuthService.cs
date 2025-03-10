@@ -1,10 +1,12 @@
-﻿using EConstructionApp.Application.Features.Commands.Auth.SignUp;
+﻿using EConstructionApp.Application.Features.Commands.Auth.LogIn;
+using EConstructionApp.Application.Features.Commands.Auth.SignUp;
 using EConstructionApp.Application.Interfaces.Services.Identification;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
 using EConstructionApp.Domain.Entities;
 using EConstructionApp.Domain.Entities.Identification;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace EConstructionApp.Persistence.Concretes.Services.Entities.Identification
 {
@@ -12,11 +14,13 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Identificatio
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<AppRole> _roleManager;
+        private readonly ITokenHandler _tokenHandler;
         private readonly IUnitOfWork _unitOfWork;
-        public AuthService(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager, IUnitOfWork unitOfWork)
+        public AuthService(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager, ITokenHandler tokenHandler, IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _tokenHandler = tokenHandler;
             _unitOfWork = unitOfWork;
         }
 
@@ -82,6 +86,44 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Identificatio
             {
                 IsSuccess = true,
                 Message = "Sign-up successful. Welcome to the team!"
+            };
+        }
+
+        public Task<IList<string>> GetUserAllRoles(AppUser user)
+        {
+            return _userManager.GetRolesAsync(user);
+        }
+
+        public async Task<LogInCommandResponse> LogInAsync(LogInCommandRequest? logInCommandRequest)
+        {
+            bool isPhoneNumber = Regex.IsMatch(logInCommandRequest!.UsernameOrPhoneNumber, @"^\d{10,15}$");
+
+            AppUser? user;
+            if (isPhoneNumber)
+            {
+                user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == logInCommandRequest.UsernameOrPhoneNumber);
+                if (user is null)
+                    return new LogInCommandResponse { IsSuccess = false, Message = "Invalid phone number." };
+            }
+            else
+            {
+                user = await _userManager.FindByNameAsync(logInCommandRequest.UsernameOrPhoneNumber);
+                if (user == null)
+                    return new LogInCommandResponse { IsSuccess = false, Message = "Invalid username." };
+            }
+
+            if (!await _userManager.CheckPasswordAsync(user, logInCommandRequest.Password))
+                return new LogInCommandResponse { IsSuccess = false, Message = "Incorrect password." };
+
+            IList<string> roles = await GetUserAllRoles(user);
+
+            var token = _tokenHandler.CreateAccessToken(seconds: 60, user, roles);
+
+            return new LogInCommandResponse
+            {
+                IsSuccess = true,
+                Message = "Login successful.",
+                Token = token
             };
         }
     }

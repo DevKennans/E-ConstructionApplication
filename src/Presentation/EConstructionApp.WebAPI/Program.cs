@@ -2,7 +2,10 @@ using EConstructionApp.Application;
 using EConstructionApp.Infrastructure;
 using EConstructionApp.Persistence;
 using EConstructionApp.WebAPI.Extensions.Exceptions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 internal class Program
 {
@@ -38,6 +41,22 @@ internal class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer("Admin", options =>
+            {
+                options.TokenValidationParameters = new()
+                {
+                    ValidateAudience = true,
+                    ValidateIssuer = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidAudience = builder.Configuration["Token:Audience"],
+                    ValidIssuer = builder.Configuration["Token:Issuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Token:SecurityKey"]!))
+                };
+            });
+
         WebApplication app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -51,6 +70,7 @@ internal class Program
 
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
