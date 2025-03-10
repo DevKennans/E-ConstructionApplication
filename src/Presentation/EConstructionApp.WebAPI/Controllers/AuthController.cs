@@ -1,4 +1,5 @@
-﻿using EConstructionApp.Application.Features.Commands.Auth.SignUp;
+﻿using EConstructionApp.Application.Features.Commands.Auth.LogIn;
+using EConstructionApp.Application.Features.Commands.Auth.SignUp;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +23,16 @@ namespace EConstructionApp.WebAPI.Controllers
                 return BadRequest(new { signUpCommandResponse.IsSuccess, signUpCommandResponse.Message });
 
             return Ok(new { signUpCommandResponse.IsSuccess, signUpCommandResponse.Message });
+        }
+
+        [HttpPost("LogIn")]
+        public async Task<IActionResult> LogIn([FromBody] LogInCommandRequest logInCommandRequest)
+        {
+            LogInCommandResponse logInCommandResponse = await _mediator.Send(logInCommandRequest);
+            if (!logInCommandResponse.IsSuccess)
+                return BadRequest(new { logInCommandResponse.IsSuccess, logInCommandResponse.Message });
+
+            return Ok(new { logInCommandResponse.IsSuccess, logInCommandResponse.Message, logInCommandResponse.Token });
         }
     }
 }

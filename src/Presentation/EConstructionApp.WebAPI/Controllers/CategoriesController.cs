@@ -1,11 +1,13 @@
 ﻿using EConstructionApp.Application.DTOs.Categories;
 using EConstructionApp.Application.Interfaces.Services.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Admin")]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;

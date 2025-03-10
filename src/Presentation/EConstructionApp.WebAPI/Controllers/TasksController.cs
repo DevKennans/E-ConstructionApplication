@@ -1,12 +1,14 @@
 ﻿using EConstructionApp.Application.DTOs.Tasks;
 using EConstructionApp.Application.DTOs.Tasks.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Admin")]
     public class TasksController : ControllerBase
     {
         private readonly ITaskService _taskService;
