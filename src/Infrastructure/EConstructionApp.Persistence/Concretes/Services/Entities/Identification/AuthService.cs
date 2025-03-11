@@ -119,7 +119,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Identificatio
             IList<string> roles = await GetUserAllRoles(user);
 
             Token token = _tokenHandler.CreateAccessToken(seconds: 1 * 60 * 60, user, roles);
-            await UpdateRefreshToken(token.RefreshToken, user, token.ExpirationDate, addOnAccessTokenDate: 1 * 15 * 30);
+            await UpdateRefreshToken(token.RefreshToken, user, token.ExpirationDate, addOnAccessTokenDate: 1 * 15 * 60);
 
             return new LogInCommandResponse
             {
