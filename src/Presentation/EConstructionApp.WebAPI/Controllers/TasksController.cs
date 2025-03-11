@@ -8,7 +8,7 @@ namespace EConstructionApp.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = "Admin")]
+    [Authorize]
     public class TasksController : ControllerBase
     {
         private readonly ITaskService _taskService;

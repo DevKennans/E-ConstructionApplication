@@ -7,7 +7,7 @@ namespace EConstructionApp.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = "Admin")]
+    [Authorize]
     public class MaterialsController : ControllerBase
     {
         private readonly IMaterialService _materialService;

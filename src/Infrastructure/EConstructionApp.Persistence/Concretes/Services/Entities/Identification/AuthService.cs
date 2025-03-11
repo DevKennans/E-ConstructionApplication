@@ -1,4 +1,5 @@
-﻿using EConstructionApp.Application.Features.Commands.Auth.LogIn;
+﻿using EConstructionApp.Application.DTOs.Identification;
+using EConstructionApp.Application.Features.Commands.Auth.LogIn;
 using EConstructionApp.Application.Features.Commands.Auth.SignUp;
 using EConstructionApp.Application.Interfaces.Services.Identification;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
@@ -117,7 +118,8 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Identificatio
 
             IList<string> roles = await GetUserAllRoles(user);
 
-            var token = _tokenHandler.CreateAccessToken(seconds: 60, user, roles);
+            Token token = _tokenHandler.CreateAccessToken(seconds: 1 * 60 * 60, user, roles);
+            await UpdateRefreshToken(token.RefreshToken, user, token.ExpirationDate, addOnAccessTokenDate: 1 * 15 * 30);
 
             return new LogInCommandResponse
             {
@@ -125,6 +127,32 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Identificatio
                 Message = "Login successful.",
                 Token = token
             };
+        }
+
+        public async Task<Token?> RefreshTokenAsync(string? refreshToken)
+        {
+            if (refreshToken is null)
+                return null!;
+
+            AppUser? user = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+            if (user is not null && user.RefreshTokenEndDate > DateTime.UtcNow)
+            {
+                IList<string> roles = await _userManager.GetRolesAsync(user!);
+
+                Token token = _tokenHandler.CreateAccessToken(seconds: 1 * 60 * 60, user, roles);
+                await UpdateRefreshToken(token.RefreshToken, user, token.ExpirationDate, addOnAccessTokenDate: 1 * 15 * 60);
+                return token;
+            }
+            else return null!;
+        }
+
+        public async System.Threading.Tasks.Task UpdateRefreshToken(string refreshToken, AppUser user, DateTime accessTokenDate, int addOnAccessTokenDate)
+        {
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenEndDate = accessTokenDate.AddSeconds(addOnAccessTokenDate);
+
+            await _userManager.UpdateAsync(user);
         }
     }
 }

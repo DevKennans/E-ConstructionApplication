@@ -1,4 +1,5 @@
 ﻿using EConstructionApp.Application.Features.Commands.Auth.LogIn;
+using EConstructionApp.Application.Features.Commands.Auth.RefreshToken;
 using EConstructionApp.Application.Features.Commands.Auth.SignUp;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,16 @@ namespace EConstructionApp.WebAPI.Controllers
                 return BadRequest(new { logInCommandResponse.IsSuccess, logInCommandResponse.Message });
 
             return Ok(new { logInCommandResponse.IsSuccess, logInCommandResponse.Message, logInCommandResponse.Token });
+        }
+
+        [HttpPost("RefreshToken")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommandRequest refreshTokenCommandRequest)
+        {
+            RefreshTokenCommandResponse refreshTokenCommandResponse = await _mediator.Send(refreshTokenCommandRequest);
+            if (refreshTokenCommandResponse.Token is null)
+                return BadRequest();
+            else
+                return Ok(new { refreshTokenCommandResponse.Token });
         }
     }
 }
