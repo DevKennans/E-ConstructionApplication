@@ -11,5 +11,9 @@ namespace EConstructionApp.Application.Interfaces.Services.Identification
         Task<IList<string>> GetUserAllRoles(AppUser user);
 
         Task<LogInCommandResponse> LogInAsync(LogInCommandRequest? logInCommandRequest);
+
+        Task<DTOs.Identification.Token?> RefreshTokenAsync(string? refreshToken);
+
+        Task UpdateRefreshToken(string refreshToken, AppUser user, DateTime accessTokenDate, int addOnAccessTokenDate);
     }
 }
