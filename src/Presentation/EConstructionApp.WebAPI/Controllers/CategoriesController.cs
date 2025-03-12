@@ -17,6 +17,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("InsertCategories")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> InsertCategories([FromBody] string name)
         {
             (bool IsSuccess, string Message) = await _categoryService.InsertAsync(name);
@@ -27,6 +28,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("UpdateCategories/{categoryId}")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> UpdateCategories(Guid categoryId, [FromBody] string newName)
         {
             (bool IsSuccess, string Message) = await _categoryService.UpdateAsync(categoryId, newName);
@@ -37,6 +39,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpDelete("SafeDeleteCategories/{categoryId}")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> SafeDeleteCategories(Guid categoryId)
         {
             (bool IsSuccess, string Message) = await _categoryService.SafeDeleteAsync(categoryId);
@@ -47,6 +50,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("RestoreCategories/{categoryId}")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> RestoreCategories(Guid categoryId)
         {
             (bool IsSuccess, string Message) = await _categoryService.RestoreDeletedAsync(categoryId);
@@ -57,6 +61,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetCategoriesCounts")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetCategoriesCounts()
         {
             (bool IsSuccess, string Message, int ActiveCategories, int TotalCategories) = await _categoryService.GetBothActiveAndTotalCountsAsync();
@@ -67,6 +72,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetOnlyActiveCategoriesList")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetOnlyActiveCategoriesList()
         {
             (bool IsSuccess, string Message, IList<CategoryDto>? Categories) = await _categoryService.GetOnlyActiveCategoriesListAsync();
@@ -77,6 +83,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetOnlyActiveCategoriesPagedList")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetOnlyActiveCategoriesPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
         {
             (bool IsSuccess, string Message, IList<CategoryDto>? Categories, int TotalCategories) = await _categoryService.GetOnlyActiveCategoriesPagedListAsync(pages, sizes);
@@ -87,6 +94,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetDeletedCategoriesPagedList")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetDeletedCategoriesPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
         {
             (bool IsSuccess, string Message, IList<CategoryDto>? Categories, int TotalDeletedCategories) = await _categoryService.GetDeletedCategoriesPagedListAsync(pages, sizes);
@@ -97,6 +105,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetTopUsedCategoriesWithMaterialsCounts")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetTopUsedCategoriesWithMaterialsCounts([FromQuery] int counts = 5)
         {
             (bool IsSuccess, string Message, IList<Application.DTOs.Categories.Relations.CategoryMaterialCountDto>? Categories) = await _categoryService.GetTopUsedCategoriesWithMaterialsCountsAsync(counts);

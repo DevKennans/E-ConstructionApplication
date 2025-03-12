@@ -134,6 +134,21 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, $"Currently, {activeEmployees} out of {totalEmployees} employees are active.", activeEmployees, totalEmployees);
         }
 
+        public async Task<(bool IsSuccess, string Message, EmployeeDto? employee)> GetEmployeeByIdAsync(Guid employeeId)
+        {
+            Employee? employee = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
+                enableTracking: false,
+                includeDeleted: true,
+                predicate: e => e.Id == employeeId && !e.IsDeleted);
+            if (employee is null)
+                return (false, "No employee found with the provided ID.", null);
+            if (employee.IsDeleted)
+                return (false, "The selected employee is no longer active in the system.", null);
+
+            EmployeeDto employeeDto = _mapper.Map<EmployeeDto>(employee);
+            return (true, "Employee has been successfully retrieved.", employeeDto);
+        }
+
         public async Task<(bool IsSuccess, string Message, IList<EmployeeDto>? Employees)> GetAvailableEmployeesListAsync()
         {
             IList<Employee> employees = await _unitOfWork.GetReadRepository<Employee>().GetAllAsync(
@@ -187,7 +202,6 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             int totalDeletedEmployees = await _unitOfWork.GetReadRepository<Employee>().CountAsync(
                     includeDeleted: true,
                     predicate: e => e.IsDeleted);
-
             if (!deletedEmployees.Any())
                 return (false, "No deleted employees found.", null, totalDeletedEmployees);
 
