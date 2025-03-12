@@ -17,6 +17,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("InsertMaterials")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> InsertMaterials([FromBody] MaterialInsertDto? materialInsertDto)
         {
             (bool IsSuccess, string Message) = await _materialService.InsertAsync(materialInsertDto);
@@ -27,6 +28,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("UpdateMaterials")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> UpdateMaterials([FromBody] MaterialUpdateDto? materialUpdateDto)
         {
             (bool IsSuccess, string Message) = await _materialService.UpdateAsync(materialUpdateDto);
@@ -37,6 +39,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpDelete("SafeDeleteMaterials/{materialId}")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> SafeDeleteMaterials([FromRoute] Guid materialId)
         {
             (bool IsSuccess, string Message) = await _materialService.SafeDeleteAsync(materialId);
@@ -47,6 +50,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("RestoreMaterials/{materialId}")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> RestoreMaterials([FromRoute] Guid materialId)
         {
             (bool IsSuccess, string Message) = await _materialService.RestoreDeletedAsync(materialId);
@@ -57,6 +61,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetMaterialsCounts")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetMaterialsCounts()
         {
             (bool IsSuccess, string Message, int ActiveMaterials, int TotalMaterials) = await _materialService.GetBothActiveAndTotalCountsAsync();
@@ -67,6 +72,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetAvailableMaterialsList")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetAvailableMaterialsList()
         {
             (bool IsSuccess, string Message, IList<MaterialDto>? Materials) = await _materialService.GetAvailableMaterialsListAsync();
@@ -77,6 +83,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetOnlyActiveMaterialsPagedList")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetOnlyActiveMaterialsPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
         {
             (bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalMaterials) = await _materialService.GetOnlyActiveMaterialsPagedListAsync(pages, sizes);
@@ -87,6 +94,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetDeletedMaterialsPagedList")]
+        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetDeletedMaterialsPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
         {
             (bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalDeletedMaterials) = await _materialService.GetDeletedMaterialsPagedListAsync(pages, sizes);

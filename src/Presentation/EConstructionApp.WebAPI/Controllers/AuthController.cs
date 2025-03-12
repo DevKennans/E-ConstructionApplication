@@ -2,6 +2,7 @@
 using EConstructionApp.Application.Features.Commands.Auth.RefreshToken;
 using EConstructionApp.Application.Features.Commands.Auth.SignUp;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebAPI.Controllers
@@ -17,6 +18,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("SignUp")]
+        [AllowAnonymous]
         public async Task<IActionResult> SignUp([FromBody] SignUpCommandRequest signUpCommandRequest)
         {
             SignUpCommandResponse signUpCommandResponse = await _mediator.Send(signUpCommandRequest);
@@ -27,6 +29,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("LogIn")]
+        [AllowAnonymous]
         public async Task<IActionResult> LogIn([FromBody] LogInCommandRequest logInCommandRequest)
         {
             LogInCommandResponse logInCommandResponse = await _mediator.Send(logInCommandRequest);
@@ -37,6 +40,7 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("RefreshToken")]
+        [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommandRequest refreshTokenCommandRequest)
         {
             RefreshTokenCommandResponse refreshTokenCommandResponse = await _mediator.Send(refreshTokenCommandRequest);
