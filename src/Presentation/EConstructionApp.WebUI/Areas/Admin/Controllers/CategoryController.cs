@@ -1,10 +1,12 @@
 ﻿using EConstructionApp.Application.DTOs.Categories;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.WebUI.Areas.Admin.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
+    [Authorize]
     [Area("Admin")]
     public class CategoryController : Controller
     {

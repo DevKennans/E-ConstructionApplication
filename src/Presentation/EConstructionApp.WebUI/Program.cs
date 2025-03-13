@@ -2,6 +2,10 @@ using EConstructionApp.WebUI.Extensions.Exceptions;
 using EConstructionApp.Persistence;
 using EConstructionApp.Infrastructure;
 using EConstructionApp.Application;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using EConstructionApp.WebUI.Middleware;
 internal class Program
 {
     private static void Main(string[] args)
@@ -14,14 +18,51 @@ internal class Program
         builder.Services.AddApplication();
         builder.Services.AddInfrastructure();
         builder.Services.AddPersistence(builder.Configuration);
-        builder.Services.ConfigureApplicationCookie(options =>
+        builder.Services.ConfigureApplicationCookie(config =>
         {
-            options.LoginPath = "/Admin/Login";
-            options.AccessDeniedPath = "/Home/ServerError";
+            config.LoginPath = new PathString("/Admin/Auth/Login");
+            config.LogoutPath = new PathString("/Admin/Auth/Logout");
+            config.Cookie = new CookieBuilder
+            {
+                Name = "E-Construction",
+                HttpOnly = true,
+                SameSite = SameSiteMode.Strict,
+                SecurePolicy = CookieSecurePolicy.SameAsRequest
+            };
+            config.SlidingExpiration = true;
+            config.ExpireTimeSpan = TimeSpan.FromDays(7);
+            config.AccessDeniedPath = new PathString("/Admin/Auth/AccessDenied");
         });
-  
+
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ClockSkew = TimeSpan.Zero,
+
+                    ValidIssuer = builder.Configuration["Token:Issuer"],
+                    ValidAudience = builder.Configuration["Token:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Token:SecurityKey"]!))
+                };
+            });
+
         WebApplication app = builder.Build();
+
+        app.UseMiddleware<JwtRefreshMiddleware>();
+        app.UseMiddleware<JwtCookieToHeaderMiddleware>();
         app.UseMiddleware<GlobalErrorHandlerMiddleware>();
+
+
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
@@ -32,13 +73,9 @@ internal class Program
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRouting();
-
+        app.UseAuthentication();
         app.UseAuthorization();
-        app.MapControllerRoute(
-            name: "admin_default",
-            pattern: "Admin",
-            defaults: new { area = "Admin", controller = "Auth", action = "Login" });
-
+       
         app.MapControllerRoute(
             name: "areas",
             pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");

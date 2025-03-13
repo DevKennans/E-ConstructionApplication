@@ -1,10 +1,13 @@
 ﻿using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.WebUI.Areas.Admin.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
+    
     [Area("Admin")]
+    [Authorize]
     public class DashboardController : Controller
     {
         private readonly ICategoryService _categoryService;
