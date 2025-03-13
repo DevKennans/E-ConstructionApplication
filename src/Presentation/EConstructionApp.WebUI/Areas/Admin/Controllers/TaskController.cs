@@ -5,6 +5,7 @@ using EConstructionApp.Application.DTOs.Tasks.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Domain.Enums.Tasks;
 using EConstructionApp.WebUI.Areas.Admin.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -12,6 +13,7 @@ using TaskStatus = EConstructionApp.Domain.Enums.Tasks.TaskStatus;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
+    [Authorize]
     [Area("Admin")]
     public class TaskController : Controller
     {

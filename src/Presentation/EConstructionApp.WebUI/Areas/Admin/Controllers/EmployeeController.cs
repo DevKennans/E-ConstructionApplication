@@ -5,11 +5,13 @@ using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Domain.Enums;
 using EConstructionApp.Domain.Enums.Employees;
 using EConstructionApp.WebUI.Areas.Admin.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
+    [Authorize]
     [Area("Admin")]
     public class EmployeeController : Controller
     {
