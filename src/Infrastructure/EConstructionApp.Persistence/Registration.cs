@@ -8,6 +8,7 @@ using EConstructionApp.Persistence.Concretes.Services.Entities;
 using EConstructionApp.Persistence.Concretes.Services.Entities.Identification;
 using EConstructionApp.Persistence.Concretes.UnitOfWorks;
 using EConstructionApp.Persistence.Contexts;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +23,7 @@ namespace EConstructionApp.Persistence
             {
                 opt.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
             });
-            services.AddIdentityCore<AppUser>(options =>
+            services.AddIdentity<AppUser, AppRole>(options =>
             {
                 options.Password.RequiredLength = 8;
                 options.Password.RequireNonAlphanumeric = true;
@@ -36,8 +37,10 @@ namespace EConstructionApp.Persistence
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
-            }).AddRoles<AppRole>()
-              .AddEntityFrameworkStores<EConstructionDbContext>();
+            })
+                .AddEntityFrameworkStores<EConstructionDbContext>()
+                .AddDefaultTokenProviders();
+
 
             services.AddScoped(typeof(IReadRepository<>), typeof(ReadRepository<>));
             services.AddScoped(typeof(IWriteRepository<>), typeof(WriteRepository<>));
@@ -50,6 +53,8 @@ namespace EConstructionApp.Persistence
             services.AddScoped<ITaskService, TaskService>();
 
             services.AddScoped<IAuthService, AuthService>();
+
+            services.AddScoped<IAppUserService, AppUserService>();
         }
     }
 }
