@@ -1,5 +1,6 @@
 ﻿using EConstructionApp.Application.DTOs.Identification;
 using EConstructionApp.Application.Features.Commands.Auth.LogIn;
+using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.Services.Identification;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,11 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly IAppUserService _appUserService;
+        public AuthController(IAuthService authService, IAppUserService appUserService)
         {
             _authService = authService;
+            _appUserService = appUserService;
         }
 
         [HttpGet]
@@ -50,12 +53,6 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             ClearAuthCookies();
             return RedirectToAction("Login");
-        }
-
-        [HttpGet]
-        public IActionResult Settings()
-        {
-            return View();
         }
 
         [HttpPost]
@@ -97,5 +94,42 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             Response.Cookies.Delete("RefreshToken");
             Response.Cookies.Delete("TokenExpiration");
         }
+
+        [HttpGet]
+        public IActionResult Settings()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(string userId, string newPassword, string confirmPassword)
+        {
+            if (newPassword != confirmPassword)
+            {
+                TempData["ErrorMessage"] = "New passwords do not match.";
+                return RedirectToAction("Settings");
+            }
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["ErrorMessage"] = "User is not authenticated.";
+                return RedirectToAction("Login", "Auth", new { area = "Admin" });
+            }
+
+            var (isSuccess, message) = await _appUserService.UpdatePasswordAsync(userId, newPassword, confirmPassword);
+
+            if (!isSuccess)
+            {
+                TempData["ErrorMessage"] = message;
+            }
+            else
+            {
+                TempData["SuccessMessage"] = message;
+            }
+
+            return RedirectToAction("Settings");
+        }
+
     }
 }
