@@ -1,14 +1,12 @@
 ﻿using EConstructionApp.Application.DTOs.Tasks;
 using EConstructionApp.Application.DTOs.Tasks.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class TasksController : ControllerBase
     {
         private readonly ITaskService _taskService;
@@ -18,7 +16,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("InsertTasks")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> InsertTasks(TaskInsertDto? taskInsertDtodto)
         {
             (bool IsSuccess, string Message) = await _taskService.InsertAsync(taskInsertDtodto);
@@ -29,7 +26,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("UpdateTasksDetails")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> UpdateTasksDetails([FromBody] TaskDetailsUpdateDto? taskDetailsUpdateDtodto)
         {
             (bool IsSuccess, string Message) = await _taskService.UpdateTasksDetailsAsync(taskDetailsUpdateDtodto);
@@ -40,7 +36,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("UpdateTasksEmployees")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> UpdateTasksEmployees(Guid taskId, [FromBody] List<Guid>? updatedEmployeeIds)
         {
             (bool IsSuccess, string Message) = await _taskService.UpdateTasksEmployeesAsync(taskId, updatedEmployeeIds!);
@@ -51,7 +46,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("UpdateTasksMaterials")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> UpdateTasksMaterials(Guid taskId, [FromBody] List<MaterialAssignmentInsertDto> updatedMaterials)
         {
             (bool IsSuccess, string Message) = await _taskService.UpdateTasksMaterialsAsync(taskId, updatedMaterials);
@@ -62,7 +56,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetTasksCounts")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetTasksCounts()
         {
             (bool IsSuccess, string Message, int ActiveTasks, int TotalTasks) = await _taskService.GetBothActiveAndTotalCountsAsync();
@@ -73,7 +66,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetEmployeeCurrentTask/{employeeId}")]
-        [Authorize(Roles = "Admin, Moderator, Employee")]
         public async Task<IActionResult> GetEmployeeCurrentTask(Guid employeeId)
         {
             (bool IsSuccess, string Message, TaskDto? Task) = await _taskService.GetEmployeeCurrentTaskAsync(employeeId);
@@ -84,7 +76,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetAllActiveTasksList")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetAllActiveTasksList()
         {
             (bool IsSuccess, string Message, IList<TaskDto>? Tasks) = await _taskService.GetAllActiveTasksListAsync();
@@ -95,7 +86,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetOnlyActiveTasksPagedList")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetOnlyActiveTasksPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
         {
             (bool IsSuccess, string Message, IList<TaskDto>? Tasks, int TotalTasks) = await _taskService.GetOnlyActiveTasksPagedListAsync(pages, sizes);
@@ -106,7 +96,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetListOfTasksCountsByStatus")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetListOfTasksCountsByStatus()
         {
             (bool IsSuccess, string Message, IList<TaskStatusCountsDto>? TaskCounts) = await _taskService.GetListOfTasksCountsByStatusAsync();

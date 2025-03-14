@@ -1,13 +1,11 @@
 ﻿using EConstructionApp.Application.Features.Commands.AppUser.UpdatePassword;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Employee")]
     public class AppUsersController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -17,7 +15,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("UpdatePassword")]
-        [Authorize(Roles = "Employee")]
         public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordCommandRequest updatePasswordCommandRequest)
         {
             UpdatePasswordCommandResponse updatePasswordCommandResponse = await _mediator.Send(updatePasswordCommandRequest);
