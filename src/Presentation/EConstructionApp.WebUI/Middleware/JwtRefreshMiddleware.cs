@@ -23,6 +23,16 @@ namespace EConstructionApp.WebUI.Middleware
         {
             try
             {
+                var authToken = context.Request.Cookies["AuthToken"];
+                var refreshToken = context.Request.Cookies["RefreshToken"];
+                var tokenExpirationString = context.Request.Cookies["TokenExpiration"];
+
+                if (context.Request.Path.StartsWithSegments("/Admin/Auth/Login") && !string.IsNullOrEmpty(authToken) && IsValidToken(authToken, context))
+                {
+                    context.Response.Redirect("/Admin/Dashboard"); 
+                    return;
+                }
+
                 if (context.Request.Path.StartsWithSegments("/Admin/Auth/Login") ||
                     context.Request.Path.StartsWithSegments("/Admin/Auth/RefreshToken"))
                 {
@@ -30,24 +40,13 @@ namespace EConstructionApp.WebUI.Middleware
                     return;
                 }
 
-                var authToken = context.Request.Cookies["AuthToken"];
-                var refreshToken = context.Request.Cookies["RefreshToken"];
-                var tokenExpirationString = context.Request.Cookies["TokenExpiration"];
-
                 if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(tokenExpirationString))
                 {
                     RedirectToLogin(context);
                     return;
                 }
 
-                if (!IsValidToken(authToken, context))
-                {
-                    ClearAuthCookies(context.Response);
-                    RedirectToLogin(context);
-                    return;
-                }
-
-                if (DateTime.TryParse(tokenExpirationString, out DateTime tokenExpiration) && DateTime.UtcNow >= tokenExpiration)
+                if (string.IsNullOrEmpty(authToken) || (DateTime.TryParse(tokenExpirationString, out DateTime tokenExpiration) && DateTime.UtcNow >= tokenExpiration))
                 {
                     var authService = context.RequestServices.GetRequiredService<IAuthService>();
                     var newToken = await authService.RefreshTokenAsync(refreshToken);
@@ -60,6 +59,14 @@ namespace EConstructionApp.WebUI.Middleware
                     }
 
                     SetAuthCookies(context.Response, newToken);
+                    authToken = newToken.AccessToken;
+                }
+
+                if (!IsValidToken(authToken, context))
+                {
+                    ClearAuthCookies(context.Response);
+                    RedirectToLogin(context);
+                    return;
                 }
 
                 await _next(context);
@@ -69,6 +76,7 @@ namespace EConstructionApp.WebUI.Middleware
                 RedirectToLogin(context);
             }
         }
+
 
         private bool IsValidToken(string token, HttpContext context)
         {
