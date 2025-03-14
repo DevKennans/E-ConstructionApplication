@@ -6,7 +6,9 @@ using EConstructionApp.Application.Interfaces.UnitOfWorks;
 using EConstructionApp.Application.Validations.Entities.Tasks;
 using EConstructionApp.Domain.Entities;
 using EConstructionApp.Domain.Entities.Cross;
+using EConstructionApp.Domain.Entities.Identification;
 using EConstructionApp.Persistence.Concretes.Services.Entities.Helpers;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Task = EConstructionApp.Domain.Entities.Task;
 
@@ -15,11 +17,13 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
     public class TaskService : ITaskService
     {
         private readonly IEmployeeService _employeeService;
+        private readonly UserManager<AppUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public TaskService(IEmployeeService employeeService, IUnitOfWork unitOfWork, IMapper mapper)
+        public TaskService(IEmployeeService employeeService, UserManager<AppUser> userManager, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _employeeService = employeeService;
+            _userManager = userManager;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -431,12 +435,24 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, "Task retrieved successfully.", task);
         }
 
-        public async Task<(bool IsSuccess, string Message, TaskDto? Task)> GetEmployeeCurrentTaskAsync(Guid employeeId)
+        public async Task<(bool IsSuccess, string Message, TaskDto? Task)> GetEmployeeCurrentTaskAsync(Guid employeeId) /*
+                                              * Type of this employee is AppUser, but in according service it will be checked for another kind of users like admin & moderator.
+                                              * EmployeeId from AppUser must be bind with Employee data!
+                                              */
         {
+            AppUser? appUserEmployee = await _userManager.Users
+                .FirstOrDefaultAsync(user => user.Id == employeeId.ToString());
+            if (appUserEmployee is null)
+                return (false, "No employee found with the provided ID.", null!);
+
+            bool hasEmployeePermission = await _userManager.IsInRoleAsync(appUserEmployee, "Employee");
+            if (!hasEmployeePermission)
+                return (false, "The selected user does not have permission to access employee's task data. (Check user type again, user must have a 'employee' role for doing operation)", null!);
+
             Employee? employee = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
                 enableTracking: false,
                 includeDeleted: true,
-                predicate: e => e.Id == employeeId,
+                predicate: emp => emp.PhoneNumber == appUserEmployee.PhoneNumber,
                 include: q => q.Include(e => e.CurrentTask)
                                .ThenInclude(t => t!.MaterialTasks)
                                .ThenInclude(mt => mt.Material)

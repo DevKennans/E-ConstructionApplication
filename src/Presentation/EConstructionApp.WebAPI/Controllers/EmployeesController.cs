@@ -1,4 +1,5 @@
 ﻿using EConstructionApp.Application.DTOs.Employees;
+using EConstructionApp.Application.Features.Commands.Employees.EmployeeCheckInOut;
 using EConstructionApp.Application.Features.Queries.Employees.GetEmployeeById;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using MediatR;
@@ -73,6 +74,17 @@ namespace EConstructionApp.WebAPI.Controllers
                 return NotFound(new { IsSuccess, Message });
 
             return Ok(new { IsSuccess, Message, ActiveEmployees, TotalEmployees });
+        }
+
+        [HttpPost("RecordEmployeeAttendance")]
+        [Authorize(Roles = "Admin, Moderator, Employee")]
+        public async Task<IActionResult> RecordEmployeeAttendance([FromBody] EmployeeCheckInOutCommandRequest employeeCheckInOutCommandRequest)
+        {
+            EmployeeCheckInOutCommandResponse employeeCheckInOutCommandResponse = await _mediator.Send(employeeCheckInOutCommandRequest);
+            if (!employeeCheckInOutCommandResponse.IsSuccess)
+                return BadRequest(new { employeeCheckInOutCommandResponse.IsSuccess, employeeCheckInOutCommandResponse.Message });
+
+            return Ok(new { employeeCheckInOutCommandResponse.IsSuccess, employeeCheckInOutCommandResponse.Message });
         }
 
         [HttpPost("GetEmployeeById")]
