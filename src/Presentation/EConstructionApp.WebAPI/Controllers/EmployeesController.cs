@@ -3,14 +3,12 @@ using EConstructionApp.Application.Features.Commands.Employees.EmployeeCheckInOu
 using EConstructionApp.Application.Features.Queries.Employees.GetEmployeeById;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class EmployeesController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
@@ -22,7 +20,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("InsertEmployees")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> InsertEmployees([FromBody] EmployeeInsertDto? employeeInsertDto)
         {
             (bool IsSuccess, string Message) = await _employeeService.InsertAsync(employeeInsertDto);
@@ -33,7 +30,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("UpdateEmployees")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> UpdateEmployees([FromBody] EmployeeUpdateDto? employeeUpdateDto)
         {
             (bool IsSuccess, string Message) = await _employeeService.UpdateAsync(employeeUpdateDto);
@@ -44,7 +40,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpDelete("SafeDeleteEmployees/{employeeId}")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> SafeDeleteEmployees(Guid employeeId)
         {
             (bool IsSuccess, string Message) = await _employeeService.SafeDeleteAsync(employeeId);
@@ -55,7 +50,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPut("RestoreEmployees/{employeeId}")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> RestoreEmployees(Guid employeeId)
         {
             (bool IsSuccess, string Message) = await _employeeService.RestoreDeletedAsync(employeeId);
@@ -66,7 +60,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetEmployeesCounts")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetEmployeesCounts()
         {
             (bool IsSuccess, string Message, int ActiveEmployees, int TotalEmployees) = await _employeeService.GetBothActiveAndTotalCountsAsync();
@@ -77,7 +70,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("RecordEmployeeAttendance")]
-        [Authorize(Roles = "Admin, Moderator, Employee")]
         public async Task<IActionResult> RecordEmployeeAttendance([FromBody] EmployeeCheckInOutCommandRequest employeeCheckInOutCommandRequest)
         {
             EmployeeCheckInOutCommandResponse employeeCheckInOutCommandResponse = await _mediator.Send(employeeCheckInOutCommandRequest);
@@ -88,7 +80,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpPost("GetEmployeeById")]
-        [Authorize(Roles = "Admin, Moderator, Employee")]
         public async Task<IActionResult> GetEmployeeById([FromQuery] GetEmployeeByIdQueryRequest getEmployeeByIdQueryRequest)
         {
             GetEmployeeByIdQueryResponse getEmployeeByIdQueryResponse = await _mediator.Send(getEmployeeByIdQueryRequest);
@@ -99,7 +90,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetAvailableEmployeesList")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetAvailableEmployeesList()
         {
             (bool IsSuccess, string Message, IList<EmployeeDto>? Employees) = await _employeeService.GetAvailableEmployeesListAsync();
@@ -110,7 +100,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetOnlyActiveEmployeesPagedList")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetOnlyActiveEmployeesPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
         {
             (bool IsSuccess, string Message, IList<EmployeeDto>? Employees, int TotalEmployees) = await _employeeService.GetOnlyActiveEmployeesPagedListAsync(pages, sizes);
@@ -121,7 +110,6 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetDeletedEmployeesPagedList")]
-        [Authorize(Roles = "Admin, Moderator")]
         public async Task<IActionResult> GetDeletedEmployeesPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
         {
             (bool IsSuccess, string Message, IList<EmployeeDto>? Employees, int TotalDeletedEmployees) = await _employeeService.GetDeletedEmployeesPagedListAsync(pages, sizes);
