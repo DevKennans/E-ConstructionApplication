@@ -4,17 +4,22 @@ using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
 using EConstructionApp.Application.Validations.Entities.Employees;
 using EConstructionApp.Domain.Entities;
+using EConstructionApp.Domain.Entities.Identification;
 using EConstructionApp.Persistence.Concretes.Services.Entities.Helpers;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace EConstructionApp.Persistence.Concretes.Services.Entities
 {
     public class EmployeeService : IEmployeeService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly UserManager<AppUser> _userManager;
         private readonly IMapper _mapper;
-        public EmployeeService(IUnitOfWork unitOfWork, IMapper mapper)
+        public EmployeeService(IUnitOfWork unitOfWork, UserManager<AppUser> userManager, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _userManager = userManager;
             _mapper = mapper;
         }
 
@@ -134,12 +139,73 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, $"Currently, {activeEmployees} out of {totalEmployees} employees are active.", activeEmployees, totalEmployees);
         }
 
+        public async Task<(bool IsSuccess, string Message)> RecordAttendanceAsync(Guid employeeId, DateTime scanTime)
+        {
+            AppUser? appUserEmployee = await _userManager.Users
+                .FirstOrDefaultAsync(user => user.Id == employeeId.ToString());
+            if (appUserEmployee is null)
+                return (false, "No employee found with the provided ID.");
+
+            bool hasEmployeePermission = await _userManager.IsInRoleAsync(appUserEmployee, "Employee");
+            if (!hasEmployeePermission)
+                return (false, "The selected user does not have permission for attendance tracking.");
+
+            Employee? employee = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
+                enableTracking: true,
+                includeDeleted: true,
+                predicate: emp => emp.PhoneNumber == appUserEmployee.PhoneNumber);
+            if (employee is null)
+                return (false, "No employee found with the provided ID.");
+            if (employee.IsDeleted)
+                return (false, "The selected employee is no longer active in the system.");
+
+            DateTime localScanTime = scanTime.ToLocalTime();
+            DateOnly today = DateOnly.FromDateTime(localScanTime);
+
+            IList<EmployeeAttendance> todayAttendances = await _unitOfWork.GetReadRepository<EmployeeAttendance>().GetAllAsync(
+                enableTracking: true,
+                includeDeleted: false,
+                predicate: ea => ea.EmployeeId == employee.Id && ea.Dairy == today,
+                orderBy: q => q.OrderByDescending(ea => ea.InsertedDate));
+
+            EmployeeAttendance? lastAttendance = todayAttendances.FirstOrDefault();
+            if (lastAttendance is null || lastAttendance.CheckOutTime is not null)
+            {
+                EmployeeAttendance newAttendance = new EmployeeAttendance
+                {
+                    EmployeeId = employee.Id,
+                    Dairy = today,
+                    CheckInTime = localScanTime
+                };
+
+                await _unitOfWork.GetWriteRepository<EmployeeAttendance>().AddAsync(newAttendance);
+                await _unitOfWork.SaveAsync();
+
+                return (true, "Check-in successful. You must check out before leaving.");
+            }
+
+            lastAttendance.CheckOutTime = localScanTime;
+            await _unitOfWork.GetWriteRepository<EmployeeAttendance>().UpdateAsync(lastAttendance);
+            await _unitOfWork.SaveAsync();
+
+            return (true, "Check-out successful. Have a great day!");
+        }
+
         public async Task<(bool IsSuccess, string Message, EmployeeDto? employee)> GetEmployeeByIdAsync(Guid employeeId)
         {
+            AppUser? appUserEmployee = await _userManager.Users
+                .FirstOrDefaultAsync(user => user.Id == employeeId.ToString());
+            if (appUserEmployee is null)
+                return (false, "No employee found with the provided ID.", null!);
+
+            bool hasEmployeePermission = await _userManager.IsInRoleAsync(appUserEmployee, "Employee");
+            if (!hasEmployeePermission)
+                return (false, "The selected user does not have permission to access employee data. (Check user type again, user must have a 'employee' role for doing operation)", null!);
+
             Employee? employee = await _unitOfWork.GetReadRepository<Employee>().GetAsync(
                 enableTracking: false,
                 includeDeleted: true,
-                predicate: e => e.Id == employeeId && !e.IsDeleted);
+                predicate: emp => emp.PhoneNumber == appUserEmployee.PhoneNumber);
             if (employee is null)
                 return (false, "No employee found with the provided ID.", null);
             if (employee.IsDeleted)
