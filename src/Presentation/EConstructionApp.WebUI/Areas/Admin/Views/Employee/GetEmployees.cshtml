@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1 class="text-center mb-4">Employee List</h1>
+
 
 @if (TempData["ErrorMessage"] != null)
 {
@@ -28,6 +28,9 @@
 }
 
 <div class="container mt-5">
+    <a href="@Url.Action("AddEmployee", "Employee", new { area = "Admin" })" class="btn btn-success mb-2">
+        <i class="fas fa-plus"></i> Add Employee
+    </a>
     @if (Model?.Employees != null && Model.Employees.Any())
     {
         <div class="table-responsive">
