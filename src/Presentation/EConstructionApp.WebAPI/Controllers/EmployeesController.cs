@@ -79,6 +79,13 @@ namespace EConstructionApp.WebAPI.Controllers
             return Ok(new { employeeCheckInOutCommandResponse.IsSuccess, employeeCheckInOutCommandResponse.Message });
         }
 
+        [HttpGet("attendances/{date}")]
+        public async Task<IActionResult> GetAttendancesByDate(DateOnly date)
+        {
+            List<Application.DTOs.Employees.Relations.EmployeeAttendanceDto> result = await _employeeService.GetAttendancesByDateAsync(date);
+            return Ok(result);
+        }
+
         [HttpPost("GetEmployeeById")]
         public async Task<IActionResult> GetEmployeeById([FromQuery] GetEmployeeByIdQueryRequest getEmployeeByIdQueryRequest)
         {
