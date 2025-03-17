@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EConstructionApp.Application.DTOs.Employees;
+using EConstructionApp.Application.DTOs.Employees.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
 using EConstructionApp.Application.Validations.Entities.Employees;
@@ -189,6 +190,18 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             await _unitOfWork.SaveAsync();
 
             return (true, "Check-out successful. Have a great day!");
+        }
+
+        public async Task<List<EmployeeAttendanceDto>> GetAttendancesByDateAsync(DateOnly date)
+        {
+            IList<EmployeeAttendance> attendances = await _unitOfWork.GetReadRepository<EmployeeAttendance>()
+                .GetAllAsync(
+                    enableTracking: false,
+                    includeDeleted: false,
+                    predicate: ea => ea.Dairy == date,
+                    include: query => query.Include(ea => ea.Employee));
+
+            return _mapper.Map<List<EmployeeAttendanceDto>>(attendances);
         }
 
         public async Task<(bool IsSuccess, string Message, EmployeeDto? employee)> GetEmployeeByIdAsync(Guid employeeId)
