@@ -183,7 +183,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                     includeDeleted: false,
                     predicate: m => m.StockQuantity > 0,
                     include: entity => entity.Include(m => m.Category),
-                    orderBy: q => q.OrderBy(m => m.Category.Name).ThenByDescending(m => m.Name));
+                    orderBy: q => q.OrderBy(m => m.Category.Name).ThenBy(m => m.Name));
             if (!materials.Any())
                 return (false, "No active materials found.", null);
 
