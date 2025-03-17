@@ -7,7 +7,7 @@
     @if (TempData["ErrorMessageFromCategory"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
-            @TempData["ErrorMessageFromAddCategory"]
+            @TempData["ErrorMessageFromCategory"]
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -16,7 +16,7 @@
     @if (TempData["SuccessMessageFromCategory"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
-            @TempData["SuccessMessageFromAddCategory"]
+            @TempData["SuccessMessageFromCategory"]
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>

@@ -134,5 +134,15 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
             return RedirectToAction("GetEmployees");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> EmployeeAttendance(DateOnly? date)
+        {
+            date ??= DateOnly.FromDateTime(DateTime.Today); 
+            var attendances = await _employeeService.GetAttendancesByDateAsync(date.Value);
+            ViewBag.SelectedDate = date.Value.ToString("yyyy-MM-dd"); 
+            return View(attendances);
+        }
+
     }
 }
