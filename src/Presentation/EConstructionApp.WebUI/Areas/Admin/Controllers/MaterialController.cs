@@ -54,9 +54,16 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             else
             {
                 var (isSuccessCategories, messageCategories, categories) = await _categoryService.GetOnlyActiveCategoriesListAsync();
-
                 var (isSuccess, message) = await _materialService.InsertAsync(model.Material);
                 model.Categories = categories!;
+                model.MeasureList = Enum.GetValues(typeof(Measure))
+                                  .Cast<Measure>()
+                                  .Select(m => new SelectListItem
+                                  {
+                                      Value = m.ToString(),
+                                      Text = m.ToString()
+                                  })
+                                  .ToList();
                 if (isSuccess)
                 {
                     TempData["SuccessMessageFromMaterial"] = message;

@@ -1,0 +1,90 @@
+﻿@using EConstructionApp.Application.DTOs.Employees.Relations
+@model List<EmployeeAttendanceDto>
+
+@{
+    ViewData["Title"] = "Employee Attendance";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0 rounded-3 p-4">
+        <form method="get" asp-action="EmployeeAttendance" class="d-flex justify-content-center">
+            <div class="input-group w-50">
+                <input type="date" id="attendanceDate" name="date" class="form-control" value="@ViewBag.SelectedDate" max="@DateTime.Today.ToString("yyyy-MM-dd")">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </form>
+
+        <hr class="my-4">
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover text-center align-middle">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Role</th>
+                            <th>Phone</th>
+                            <th>Date</th>
+                            <th>Check-In</th>
+                            <th>Check-Out</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var attendance in Model)
+                        {
+                            <tr class="table-light">
+                                <td>@attendance.EmployeeFullName</td>
+                                <td>@attendance.Role</td>
+                                <td>+@attendance.PhoneNumber</td>
+                                <td>@attendance.Dairy</td>
+                                <td>@(attendance.CheckInTime?.ToString("HH:mm") ?? "-")</td>
+                                <td>@(attendance.CheckOutTime?.ToString("HH:mm") ?? "-")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning text-center mt-3">
+                No attendance records found for the selected date.
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 900px;
+    }
+
+    .card {
+        background: #f8f9fa;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .table thead {
+        border-radius: 10px;
+    }
+
+    .table tbody tr:hover {
+        background-color: #e9ecef;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        transition: all 0.3s;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .alert {
+        font-size: 1.1rem;
+    }
+</style>
