@@ -3,6 +3,7 @@ using EConstructionApp.Application.Features.Commands.Auth.LogIn;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.Services.Identification;
 using EConstructionApp.WebUI.Areas.Admin.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
@@ -25,7 +26,6 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
@@ -38,19 +38,20 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             };
 
             var result = await _authService.LogInAsync(loginRequest);
-
             if (!result.IsSuccess)
             {
-                ViewBag.ErrorMessageFromLogin = result.Message;
+                TempData["ErrorMessageFromAuth"] = result.Message;
                 return View(model);
             }
 
+            Response.Cookies.Append("Username", model.Username);
             SetAuthCookies(result.Token);
             return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
         }
 
         public IActionResult Logout()
         {
+            Response.Cookies.Delete("Username");
             ClearAuthCookies();
             return RedirectToAction("Login");
         }
@@ -95,25 +96,27 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             Response.Cookies.Delete("TokenExpiration");
         }
 
+        //[Authorize]
         [HttpGet]
         public IActionResult Settings()
         {
             return View();
         }
 
+        //[Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(string userId, string newPassword, string confirmPassword)
         {
             if (newPassword != confirmPassword)
             {
-                TempData["ErrorMessage"] = "New passwords do not match.";
+                TempData["ErrorMessageFromAuth"] = "New passwords do not match.";
                 return RedirectToAction("Settings");
             }
 
             if (string.IsNullOrEmpty(userId))
             {
-                TempData["ErrorMessage"] = "User is not authenticated.";
+                TempData["ErrorMessageFromAuth"] = "User is not authenticated.";
                 return RedirectToAction("Login", "Auth", new { area = "Admin" });
             }
 
@@ -121,11 +124,11 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromAuth"] = message;
             }
             else
             {
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromAuth"] = message;
             }
 
             return RedirectToAction("Settings");

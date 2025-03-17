@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Area("Admin")]
     public class CategoryController : Controller
     {
@@ -27,10 +27,10 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _categoryService.InsertAsync(name);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromCategory"] = message;
                 return View();
             }
-            TempData["SuccessMessage"] = message;
+            TempData["SuccessMessageFromCategory"] = message;
             return View();
         }
 
@@ -39,7 +39,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message, categories, totalCategories) = await _categoryService.GetOnlyActiveCategoriesPagedListAsync(page, size);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromCategory"] = message;
 
                 return View(new CategoryListViewModel
                 {
@@ -65,8 +65,6 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message, categories, totalCategories) = await _categoryService.GetDeletedCategoriesPagedListAsync(page, size);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
-
                 return View(new CategoryListViewModel
                 {
                     Categories = new List<CategoryDto>(),
@@ -91,9 +89,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             var (isSuccess, message) = await _categoryService.RestoreDeletedAsync(categoryId);
             if (!isSuccess)
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromCategory"] = message;
             else
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromCategory"] = message;
 
             return RedirectToAction("GetDeletedCategories");
         }
@@ -103,9 +101,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             var (isSuccess, message) = await _categoryService.UpdateAsync(viewModel.Id, viewModel.Name);
             if (!isSuccess)
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromCategory"] = message;
             else
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromCategory"] = message;
 
             return RedirectToAction("GetCategories");
         }
@@ -117,12 +115,12 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _categoryService.SafeDeleteAsync(categoryId);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromCategory"] = message;
 
                 return RedirectToAction("GetCategories");
             }
 
-            TempData["SuccessMessage"] = message;
+            TempData["SuccessMessageFromCategory"] = message;
 
             return RedirectToAction("GetCategories");
         }

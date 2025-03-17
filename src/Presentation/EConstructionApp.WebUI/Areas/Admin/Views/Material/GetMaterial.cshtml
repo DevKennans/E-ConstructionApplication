@@ -8,19 +8,19 @@
         <i class="fas fa-plus"></i> Add Material
     </a>
 
-    @if (TempData["ErrorMessage"] != null)
+    @if (TempData["ErrorMessageFromMaterial"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
-            @TempData["ErrorMessage"]
+            @TempData["ErrorMessageFromMaterial"]
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
     }
-    @if (TempData["SuccessMessage"] != null)
+    @if (TempData["SuccessMessageFromMaterial"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
-            @TempData["SuccessMessage"]
+            @TempData["SuccessMessageFromMaterial"]
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -87,33 +87,35 @@
                 </tbody>
             </table>
         </div>
-
-        <nav aria-label="Material pagination">
-            <ul class="pagination justify-content-center mt-4">
-                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
-                    <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetMaterial", "Material", new { page = Model.CurrentPage - 1, size = 5 })" aria-label="Previous">
-                        « Previous
-                    </a>
-                </li>
-
-                @for (int i = 1; i <= Model.TotalPages; i++)
-                {
-                    <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
-                        <a class="page-link rounded-pill shadow-sm @(Model.CurrentPage == i ? "bg-primary text-white" : "")"
-                           href="@Url.Action("GetMaterial", "Material", new { page = i, size = 5 })">
-                            @i
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Material pagination">
+                <ul class="pagination justify-content-center mt-4">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetMaterial", "Material", new { page = Model.CurrentPage - 1, size = 5 })" aria-label="Previous">
+                            « Previous
                         </a>
                     </li>
-                }
 
-                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
-                    <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetMaterial", "Material", new { page = Model.CurrentPage + 1, size = 5 })" aria-label="Next">
-                        Next »
-                    </a>
-                </li>
-            </ul>
-        </nav>
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                            <a class="page-link rounded-pill shadow-sm @(Model.CurrentPage == i ? "bg-primary text-white" : "")"
+                               href="@Url.Action("GetMaterial", "Material", new { page = i, size = 5 })">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link rounded-pill shadow-sm" href="@Url.Action("GetMaterial", "Material", new { page = Model.CurrentPage + 1, size = 5 })" aria-label="Next">
+                            Next »
+                        </a>
+                    </li>
+                </ul>
+            </nav>
     }
+   }
     else
     {
         <p class="text-center mt-3">No materials found.</p>
@@ -172,22 +174,14 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const successMessage = document.querySelector('.alert-success');
-        const errorMessage = document.querySelector('.alert-danger');
-        if (successMessage) {
-            setTimeout(() => {
-                successMessage.classList.add('fade');
-                successMessage.classList.remove('show');
-                successMessage.style.display = 'none';
-            }, 3000);
-        }
-        if (errorMessage) {
-            setTimeout(() => {
-                errorMessage.classList.add('fade');
-                errorMessage.classList.remove('show');
-                errorMessage.style.display = 'none';
-            }, 3000);
-        }
+        setTimeout(() => {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.classList.remove("show");
+                alert.classList.add("fade");
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 3000);
         const editButtons = document.querySelectorAll('.edit-btn');
         const materialIdField = document.getElementById('materialId');
         const materialNameField = document.getElementById('materialName');

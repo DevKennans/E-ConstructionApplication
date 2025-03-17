@@ -13,7 +13,7 @@ using TaskStatus = EConstructionApp.Domain.Enums.Tasks.TaskStatus;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Area("Admin")]
     public class TaskController : Controller
     {
@@ -65,12 +65,12 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                         }).ToList();
             if (isSuccess)
             {
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromTask"] = message;
                 model.Task = new TaskInsertDto();
                 return View(model);
             }
 
-            TempData["ErrorMessage"] = message;
+            TempData["ErrorMessageFromTask"] = message;
             return View(model);
         }
 
@@ -106,7 +106,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             };
 
             if (!result.IsSuccess)
-                TempData["ErrorMessage"] = result.Message;
+                TempData["ErrorMessageFromTask"] = result.Message;
 
             return View(model);
         }
@@ -120,11 +120,11 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _taskService.UpdateTasksDetailsAsync(viewModel);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromTask"] = message;
             }
             else
             {
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromTask"] = message;
             }
             return RedirectToAction("GetTasks");
         }
@@ -140,11 +140,11 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _taskService.UpdateTasksEmployeesAsync(taskId, employeeIdList);
             if (isSuccess)
             {
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromTask"] = message;
             }
             else
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromTask"] = message;
             }
 
             return RedirectToAction("GetTasks");
@@ -160,12 +160,12 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             }
             catch
             {
-                TempData["ErrorMessage"] = "Invalid material data!";
+                TempData["ErrorMessageFromTask"] = "Invalid material data!";
                 return RedirectToAction("GetTasks");
             }
             var (isSuccess, message) = await _taskService.UpdateTasksMaterialsAsync(taskId, updatedMaterials);
 
-            TempData[isSuccess ? "SuccessMessage" : "ErrorMessage"] = message;
+            TempData[isSuccess ? "SuccessMessageFromTask" : "ErrorMessageFromTask"] = message;
             return RedirectToAction("GetTasks");
         }
     }

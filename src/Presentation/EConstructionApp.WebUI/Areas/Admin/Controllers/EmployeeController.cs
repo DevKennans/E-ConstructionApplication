@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Area("Admin")]
     public class EmployeeController : Controller
     {
@@ -33,12 +33,12 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _employeeService.InsertAsync(dto);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromEmployee"] = message;
 
                 return View();
             }
 
-            TempData["SuccessMessage"] = message;
+            TempData["SuccessMessageFromEmployee"] = message;
 
             return View();
         }
@@ -48,7 +48,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message, employees, totalEmployees) = await _employeeService.GetOnlyActiveEmployeesPagedListAsync(page, size);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromEmployee"] = message;
 
                 return View(new EmployeeListViewModel
                 {
@@ -98,9 +98,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             var (isSuccess, message) = await _employeeService.RestoreDeletedAsync(employeeId);
             if (!isSuccess)
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromEmployee"] = message;
             else
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromEmployee"] = message;
 
             return RedirectToAction("GetDeletedEmployees");
         }
@@ -112,12 +112,12 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _employeeService.SafeDeleteAsync(employeeId);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromEmployee"] = message;
 
                 return RedirectToAction("GetEmployees");
             }
 
-            TempData["SuccessMessage"] = message;
+            TempData["SuccessMessageFromEmployee"] = message;
 
             return RedirectToAction("GetEmployees");
         }
@@ -128,9 +128,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _employeeService.UpdateAsync(viewModel);
 
             if (!isSuccess)
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromEmployee"] = message;
             else
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromEmployee"] = message;
 
             return RedirectToAction("GetEmployees");
         }

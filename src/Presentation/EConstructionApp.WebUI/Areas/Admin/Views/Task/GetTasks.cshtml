@@ -9,19 +9,19 @@
     <i class="fas fa-plus"></i> Create Task
 </a>
 
-@if (TempData["ErrorMessage"] != null)
+@if (TempData["ErrorMessageFromTask"] != null)
 {
     <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
-        @TempData["ErrorMessage"]
+        @TempData["ErrorMessageFromTask"]
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
 }
-@if (TempData["SuccessMessage"] != null)
+@if (TempData["SuccessMessageFromTask"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
-        @TempData["SuccessMessage"]
+        @TempData["SuccessMessageFromTask"]
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -289,16 +289,14 @@ else
         const minDate = `${tomorrow.getFullYear()}-${('0' + (tomorrow.getMonth() + 1)).slice(-2)}-${('0' + tomorrow.getDate()).slice(-2)}`;
         document.getElementById('taskDeadline').setAttribute('min', minDate);
 
-        [".alert-success", ".alert-danger"].forEach(selector => {
-            const message = document.querySelector(selector);
-            if (message) {
-                setTimeout(() => {
-                    message.classList.add('fade');
-                    message.classList.remove('show');
-                    message.style.display = 'none';
-                }, 3000);
-            }
-        });
+        setTimeout(() => {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.classList.remove("show");
+                alert.classList.add("fade");
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 3000);
 
         function getMaterials() {
             return @Html.Raw(Json.Serialize(Model.Materials));
