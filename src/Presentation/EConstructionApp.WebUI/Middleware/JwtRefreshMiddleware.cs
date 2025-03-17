@@ -29,7 +29,7 @@ namespace EConstructionApp.WebUI.Middleware
 
                 if (context.Request.Path.StartsWithSegments("/Admin/Auth/Login") && !string.IsNullOrEmpty(authToken) && IsValidToken(authToken, context))
                 {
-                    context.Response.Redirect("/Admin/Dashboard"); 
+                    context.Response.Redirect("/Admin/Dashboard");
                     return;
                 }
 
@@ -42,6 +42,7 @@ namespace EConstructionApp.WebUI.Middleware
 
                 if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(tokenExpirationString))
                 {
+                    ClearAuthCookies(context.Response);
                     RedirectToLogin(context);
                     return;
                 }
@@ -61,7 +62,7 @@ namespace EConstructionApp.WebUI.Middleware
                     SetAuthCookies(context.Response, newToken);
                     authToken = newToken.AccessToken;
                 }
-
+                context.Request.Headers["Authorization"] = $"Bearer {authToken}";
                 if (!IsValidToken(authToken, context))
                 {
                     ClearAuthCookies(context.Response);
@@ -92,8 +93,8 @@ namespace EConstructionApp.WebUI.Middleware
                     IssuerSigningKey = new SymmetricSecurityKey(securityKey),
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidateLifetime = true, 
-                    ClockSkew = TimeSpan.Zero, 
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero,
                     ValidIssuer = configuration["Token:Issuer"],
                     ValidAudience = configuration["Token:Audience"]
                 };

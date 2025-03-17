@@ -9,18 +9,17 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <div class="container mt-4">
-    <h2 class="mb-4 text-center">Create New Task</h2>
-    @if (TempData["ErrorMessage"] != null)
+    @if (TempData["ErrorMessageFromTask"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show text-center" role="alert" id="errorMessage">
-            @TempData["ErrorMessage"]
+        <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+            @TempData["ErrorMessageFromTask"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    @if (TempData["SuccessMessage"] != null)
+    @if (TempData["SuccessMessageFromTask"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show text-center" role="alert" id="successMessage">
-            @TempData["SuccessMessage"]
+        <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
+            @TempData["SuccessMessageFromTask"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -126,24 +125,14 @@
         var minDate = year + '-' + month + '-' + day;
 
         document.getElementById('Deadline').setAttribute('min', minDate);
-        const successMessage = document.querySelector('#successMessage');
-        const errorMessage = document.querySelector('#errorMessage');
-
-        if (successMessage) {
-            setTimeout(() => {
-                successMessage.classList.remove('show');
-                successMessage.classList.add('fade');
-                setTimeout(() => successMessage.remove(), 500);
-            }, 3000);
-        }
-
-        if (errorMessage) {
-            setTimeout(() => {
-                errorMessage.classList.remove('show');
-                errorMessage.classList.add('fade');
-                setTimeout(() => errorMessage.remove(), 500);
-            }, 3000);
-        }
+        setTimeout(() => {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.classList.remove("show");
+                alert.classList.add("fade");
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 3000);
     });
 
     let selectedMaterialIds = [];
@@ -231,6 +220,13 @@
             });
         });
     }
+    $("#taskForm").on("submit", function (e) {
+        $(".materialSelect").each(function () {
+            if ($(this).val() === "") {
+                $(this).closest('.material-item').remove();
+            }
+        });
+    });
 
 </script>
 <style>

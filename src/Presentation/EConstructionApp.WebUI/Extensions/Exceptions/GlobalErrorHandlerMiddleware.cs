@@ -29,7 +29,12 @@ namespace EConstructionApp.WebUI.Extensions.Exceptions
             {
                 context.Response.Redirect("/Error/ServerError");
             }
+            else if (context.Response.StatusCode == 401)
+            {
+                context.Response.Redirect("/Error/UnauthorizedError");
+            }
         }
+
 
     }
 }

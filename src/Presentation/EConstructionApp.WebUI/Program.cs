@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using EConstructionApp.WebUI.Middleware;
+
 internal class Program
 {
     private static void Main(string[] args)
@@ -58,8 +59,8 @@ internal class Program
 
         WebApplication app = builder.Build();
 
-        app.UseMiddleware<JwtRefreshMiddleware>();
-        app.UseMiddleware<JwtCookieToHeaderMiddleware>();
+        //app.UseMiddleware<JwtRefreshMiddleware>();
+        //app.UseMiddleware<JwtCookieToHeaderMiddleware>();
         app.UseMiddleware<GlobalErrorHandlerMiddleware>();
 
 

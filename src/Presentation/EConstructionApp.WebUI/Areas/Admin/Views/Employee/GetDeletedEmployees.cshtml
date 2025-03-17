@@ -5,21 +5,20 @@
 }
 
 <div class="container mt-5">
-    <h1 class="text-center">Deleted Employees</h1>
 
-    @if (TempData["ErrorMessage"] != null)
+    @if (TempData["ErrorMessageFromEmployee"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show text-center" role="alert" id="errorMessage">
-            @TempData["ErrorMessage"]
+        <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+            @TempData["ErrorMessageFromEmployee"]
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
     }
-    @if (TempData["SuccessMessage"] != null)
+    @if (TempData["SuccessMessageFromEmployee"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show text-center" role="alert" id="successMessage">
-            @TempData["SuccessMessage"]
+        <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
+            @TempData["SuccessMessageFromEmployee"]
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -120,16 +119,12 @@
             form.submit();
         }
     }
-    setTimeout(function () {
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-
-        if (errorMessage) {
-            errorMessage.style.display = 'none';
-        }
-
-        if (successMessage) {
-            successMessage.style.display = 'none';
-        }
+    setTimeout(() => {
+        let alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            alert.classList.remove("show");
+            alert.classList.add("fade");
+            setTimeout(() => alert.remove(), 500);
+        });
     }, 3000);
 </script>

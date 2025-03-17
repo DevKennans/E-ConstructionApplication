@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Area("Admin")]
     public class MaterialController : Controller
     {
@@ -27,7 +27,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             var (isSuccess, message, categories) = await _categoryService.GetOnlyActiveCategoriesListAsync();
             if (!isSuccess)
-                TempData["ErrorMessage"] = "Failed to load categories.";
+                TempData["ErrorMessageFromMaterial"] = "Failed to load categories.";
 
             var model = new CreateMaterialViewModel
             {
@@ -50,7 +50,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         public async Task<IActionResult> AddMaterial(CreateMaterialViewModel model)
         {
             if (!ModelState.IsValid)
-                TempData["ErrorMessage"] = "Please fill in all required fields correctly.";
+                TempData["ErrorMessageFromMaterial"] = "Please fill in all required fields correctly.";
             else
             {
                 var (isSuccessCategories, messageCategories, categories) = await _categoryService.GetOnlyActiveCategoriesListAsync();
@@ -59,12 +59,12 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                 model.Categories = categories!;
                 if (isSuccess)
                 {
-                    TempData["SuccessMessage"] = message;
+                    TempData["SuccessMessageFromMaterial"] = message;
 
                     return View(model);
                 }
 
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromMaterial"] = message;
             }
 
             return View(model);
@@ -77,7 +77,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message, materials, totalMaterials) = await _materialService.GetOnlyActiveMaterialsPagedListAsync(page, size);
             if (!isSuccess)
             {
-                ViewBag.Error = message;
+                TempData["ErrorMessageFromMaterial"] = message;
 
                 return View(new MaterialListViewModel
                 {
@@ -112,8 +112,6 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message, materials, totalMaterials) = await _materialService.GetDeletedMaterialsPagedListAsync(page, size);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
-
                 return View(new MaterialListViewModel
                 {
                     Materials = new List<MaterialDto>(),
@@ -138,9 +136,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             var (isSuccess, message) = await _materialService.RestoreDeletedAsync(materialId);
             if (!isSuccess)
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromMaterial"] = message;
             else
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromMaterial"] = message;
 
             return RedirectToAction("GetDeletedMaterials");
         }
@@ -152,11 +150,11 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var (isSuccess, message) = await _materialService.SafeDeleteAsync(materialId);
             if (!isSuccess)
             {
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromMaterial"] = message;
                 return RedirectToAction("GetMaterial");
             }
 
-            TempData["SuccessMessage"] = message;
+            TempData["SuccessMessageFromMaterial"] = message;
 
             return RedirectToAction("GetMaterial");
         }
@@ -166,9 +164,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         {
             var (isSuccess, message) = await _materialService.UpdateAsync(viewModel);
             if (!isSuccess)
-                TempData["ErrorMessage"] = message;
+                TempData["ErrorMessageFromMaterial"] = message;
             else
-                TempData["SuccessMessage"] = message;
+                TempData["SuccessMessageFromMaterial"] = message;
 
             return RedirectToAction("GetMaterial");
         }

@@ -2,19 +2,19 @@
     ViewData["Title"] = "Settings";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@if (TempData["ErrorMessage"] != null)
+@if (TempData["ErrorMessageFromAuth"] != null)
 {
     <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
-        @TempData["ErrorMessage"]
+        @TempData["ErrorMessageFromAuth"]
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
 }
-@if (TempData["SuccessMessage"] != null)
+@if (TempData["SuccessMessageFromAuth"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
-        @TempData["SuccessMessage"]
+        @TempData["SuccessMessageFromAuth"]
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -22,16 +22,6 @@
 }
 
 <div class="content-wrapper">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Settings</h1>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <section class="content">
         <div class="container-fluid">
             <div class="row">
@@ -90,24 +80,14 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const successMessage = document.querySelector('.alert-success');
-        const errorMessage = document.querySelector('.alert-danger');
-
-        if (successMessage) {
-            setTimeout(() => {
-                successMessage.classList.add('fade');
-                successMessage.classList.remove('show');
-                successMessage.style.display = 'none';
-            }, 3000);
-        }
-
-        if (errorMessage) {
-            setTimeout(() => {
-                errorMessage.classList.add('fade');
-                errorMessage.classList.remove('show');
-                errorMessage.style.display = 'none';
-            }, 5000);
-        }
+        setTimeout(() => {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.classList.remove("show");
+                alert.classList.add("fade");
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 3000);
     });
 
     function togglePassword(fieldId) {

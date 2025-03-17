@@ -7,7 +7,7 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
     
     [Area("Admin")]
-    [Authorize]
+    //[Authorize]
     public class DashboardController : Controller
     {
         private readonly ICategoryService _categoryService;

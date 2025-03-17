@@ -2,10 +2,15 @@
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class ErrorController : Controller
     {
-        [Area("Admin")]
         public IActionResult ServerError()
+        {
+            return View();
+        }
+
+        public IActionResult UnauthorizedError()
         {
             return View();
         }

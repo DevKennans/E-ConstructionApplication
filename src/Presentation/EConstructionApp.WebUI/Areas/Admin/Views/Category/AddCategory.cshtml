@@ -3,22 +3,20 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="add-category-container">
-    <h2 class="form-title">Add a New Category</h2>
-
-    @if (TempData["ErrorMessage"] != null)
+<div class="add-category-container ">
+    @if (TempData["ErrorMessageFromCategory"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
-            @TempData["ErrorMessage"]
+            @TempData["ErrorMessageFromAddCategory"]
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
     }
-    @if (TempData["SuccessMessage"] != null)
+    @if (TempData["SuccessMessageFromCategory"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
-            @TempData["SuccessMessage"]
+            @TempData["SuccessMessageFromAddCategory"]
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>

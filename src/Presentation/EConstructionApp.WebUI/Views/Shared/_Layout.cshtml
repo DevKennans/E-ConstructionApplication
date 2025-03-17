@@ -22,9 +22,16 @@
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#">
-                        <i class="fas fa-user-circle"></i>
-                        <span class="ml-1">Boef</span>
+                        <span class="avatar-circle">
+                            @{
+                                var username = Context.Request.Cookies["Username"];
+                                var firstLetter = username?.Substring(0, 1).ToUpper();  
+                            }
+                            @firstLetter 
+                        </span>
+                        <span>@username</span> 
                     </a>
+
                     <div class="dropdown-menu dropdown-menu-right">
                         <a asp-area="Admin" asp-controller="Auth" asp-action="Settings" class="dropdown-item">
                             <i class="fas fa-user mr-2"></i> Profile
@@ -42,8 +49,8 @@
         </nav>
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <a href="/Admin/Dashboard" class="brand-link">
-                <img src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-                <span class="brand-text font-weight-light">Admin Panel</span>
+                <img src="/assets/logo.svg" alt="Usta city Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+                <span class="brand-text font-weight-light">Usta City</span>
             </a>
             <div class="sidebar">
                 <nav class="mt-2">
