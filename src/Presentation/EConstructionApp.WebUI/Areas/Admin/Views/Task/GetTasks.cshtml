@@ -49,20 +49,21 @@ else
                             <p class="text-muted">@task.Description</p>
 
                             <div class="task-info">
-                                <p><strong>📌 Assigned By:</strong> @task.AssignedBy</p>
-                                <p><strong>📱 Phone:</strong> +@task.AssignedByPhone</p>
-                                <p><strong>🏠 Address:</strong> @task.AssignedByAddress</p>
+                                <p><img src="~/assets/task.png" alt="Task" width="20"> <strong>Assigned By:</strong> @task.AssignedBy</p>
+                                <p><img src="~/assets/phone.svg" alt="Phone" width="20"> <strong>Phone:</strong> +@task.AssignedByPhone</p>
+                                <p><img src="~/assets/address.svg" alt="Address" width="20"> <strong>Address:</strong> @task.AssignedByAddress</p>
                                 <p>
-                                    <strong>⏳ Deadline:</strong> @task.Deadline.ToString("yyyy-MM-dd")
+                                    <img src="~/assets/deadline.svg" alt="Deadline" width="20"> <strong>Deadline:</strong> @task.Deadline.ToString("yyyy-MM-dd")
                                     <span class="text-muted">
                                         (@((task.Deadline.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days) days left)
                                     </span>
                                 </p>
-                                <p><strong>🔥 Priority:</strong> <span class="badge bg-danger">@task.Priority</span></p>
-                                <p><strong>⚙️ Status:</strong> <span class="badge bg-success">@task.Status</span></p>
-                                <p><strong>💰 Total Cost:</strong> <span class="text-success">$@task.TotalCost.ToString("N2")</span></p>
+                                <p><img src="~/assets/priority.svg" alt="Priority" width="20"> <strong>Priority:</strong> <span class="badge bg-danger">@task.Priority</span></p>
+                                <p><img src="~/assets/status.svg" alt="Status" width="20"> <strong>Status:</strong> <span class="badge bg-success">@task.Status</span></p>
+                                <p><img src="~/assets/total cost.svg" alt="Total Cost" width="20"> <strong>Total Cost:</strong> <span class="text-success">$@task.TotalCost.ToString("N2")</span></p>
                             </div>
-                            <h6 class="mt-3"><strong>👷 Employees:</strong></h6>
+
+                            <h6 class="mt-3"><img src="~/assets/employees.svg" alt="Employees" width="20"> <strong>Employees:</strong></h6>
                             @if (task.Employees != null && task.Employees.Any())
                             {
                                 <ul class="list-group list-group-flush" style="max-height: 150px; overflow-y: auto;">
@@ -77,7 +78,7 @@ else
                                 <p class="text-muted">No employees assigned.</p>
                             }
 
-                            <h6 class="mt-3"><strong>🔨 Materials Used:</strong></h6>
+                            <h6 class="mt-3"><img src="~/assets/material.svg" alt="Materials" width="20"> <strong>Materials Used:</strong></h6>
                             @if (task.MaterialAssignments != null && task.MaterialAssignments.Any())
                             {
                                 <ul class="list-group list-group-flush" style="max-height: 150px; overflow-y: auto;">
@@ -91,6 +92,7 @@ else
                             {
                                 <p class="text-muted">No materials assigned.</p>
                             }
+
 
                             <div class="d-flex flex-column mt-auto">
                                 <button class="btn btn-primary mb-2 edit-datas-btn"
@@ -574,4 +576,13 @@ else
             background: linear-gradient(135deg, #218838, #1e7e34);
             transform: scale(1.03);
         }
+
+    .materialSelect {
+        width: 100%; 
+        max-width: 250px; 
+        overflow: hidden;
+        text-overflow: ellipsis; 
+        white-space: nowrap; 
+    }
+
 </style>
