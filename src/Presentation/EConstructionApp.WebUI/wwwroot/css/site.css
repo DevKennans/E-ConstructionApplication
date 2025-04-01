@@ -34,6 +34,44 @@ body {
     font-size: 16px; 
 }
 
+.main-sidebar {
+    background-color: #112445 !important;
+}
+
+.nav-sidebar .nav-link {
+    color: #d1d5db;
+    transition: all 0.3s ease-in-out;
+}
+
+    .nav-sidebar .nav-link:hover {
+        background-color: #1a345a; 
+        color: #ffffff; 
+    }
+
+.nav-sidebar .nav-item .nav-treeview .nav-link {
+    color: #a0aec0; 
+}
+
+    .nav-sidebar .nav-item .nav-treeview .nav-link:hover {
+        color: #ffffff;
+        background-color: #1a345a;
+    }
+
+.nav-sidebar .nav-link.active {
+    background-color: #1a345a;
+    color: #ffffff;
+}
+
+.nav-sidebar .nav-link[style*="color: #f44336;"] {
+    color: #f44336 !important; 
+}
+
+    .nav-sidebar .nav-link[style*="color: #f44336;"]:hover {
+        background-color: #4c1d1d !important; 
+        color: #ffffff !important;
+    }
+
+
 
 
 
