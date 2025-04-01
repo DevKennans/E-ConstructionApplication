@@ -104,5 +104,12 @@ namespace EConstructionApp.WebAPI.Controllers
 
             return Ok(new { IsSuccess, Message, TaskCounts });
         }
+
+        [HttpPut("FinishCurrentTask/{taskId}")]
+        public async Task<IActionResult> FinishCurrentTask(Guid taskId)
+        {
+            await _taskService.FinishCurrentTaskById(taskId);
+            return Ok();
+        }
     }
 }
