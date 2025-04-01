@@ -22,5 +22,7 @@ namespace EConstructionApp.Application.Interfaces.Services.Entities
         Task<(bool IsSuccess, string Message, IList<TaskDto>? Tasks, int TotalTasks)> GetOnlyActiveTasksPagedListAsync(int pages = 1, int sizes = 5);
 
         Task<(bool IsSuccess, string Message, IList<TaskStatusCountsDto>? TaskCount)> GetListOfTasksCountsByStatusAsync();
+
+        Task FinishCurrentTaskById(Guid taskId);
     }
 }

@@ -545,5 +545,23 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 }).ToList();
             return (true, "Tasks' counts have been successfully grouped by status.", statusCounts);
         }
+
+        public async System.Threading.Tasks.Task FinishCurrentTaskById(Guid taskId)
+        {
+            Task? task = await _unitOfWork.GetReadRepository<Task>().GetAsync(
+                enableTracking: true,
+                includeDeleted: false,
+                predicate: t => t.Id == taskId,
+                include: q => q.Include(t => t.Employees)
+                               .Include(t => t.MaterialTasks)
+                               .ThenInclude(mt => mt.Material)
+                               .ThenInclude(m => m.Category));
+
+            task.Status = Domain.Enums.Tasks.TaskStatus.Completed;
+            await _unitOfWork.SaveAsync();
+
+            await UpdateTasksEmployeesAsync(taskId, new List<Guid>());
+            await _unitOfWork.SaveAsync();
+        }
     }
 }
