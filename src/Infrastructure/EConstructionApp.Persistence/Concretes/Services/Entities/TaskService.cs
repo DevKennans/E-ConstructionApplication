@@ -215,6 +215,9 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             if (!employeesToRemove.Any() && !employeesToAdd.Any())
                 return (true, "No changes detected. Task employees remain the same.");
 
+            if (employeesToAdd.Any() && (Task.Status == Domain.Enums.Tasks.TaskStatus.Cancelled || Task.Status == Domain.Enums.Tasks.TaskStatus.Completed))
+                return (false, "Cannot add employees to a task that is completed or cancelled.");
+
             IList<Employee> employeesToBeRemoved = new List<Employee>();
             IList<Employee> employeesToBeAdded = new List<Employee>();
 
