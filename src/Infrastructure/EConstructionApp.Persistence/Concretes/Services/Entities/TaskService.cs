@@ -167,6 +167,13 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             await _unitOfWork.GetWriteRepository<Task>().UpdateAsync(task!);
             await _unitOfWork.SaveAsync();
 
+            if (taskDetailsUpdateDto.Status == Domain.Enums.Tasks.TaskStatus.Cancelled ||
+                taskDetailsUpdateDto.Status == Domain.Enums.Tasks.TaskStatus.Completed)
+            {
+                await UpdateTasksEmployeesAsync(taskDetailsUpdateDto.Id, new List<Guid>());
+                await _unitOfWork.SaveAsync();
+            }
+
             return (true, $"Task '{task!.Title}' has been successfully updated! {string.Join(" ", updates)}");
         }
 
