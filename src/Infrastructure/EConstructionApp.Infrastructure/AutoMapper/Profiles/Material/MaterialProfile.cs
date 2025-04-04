@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using EConstructionApp.Application.DTOs.Materials;
+using EConstructionApp.Application.DTOs.Materials.Relations;
+using EConstructionApp.Domain.Entities.Relations;
 
 namespace EConstructionApp.Infrastructure.AutoMapper.Profiles.Material
 {
@@ -18,6 +20,8 @@ namespace EConstructionApp.Infrastructure.AutoMapper.Profiles.Material
 
             CreateMap<Domain.Entities.Material, MaterialDto>()
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
+
+            CreateMap<MaterialTransactionLog, MaterialTransactionLogDto>();
         }
     }
 }

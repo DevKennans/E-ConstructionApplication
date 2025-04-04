@@ -1,4 +1,5 @@
 ﻿using EConstructionApp.Application.DTOs.Materials;
+using EConstructionApp.Application.DTOs.Materials.Relations;
 
 namespace EConstructionApp.Application.Interfaces.Services.Entities
 {
@@ -12,12 +13,17 @@ namespace EConstructionApp.Application.Interfaces.Services.Entities
 
         Task<(bool IsSuccess, string Message)> RestoreDeletedAsync(Guid materialId);
 
-        Task<(bool IsSuccess, string Message, int ActiveMaterials, int TotalMaterials)> GetBothActiveAndTotalCountsAsync();
+        Task<(bool IsSuccess, string Message, int ActiveMaterials, int TotalMaterials)>
+            GetBothActiveAndTotalCountsAsync();
 
         Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials)> GetAvailableMaterialsListAsync();
 
-        Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalMaterials)> GetOnlyActiveMaterialsPagedListAsync(int pages = 1, int sizes = 5);
+        Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalMaterials)>
+            GetOnlyActiveMaterialsPagedListAsync(int pages = 1, int sizes = 5);
 
-        Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalDeletedMaterials)> GetDeletedMaterialsPagedListAsync(int pages = 1, int sizes = 5);
+        Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalDeletedMaterials)>
+            GetDeletedMaterialsPagedListAsync(int pages = 1, int sizes = 5);
+
+        Task<(bool IsSuccess, string Message, IList<MaterialTransactionLogDto>? Logs)> GetTransactionLogsAsync();
     }
 }
