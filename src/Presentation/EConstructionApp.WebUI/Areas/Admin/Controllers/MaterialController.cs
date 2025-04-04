@@ -177,5 +177,15 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
             return RedirectToAction("GetMaterial");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMaterialTransaction()
+        {
+            var result = await _materialService.GetTransactionLogsAsync();
+            if (!result.IsSuccess)
+                TempData["ErrorMessageFromTransaction"] = result.Message;
+
+            return View(result.Logs);
+        }
     }
 }
