@@ -13,13 +13,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="18d44994-ea5a-4af3-b5f1-4065a6b10755" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/Core/EConstructionApp.Application/Interfaces/Services/Entities/IMaterialService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Core/EConstructionApp.Application/Interfaces/Services/Entities/IMaterialService.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Infrastructure/AutoMapper/Profiles/Material/MaterialProfile.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Infrastructure/AutoMapper/Profiles/Material/MaterialProfile.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Persistence/Concretes/Services/Entities/MaterialService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Persistence/Concretes/Services/Entities/MaterialService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.EConstructionApp/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.EConstructionApp/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Core/EConstructionApp.Application/DTOs/Materials/Relations/MaterialTransactionLogDto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Core/EConstructionApp.Application/DTOs/Materials/Relations/MaterialTransactionLogDto.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Persistence/Concretes/Services/Entities/TaskService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Persistence/Concretes/Services/Entities/TaskService.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Persistence/Contexts/EConstructionDbContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Persistence/Contexts/EConstructionDbContext.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Persistence/Migrations/EConstructionDbContextModelSnapshot.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Persistence/Migrations/EConstructionDbContextModelSnapshot.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Presentation/EConstructionApp.WebAPI/Controllers/MaterialsController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Presentation/EConstructionApp.WebAPI/Controllers/MaterialsController.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,6 +60,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     ".NET Launch Settings Profile.EConstructionApp.WebAPI: IIS Express.executor": "Run",
+    "Publish to IIS.EConstructionApp.WebAPI: kennans26-001-site1 - Web Deploy.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "webapi",
@@ -82,7 +79,7 @@
       <method v="2" />
     </configuration>
     <configuration name="EConstructionApp.WebAPI: kennans26-001-site1 - Web Deploy" type="DotNetMsBuildPublish" factoryName="Publish to IIS">
-      <riderPublish configuration="Release" platform="Any CPU" publish_profile="kennans26-001-site1 - Web Deploy.pubxml" pubxml_path="$PROJECT_DIR$/src/Presentation/EConstructionApp.WebAPI/Properties/PublishProfiles/kennans26-001-site1 - Web Deploy.pubxml" user_name="kennans26-001" uuid_high="-7610608867399611142" uuid_low="-6394680818876857604" />
+      <riderPublish configuration="Release" platform="Any CPU" publish_profile="kennans26-001-site1 - Web Deploy.pubxml" pubxml_path="$PROJECT_DIR$/src/Presentation/EConstructionApp.WebAPI/Properties/PublishProfiles/kennans26-001-site1 - Web Deploy.pubxml" save_password="true" user_name="kennans26-001" uuid_high="-7610608867399611142" uuid_low="-6394680818876857604" />
       <method v="2" />
     </configuration>
     <configuration name="EConstructionApp.WebAPI: IIS Express" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
@@ -158,7 +155,7 @@
       <workItem from="1743695420550" duration="3382000" />
       <workItem from="1743699885672" duration="1992000" />
       <workItem from="1743743131947" duration="495000" />
-      <workItem from="1743743884085" duration="3040000" />
+      <workItem from="1743743884085" duration="7302000" />
     </task>
     <servers />
   </component>
@@ -169,25 +166,6 @@
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Infrastructure/EConstructionApp.Persistence/Concretes/Services/Entities/MaterialService.cs</url>
-          <line>266</line>
-          <properties documentPath="C:\Users\kenna\source\repos\E-ConstructionApplication\src\Infrastructure\EConstructionApp.Persistence\Concretes\Services\Entities\MaterialService.cs" containingFunctionPresentation="Method 'GetTransactionLogsAsync'">
-            <startOffsets>
-              <option value="13637" />
-            </startOffsets>
-            <endOffsets>
-              <option value="13638" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

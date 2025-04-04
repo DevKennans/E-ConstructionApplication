@@ -16,4 +16,6 @@ public class MaterialTransactionLogDto
 
     public decimal PriceAtTransaction { get; set; }
     public MaterialTransactionType TransactionType { get; set; }
+
+    public DateTime InsertedDate { get; set; }
 }

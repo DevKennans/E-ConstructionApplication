@@ -387,6 +387,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             List<MaterialTask> currentMaterials)
         {
             int removedCount = 0;
+            List<MaterialTransactionLog> materialTransactionLogs = new List<MaterialTransactionLog>();
 
             foreach (Guid materialId in materialsToRemove)
             {
@@ -395,14 +396,36 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
                 if (materialTask is not null && material is not null)
                 {
+                    // Restore stock before removing the material
                     RestoreStock(material, materialTask.Quantity);
+
+                    // Remove the material task from the task's material tasks
                     task.MaterialTasks.Remove(materialTask);
+
+                    // Add transaction log after the task removal (log after the operation)
+                    materialTransactionLogs.Add(new MaterialTransactionLog
+                    {
+                        TaskId = task.Id,
+                        MaterialId = materialId,
+                        Quantity = materialTask.Quantity,
+                        Measure = material.Measure,
+                        PriceAtTransaction = materialTask.Quantity * material.Price,
+                        TransactionType = MaterialTransactionType.Removed
+                    });
 
                     removedCount++;
                 }
             }
 
+            // Save all changes after the operation
             await _unitOfWork.SaveAsync();
+
+            // If there are any transaction logs, save them as well
+            if (materialTransactionLogs.Any())
+            {
+                await _unitOfWork.GetWriteRepository<MaterialTransactionLog>().AddRangeAsync(materialTransactionLogs);
+                await _unitOfWork.SaveAsync();
+            }
 
             return removedCount;
         }
@@ -437,6 +460,33 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             await _unitOfWork.SaveAsync();
 
+            List<MaterialTransactionLog> materialTransactionLogs = new List<MaterialTransactionLog>();
+            foreach (MaterialAssignmentInsertDto material in materialsToAdd)
+            {
+                if (material is not null)
+                {
+                    Material dbMaterial = await _unitOfWork.GetReadRepository<Material>()
+                        .GetAsync(predicate: m => m.Id == material.MaterialId);
+                    decimal totalCost = material.Quantity * dbMaterial.Price;
+
+                    materialTransactionLogs.Add(new MaterialTransactionLog()
+                    {
+                        TaskId = task.Id,
+                        MaterialId = material.MaterialId,
+                        Quantity = material.Quantity,
+                        Measure = dbMaterial.Measure,
+                        PriceAtTransaction = totalCost,
+                        TransactionType = MaterialTransactionType.Added
+                    });
+                }
+            }
+
+            if (materialTransactionLogs.Any())
+            {
+                await _unitOfWork.GetWriteRepository<MaterialTransactionLog>().AddRangeAsync(materialTransactionLogs);
+                await _unitOfWork.SaveAsync();
+            }
+
             return (true, addedCount, string.Empty);
         }
 
@@ -445,6 +495,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             List<MaterialTask> currentMaterials)
         {
             int updatedCount = 0;
+            List<MaterialTransactionLog> materialTransactionLogs = new List<MaterialTransactionLog>();
 
             foreach (MaterialAssignmentInsertDto materialDto in materialsToUpdate)
             {
@@ -455,18 +506,61 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 if (existingTaskMaterial is not null && material is not null)
                 {
                     int quantityDifference = (int)Math.Round(materialDto.Quantity - existingTaskMaterial.Quantity);
-                    if (quantityDifference > 0 && material.StockQuantity < quantityDifference)
-                        return (false, 0,
-                            $"Insufficient stock for material '{material.Name}'. Available: {material.StockQuantity}, Required additional: {quantityDifference}");
 
-                    AdjustStock(material, quantityDifference);
+                    if (quantityDifference > 0)
+                    {
+                        // If quantity increased, check stock availability and deduct it
+                        if (material.StockQuantity < quantityDifference)
+                        {
+                            return (false, 0,
+                                $"Insufficient stock for material '{material.Name}'. Available: {material.StockQuantity}, Required additional: {quantityDifference}");
+                        }
+
+                        // Deduct stock for the added quantity
+                        DeductStock(material, quantityDifference);
+
+                        // Log the addition transaction
+                        materialTransactionLogs.Add(new MaterialTransactionLog
+                        {
+                            TaskId = task.Id,
+                            MaterialId = materialDto.MaterialId,
+                            Quantity = quantityDifference,
+                            Measure = material.Measure,
+                            PriceAtTransaction = quantityDifference * material.Price,
+                            TransactionType = MaterialTransactionType.Added
+                        });
+                    }
+                    else if (quantityDifference < 0)
+                    {
+                        // If quantity decreased, check if there is enough stock to restore
+                        RestoreStock(material, -quantityDifference);
+
+                        // Log the removal transaction
+                        materialTransactionLogs.Add(new MaterialTransactionLog
+                        {
+                            TaskId = task.Id,
+                            MaterialId = materialDto.MaterialId,
+                            Quantity = -quantityDifference,
+                            Measure = material.Measure,
+                            PriceAtTransaction = -quantityDifference * material.Price,
+                            TransactionType = MaterialTransactionType.Removed
+                        });
+                    }
+
+                    // Update the material task quantity
                     existingTaskMaterial.Quantity = materialDto.Quantity;
-
                     updatedCount++;
                 }
             }
 
+            // Save task and transaction logs after the operation
             await _unitOfWork.SaveAsync();
+
+            if (materialTransactionLogs.Any())
+            {
+                await _unitOfWork.GetWriteRepository<MaterialTransactionLog>().AddRangeAsync(materialTransactionLogs);
+                await _unitOfWork.SaveAsync();
+            }
 
             return (true, updatedCount, string.Empty);
         }
