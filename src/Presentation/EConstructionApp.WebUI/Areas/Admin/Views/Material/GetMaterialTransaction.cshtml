@@ -1,0 +1,61 @@
+﻿@using EConstructionApp.Application.DTOs.Materials.Relations
+@using EConstructionApp.Domain.Enums.Materials
+@model List<MaterialTransactionLogDto>
+@{
+    ViewData["Title"] = "Material Transactions";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-primary card-outline">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover text-nowrap">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Material</th>
+                            <th>Category</th>
+                            <th>Unit Price</th>
+                            <th>Quantity</th>
+                            <th>Total Price</th>
+                            <th>Status</th>
+                            <th>Inserted Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            int index = 1;
+                            foreach (var item in Model)
+                            {
+                                var transactionClass = item.TransactionType == MaterialTransactionType.Added ? "text-danger" : "text-success";
+                                var transactionIcon = item.TransactionType == MaterialTransactionType.Added
+                                ? "<i class='fas fa-arrow-down'></i>"  
+                                : "<i class='fas fa-arrow-up'></i>"; 
+                                string FormatDecimal(decimal value) => value % 1 == 0 ? value.ToString("0") : value.ToString("0.00");
+                                <tr>
+                                    <td>@index</td>
+                                    <td>@item.MaterialName</td>
+                                    <td>@item.CategoryName</td>
+                                    <td>@FormatDecimal(item.PriceAtTransaction) $</td>
+                                    <td>@FormatDecimal(item.Quantity) @item.Measure</td>
+                                    <td>@FormatDecimal(item.Quantity * item.PriceAtTransaction) $</td>
+                                    <td class="@transactionClass">@Html.Raw(transactionIcon)</td>
+                                    <td>@item.InsertedDate</td>
+                                </tr>
+                                index++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center">No transaction logs found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

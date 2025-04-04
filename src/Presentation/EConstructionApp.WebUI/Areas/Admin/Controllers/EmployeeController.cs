@@ -4,6 +4,7 @@ using EConstructionApp.Application.DTOs.Materials;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Domain.Enums;
 using EConstructionApp.Domain.Enums.Employees;
+using EConstructionApp.Persistence.Concretes.Services.Entities;
 using EConstructionApp.WebUI.Areas.Admin.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -143,6 +144,5 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             ViewBag.SelectedDate = date.Value.ToString("yyyy-MM-dd"); 
             return View(attendances);
         }
-
     }
 }
