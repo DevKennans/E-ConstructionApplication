@@ -1,4 +1,5 @@
 ﻿using EConstructionApp.Application.DTOs.Materials;
+using EConstructionApp.Application.DTOs.Materials.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ namespace EConstructionApp.WebAPI.Controllers
     public class MaterialsController : ControllerBase
     {
         private readonly IMaterialService _materialService;
+
         public MaterialsController(IMaterialService materialService)
         {
             _materialService = materialService;
@@ -57,7 +59,8 @@ namespace EConstructionApp.WebAPI.Controllers
         [HttpGet("GetMaterialsCounts")]
         public async Task<IActionResult> GetMaterialsCounts()
         {
-            (bool IsSuccess, string Message, int ActiveMaterials, int TotalMaterials) = await _materialService.GetBothActiveAndTotalCountsAsync();
+            (bool IsSuccess, string Message, int ActiveMaterials, int TotalMaterials) =
+                await _materialService.GetBothActiveAndTotalCountsAsync();
             if (!IsSuccess)
                 return NotFound(new { IsSuccess, Message });
 
@@ -67,7 +70,8 @@ namespace EConstructionApp.WebAPI.Controllers
         [HttpGet("GetAvailableMaterialsList")]
         public async Task<IActionResult> GetAvailableMaterialsList()
         {
-            (bool IsSuccess, string Message, IList<MaterialDto>? Materials) = await _materialService.GetAvailableMaterialsListAsync();
+            (bool IsSuccess, string Message, IList<MaterialDto>? Materials) =
+                await _materialService.GetAvailableMaterialsListAsync();
             if (!IsSuccess)
                 return NotFound(new { IsSuccess, Message });
 
@@ -75,9 +79,11 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetOnlyActiveMaterialsPagedList")]
-        public async Task<IActionResult> GetOnlyActiveMaterialsPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
+        public async Task<IActionResult> GetOnlyActiveMaterialsPagedList([FromQuery] int pages = 1,
+            [FromQuery] int sizes = 5)
         {
-            (bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalMaterials) = await _materialService.GetOnlyActiveMaterialsPagedListAsync(pages, sizes);
+            (bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalMaterials) =
+                await _materialService.GetOnlyActiveMaterialsPagedListAsync(pages, sizes);
             if (!IsSuccess)
                 return NotFound(new { IsSuccess, Message });
 
@@ -85,13 +91,26 @@ namespace EConstructionApp.WebAPI.Controllers
         }
 
         [HttpGet("GetDeletedMaterialsPagedList")]
-        public async Task<IActionResult> GetDeletedMaterialsPagedList([FromQuery] int pages = 1, [FromQuery] int sizes = 5)
+        public async Task<IActionResult> GetDeletedMaterialsPagedList([FromQuery] int pages = 1,
+            [FromQuery] int sizes = 5)
         {
-            (bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalDeletedMaterials) = await _materialService.GetDeletedMaterialsPagedListAsync(pages, sizes);
+            (bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalDeletedMaterials) =
+                await _materialService.GetDeletedMaterialsPagedListAsync(pages, sizes);
             if (!IsSuccess)
                 return NotFound(new { IsSuccess, Message });
 
             return Ok(new { IsSuccess, Message, TotalDeletedMaterials, Materials });
+        }
+
+        [HttpGet("GetAllTransactionLogs")]
+        public async Task<IActionResult> GetAllTransactionLogs()
+        {
+            (bool IsSuccess, string Message, IList<MaterialTransactionLogDto>? Logs) =
+                await _materialService.GetTransactionLogsAsync();
+            if (!IsSuccess)
+                return NotFound(new { IsSuccess, Message });
+
+            return Ok(new { IsSuccess, Message, Logs });
         }
     }
 }

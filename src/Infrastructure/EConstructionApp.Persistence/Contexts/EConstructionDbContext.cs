@@ -2,6 +2,7 @@
 using EConstructionApp.Domain.Entities.Common;
 using EConstructionApp.Domain.Entities.Cross;
 using EConstructionApp.Domain.Entities.Identification;
+using EConstructionApp.Domain.Entities.Relations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,9 @@ namespace EConstructionApp.Persistence.Contexts
 {
     public class EConstructionDbContext : IdentityDbContext<AppUser, AppRole, string>
     {
-        public EConstructionDbContext() { }
+        public EConstructionDbContext()
+        {
+        }
 
         public EConstructionDbContext(DbContextOptions options) : base(options)
         {
@@ -20,6 +23,7 @@ namespace EConstructionApp.Persistence.Contexts
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Domain.Entities.Task> Tasks { get; set; }
         public DbSet<MaterialTask> MaterialTasks { get; set; }
+        public DbSet<MaterialTransactionLog> MaterialTransactionLogs { get; set; }
         public DbSet<EmployeeAttendance> EmployeeAttendances { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -30,7 +34,8 @@ namespace EConstructionApp.Persistence.Contexts
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<BaseEntity> entry in ChangeTracker.Entries<BaseEntity>())
+            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<BaseEntity> entry in ChangeTracker
+                         .Entries<BaseEntity>())
             {
                 if (entry.State == EntityState.Modified)
                     entry.Entity.ModifiedDate = DateTime.Now;

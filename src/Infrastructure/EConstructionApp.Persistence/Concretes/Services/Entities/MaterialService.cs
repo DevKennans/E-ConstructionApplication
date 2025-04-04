@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using EConstructionApp.Application.DTOs.Materials;
+using EConstructionApp.Application.DTOs.Materials.Relations;
 using EConstructionApp.Application.Interfaces.Services.Entities;
 using EConstructionApp.Application.Interfaces.UnitOfWorks;
 using EConstructionApp.Application.Validations.Entities.Materials;
 using EConstructionApp.Domain.Entities;
 using EConstructionApp.Domain.Entities.Cross;
+using EConstructionApp.Domain.Entities.Relations;
 using EConstructionApp.Persistence.Concretes.Services.Entities.Helpers;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +16,7 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+
         public MaterialService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
@@ -26,7 +29,8 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 return (false, "Invalid material data. Please ensure all required fields are provided.");
 
             MaterialInsertDtoValidator validator = new MaterialInsertDtoValidator();
-            FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(materialInsertDto);
+            FluentValidation.Results.ValidationResult validationResult =
+                await validator.ValidateAsync(materialInsertDto);
             if (!validationResult.IsValid)
                 return (false, string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage)));
 
@@ -44,16 +48,20 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 enableTracking: false,
                 includeDeleted: true,
                 predicate: m => m.Name.ToLower() == materialInsertDto.Name.Trim().ToLower() &&
-                                              m.CategoryId == materialInsertDto.CategoryId);
+                                m.CategoryId == materialInsertDto.CategoryId);
             if (existingMaterial is not null)
-                return existingMaterial.IsDeleted ? (false, "A material with the same name exists in this category but is inactive. Please restore it instead of adding a new one.") : (false, "A material with the same name already exists in this category.");
+                return existingMaterial.IsDeleted
+                    ? (false,
+                        "A material with the same name exists in this category but is inactive. Please restore it instead of adding a new one.")
+                    : (false, "A material with the same name already exists in this category.");
 
             Material material = _mapper.Map<Material>(materialInsertDto);
 
             await _unitOfWork.GetWriteRepository<Material>().AddAsync(material);
             await _unitOfWork.SaveAsync();
 
-            return (true, $"Material '{materialInsertDto.Name.Trim()}' has been successfully inserted under category '{category.Name}'.");
+            return (true,
+                $"Material '{materialInsertDto.Name.Trim()}' has been successfully inserted under category '{category.Name}'.");
         }
 
         public async Task<(bool IsSuccess, string Message)> UpdateAsync(MaterialUpdateDto? materialUpdateDto)
@@ -62,7 +70,8 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 return (false, "Invalid material data. Please ensure all required fields are provided.");
 
             MaterialUpdateDtoValidator validator = new MaterialUpdateDtoValidator();
-            FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(materialUpdateDto);
+            FluentValidation.Results.ValidationResult validationResult =
+                await validator.ValidateAsync(materialUpdateDto);
             if (!validationResult.IsValid)
                 return (false, string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage)));
 
@@ -86,7 +95,8 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             if (category.IsDeleted)
                 return (false, "The selected category is inactive. Please restore it before proceeding.");
 
-            if (material.Name.Trim().ToLower() != materialUpdateDto.Name.Trim().ToLower() || material.CategoryId != materialUpdateDto.CategoryId)
+            if (material.Name.Trim().ToLower() != materialUpdateDto.Name.Trim().ToLower() ||
+                material.CategoryId != materialUpdateDto.CategoryId)
             {
                 Material? existingMaterial = await _unitOfWork.GetReadRepository<Material>()
                     .GetAsync(
@@ -96,10 +106,14 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                                         m.CategoryId == materialUpdateDto.CategoryId &&
                                         m.Id != materialUpdateDto.Id);
                 if (existingMaterial is not null)
-                    return existingMaterial.IsDeleted ? (false, "A material with the same name exists in this category but is inactive. Please restore it instead of updating.") : (false, "A material with the same name already exists in this category.");
+                    return existingMaterial.IsDeleted
+                        ? (false,
+                            "A material with the same name exists in this category but is inactive. Please restore it instead of updating.")
+                        : (false, "A material with the same name already exists in this category.");
             }
 
-            (bool IsSuccess, string Message) checkChanges = ServiceUtils.CheckForNoMaterialChanges(material, materialUpdateDto);
+            (bool IsSuccess, string Message) checkChanges =
+                ServiceUtils.CheckForNoMaterialChanges(material, materialUpdateDto);
             if (checkChanges.IsSuccess)
                 return checkChanges;
 
@@ -108,7 +122,8 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             await _unitOfWork.GetWriteRepository<Material>().UpdateAsync(material);
             await _unitOfWork.SaveAsync();
 
-            return (true, $"Material '{materialUpdateDto.Name.Trim()}' has been successfully updated under category '{category.Name}'.");
+            return (true,
+                $"Material '{materialUpdateDto.Name.Trim()}' has been successfully updated under category '{category.Name}'.");
         }
 
         public async Task<(bool IsSuccess, string Message)> SafeDeleteAsync(Guid materialId)
@@ -124,11 +139,12 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                 return (false, "Material is already marked as deleted.");
 
             MaterialTask isMaterialAssignedToAnyTask = await _unitOfWork.GetReadRepository<MaterialTask>().GetAsync(
-                    enableTracking: false,
-                    includeDeleted: false,
-                    predicate: mt => mt.MaterialId == materialId);
+                enableTracking: false,
+                includeDeleted: false,
+                predicate: mt => mt.MaterialId == materialId);
             if (isMaterialAssignedToAnyTask is not null)
-                return (false, $"Material '{material.Name}' cannot be deleted because it is assigned to one or more tasks.");
+                return (false,
+                    $"Material '{material.Name}' cannot be deleted because it is assigned to one or more tasks.");
 
             material.IsDeleted = true;
 
@@ -155,7 +171,8 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
                     includeDeleted: true,
                     predicate: c => c.Id == material.CategoryId && c.IsDeleted) is not null;
             if (categoryIsDeleted)
-                return (false, $"Material '{material.Name}' cannot be restored because its associated category is deleted. Please restore the category first.");
+                return (false,
+                    $"Material '{material.Name}' cannot be restored because its associated category is deleted. Please restore the category first.");
 
             material.IsDeleted = false;
 
@@ -165,7 +182,8 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, $"Material '{material.Name}' has been successfully restored.");
         }
 
-        public async Task<(bool IsSuccess, string Message, int ActiveMaterials, int TotalMaterials)> GetBothActiveAndTotalCountsAsync()
+        public async Task<(bool IsSuccess, string Message, int ActiveMaterials, int TotalMaterials)>
+            GetBothActiveAndTotalCountsAsync()
         {
             int totalMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(includeDeleted: true);
             if (totalMaterials == 0)
@@ -173,17 +191,19 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
 
             int activeMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(includeDeleted: false);
 
-            return (true, $"Currently, {activeMaterials} out of {totalMaterials} materials are active.", activeMaterials, totalMaterials);
+            return (true, $"Currently, {activeMaterials} out of {totalMaterials} materials are active.",
+                activeMaterials, totalMaterials);
         }
 
-        public async Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials)> GetAvailableMaterialsListAsync()
+        public async Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials)>
+            GetAvailableMaterialsListAsync()
         {
             IList<Material> materials = await _unitOfWork.GetReadRepository<Material>().GetAllAsync(
-                    enableTracking: false,
-                    includeDeleted: false,
-                    predicate: m => m.StockQuantity > 0,
-                    include: entity => entity.Include(m => m.Category),
-                    orderBy: q => q.OrderBy(m => m.Category.Name).ThenBy(m => m.Name));
+                enableTracking: false,
+                includeDeleted: false,
+                predicate: m => m.StockQuantity > 0,
+                include: entity => entity.Include(m => m.Category),
+                orderBy: q => q.OrderBy(m => m.Category.Name).ThenBy(m => m.Name));
             if (!materials.Any())
                 return (false, "No active materials found.", null);
 
@@ -191,19 +211,20 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, "Available materials have been successfully retrieved.", materialDtos);
         }
 
-        public async Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalMaterials)> GetOnlyActiveMaterialsPagedListAsync(int pages = 1, int sizes = 5)
+        public async Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalMaterials)>
+            GetOnlyActiveMaterialsPagedListAsync(int pages = 1, int sizes = 5)
         {
             (bool IsValid, string? ErrorMessage) validation = ServiceUtils.ValidatePagination(pages, sizes);
             if (!validation.IsValid)
                 return (false, validation.ErrorMessage!, null, default!);
 
             IList<Material> materials = await _unitOfWork.GetReadRepository<Material>().GetAllByPagingAsync(
-                    enableTracking: false,
-                    includeDeleted: false,
-                    include: entity => entity.Include(m => m.Category),
-                    currentPage: pages,
-                    pageSize: sizes,
-                    orderBy: q => q.OrderByDescending(m => m.InsertedDate));
+                enableTracking: false,
+                includeDeleted: false,
+                include: entity => entity.Include(m => m.Category),
+                currentPage: pages,
+                pageSize: sizes,
+                orderBy: q => q.OrderByDescending(m => m.InsertedDate));
 
             int totalMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(includeDeleted: false);
 
@@ -214,30 +235,57 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             return (true, "Active materials have been successfully retrieved.", materialDtos, totalMaterials);
         }
 
-        public async Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalDeletedMaterials)> GetDeletedMaterialsPagedListAsync(int pages = 1, int sizes = 5)
+        public async Task<(bool IsSuccess, string Message, IList<MaterialDto>? Materials, int TotalDeletedMaterials)>
+            GetDeletedMaterialsPagedListAsync(int pages = 1, int sizes = 5)
         {
             (bool IsValid, string? ErrorMessage) validation = ServiceUtils.ValidatePagination(pages, sizes);
             if (!validation.IsValid)
                 return (false, validation.ErrorMessage!, null, default);
 
             IList<Material> deletedMaterials = await _unitOfWork.GetReadRepository<Material>().GetAllByPagingAsync(
-                    enableTracking: false,
-                    includeDeleted: true,
-                    predicate: m => m.IsDeleted,
-                    include: entity => entity.Include(m => m.Category),
-                    currentPage: pages,
-                    pageSize: sizes,
-                    orderBy: q => q.OrderByDescending(m => m.InsertedDate));
+                enableTracking: false,
+                includeDeleted: true,
+                predicate: m => m.IsDeleted,
+                include: entity => entity.Include(m => m.Category),
+                currentPage: pages,
+                pageSize: sizes,
+                orderBy: q => q.OrderByDescending(m => m.InsertedDate));
 
             int totalDeletedMaterials = await _unitOfWork.GetReadRepository<Material>().CountAsync(
-                    includeDeleted: true,
-                    predicate: m => m.IsDeleted);
+                includeDeleted: true,
+                predicate: m => m.IsDeleted);
 
             if (!deletedMaterials.Any())
                 return (false, "No deleted materials found.", null, totalDeletedMaterials);
 
             IList<MaterialDto> materialDtos = _mapper.Map<IList<MaterialDto>>(deletedMaterials);
             return (true, "Deleted materials have been successfully retrieved.", materialDtos, totalDeletedMaterials);
+        }
+
+        public async Task<(bool IsSuccess, string Message, IList<MaterialTransactionLogDto>? Logs)>
+            GetTransactionLogsAsync()
+        {
+            IList<MaterialTransactionLog> logs = await _unitOfWork.GetReadRepository<MaterialTransactionLog>()
+                .GetAllAsync(includeDeleted: true);
+            if (!logs.Any())
+                return (false, "No transaction logs found.", new List<MaterialTransactionLogDto>());
+
+            List<MaterialTransactionLogDto>? logDtos = _mapper.Map<List<MaterialTransactionLogDto>>(logs);
+
+            foreach (MaterialTransactionLogDto dto in logDtos)
+            {
+                Material? relatedMaterial = await _unitOfWork.GetReadRepository<Material>().GetAsync(
+                    predicate: m => m.Id == dto.MaterialId,
+                    include: q => q.Include(m => m.Category),
+                    includeDeleted: true,
+                    enableTracking: false
+                );
+
+                dto.MaterialName = relatedMaterial?.Name;
+                dto.CategoryName = relatedMaterial?.Category?.Name;
+            }
+
+            return (true, "All transaction logs retrieved successfully.", logDtos);
         }
     }
 }
