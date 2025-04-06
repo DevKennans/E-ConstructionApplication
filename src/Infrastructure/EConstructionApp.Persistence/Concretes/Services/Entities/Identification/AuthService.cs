@@ -1,4 +1,5 @@
-﻿using EConstructionApp.Application.DTOs.Identification;
+﻿using EConstructionApp.Application.DTOs.Employees;
+using EConstructionApp.Application.DTOs.Identification;
 using EConstructionApp.Application.Features.Commands.Auth.LogIn;
 using EConstructionApp.Application.Features.Commands.Auth.SignUp;
 using EConstructionApp.Application.Interfaces.Services.Identification;
@@ -116,6 +117,12 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Identificatio
             if (!await _userManager.CheckPasswordAsync(user, logInCommandRequest.Password))
                 return new LogInCommandResponse { IsSuccess = false, Message = "Incorrect password." };
 
+            if (!string.IsNullOrWhiteSpace(logInCommandRequest.DeviceToken))
+            {
+                user.DeviceToken = logInCommandRequest.DeviceToken;
+                await _userManager.UpdateAsync(user);
+            }
+
             IList<string> roles = await GetUserAllRoles(user);
 
             Token token = _tokenHandler.CreateAccessToken(seconds: 1 * 60 * 60, user, roles);
@@ -154,5 +161,33 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Identificatio
 
             await _userManager.UpdateAsync(user);
         }
+
+        public async Task<IList<string>> GetFcmTokensByEmployeeIdsAsync(List<Guid> employeeIds)
+        {
+            var employees = await _unitOfWork.GetReadRepository<Employee>()
+                .GetAllAsync(
+                    enableTracking: false,
+                    includeDeleted: false,
+                    predicate: e => employeeIds.Contains(e.Id)
+                );
+
+            var employeePhoneNumbers = employees
+                .Select(e => e.PhoneNumber)
+                .ToList();
+
+            if (!employeePhoneNumbers.Any())
+                return new List<string>();
+
+            var tokens = await _userManager.Users
+                .Where(u => u.PhoneNumber != null &&
+                            employeePhoneNumbers.Contains(u.PhoneNumber) &&
+                            !string.IsNullOrEmpty(u.DeviceToken))
+                .Select(u => u.DeviceToken!)
+                .ToListAsync();
+
+            return tokens;
+        }
+
+
     }
 }
