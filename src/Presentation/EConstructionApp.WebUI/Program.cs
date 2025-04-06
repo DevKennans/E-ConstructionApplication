@@ -1,4 +1,5 @@
 using EConstructionApp.WebUI.Extensions.Exceptions;
+using FirebaseAdmin;
 using EConstructionApp.Persistence;
 using EConstructionApp.Infrastructure;
 using EConstructionApp.Application;
@@ -6,6 +7,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using EConstructionApp.WebUI.Middleware;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 
 internal class Program
 {
@@ -13,7 +16,18 @@ internal class Program
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        if (FirebaseApp.DefaultInstance == null)
+        {
+            FirebaseApp.Create(new AppOptions()
+            {
+                Credential = GoogleCredential.FromFile(
+                    Path.Combine(Directory.GetCurrentDirectory(), "service-account-file.json")
+                ),
+                ProjectId = "e-constructionapp",
+            });
+        }
+
+
         builder.Services.AddControllersWithViews();
 
         builder.Services.AddApplication();

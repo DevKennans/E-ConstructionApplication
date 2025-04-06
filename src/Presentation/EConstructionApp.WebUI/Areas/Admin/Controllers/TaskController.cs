@@ -9,7 +9,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
+using FirebaseAdmin.Messaging;
 using TaskStatus = EConstructionApp.Domain.Enums.Tasks.TaskStatus;
+using System.Diagnostics;
+using EConstructionApp.Application.Interfaces.Services.Identification;
 
 namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 {
@@ -20,15 +23,18 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         private readonly ITaskService _taskService;
         private readonly IEmployeeService _employeeService;
         private readonly IMaterialService _materialService;
-        public TaskController(ITaskService taskService, IEmployeeService employeeService, IMaterialService materialService)
+        private readonly IAuthService _authService;
+        public TaskController(ITaskService taskService, IEmployeeService employeeService, IMaterialService materialService, IAuthService authService)
         {
             _taskService = taskService;
             _employeeService = employeeService;
             _materialService = materialService;
+            _authService = authService;
         }
 
         public async Task<IActionResult> CreateTask()
         {
+            
             var employeeResult = await _employeeService.GetAvailableEmployeesListAsync();
             var materialResult = await _materialService.GetAvailableMaterialsListAsync();
 
@@ -65,6 +71,44 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                         }).ToList();
             if (isSuccess)
             {
+                if (model.Task.EmployeeIds != null && model.Task.EmployeeIds.Any())
+                {
+                    var deviceTokens = await _authService.GetFcmTokensByEmployeeIdsAsync(model.Task.EmployeeIds);
+                    Debug.WriteLine($"Device tokens: {string.Join(", ", deviceTokens)}");
+                    foreach (var token in deviceTokens)
+                    {
+                        if (string.IsNullOrWhiteSpace(token))
+                        {
+                            Debug.WriteLine("Token is null or empty!");
+                            continue;
+                        }
+
+                        var notfMessage = new Message()
+                        {
+                            Notification = new Notification
+                            {
+                                Title = model.Task.Title ?? "Yeni Tapşırıq",
+                                Body = model.Task.Description ?? "Tapşırıq təfərrüatları üçün tətbiqə baxın"
+                            },
+                            Data = new Dictionary<string, string>
+                                {
+                                    { "taskBy", model.Task.AssignedBy }
+                                },
+                            Token = token,
+                        };
+
+                        try
+                        {
+                            string response = await FirebaseMessaging.DefaultInstance.SendAsync(notfMessage);
+                            Debug.WriteLine($"Notification sent. Response: {response}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Error sending notification: {ex.Message}");
+                        }
+                    }
+
+                }
                 TempData["SuccessMessageFromTask"] = message;
                 model.Task = new TaskInsertDto();
                 return View(model);
