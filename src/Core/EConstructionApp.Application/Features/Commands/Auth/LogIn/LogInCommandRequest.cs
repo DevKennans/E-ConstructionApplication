@@ -6,5 +6,6 @@ namespace EConstructionApp.Application.Features.Commands.Auth.LogIn
     {
         public string UsernameOrPhoneNumber { get; set; }
         public string Password { get; set; }
+        public string? DeviceToken { get; set; }
     }
 }

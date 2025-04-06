@@ -10,7 +10,7 @@ namespace EConstructionApp.Domain.Entities.Identification
 
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenEndDate { get; set; }
-
+        public string? DeviceToken { get; set; }
         [NotMapped]
         public new bool TwoFactorEnabled { get; set; }
     }
