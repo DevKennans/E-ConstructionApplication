@@ -188,6 +188,19 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities.Identificatio
             return tokens;
         }
 
+        public async Task<(bool IsSuccess, string Message)> LogoutAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return (false, "User not found.");
 
+            user.DeviceToken = null;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                return (false, string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            return (true, "Logout successful. Device token removed.");
+        }
     }
 }
