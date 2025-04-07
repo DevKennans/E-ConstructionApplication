@@ -748,5 +748,36 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             await UpdateTasksEmployeesAsync(taskId, new List<Guid>());
             await _unitOfWork.SaveAsync();
         }
+
+        public async Task<(bool IsSuccess, string Message, Domain.Entities.Task? Task)> GetTaskByIdAsync(Guid taskId)
+        {
+            var task = await _unitOfWork.GetReadRepository<Domain.Entities.Task>()
+                .GetAsync(
+                    predicate: t => t.Id == taskId,
+                    include: t => t.Include(x => x.Employees)
+                );
+
+            if (task is null)
+                return (false, "Task not found.", null);
+
+            return (true, "Task retrieved successfully.", task);
+        }
+
+        public async Task<(bool IsSuccess, string Message, List<Guid>? EmployeeIds)> GetTaskEmployeeIdsAsync(Guid taskId)
+        {
+            var task = await _unitOfWork.GetReadRepository<Domain.Entities.Task>()
+                .GetAsync(
+                    predicate: t => t.Id == taskId,
+                    include: t => t.Include(x => x.Employees)
+                );
+
+            if (task is null)
+                return (false, "Task not found.", null);
+
+            var employeeIds = task.Employees.Select(e => e.Id).ToList();
+
+            return (true, "Employee IDs retrieved successfully.", employeeIds);
+        }
+
     }
 }

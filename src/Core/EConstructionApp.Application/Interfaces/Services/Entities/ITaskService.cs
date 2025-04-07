@@ -24,5 +24,9 @@ namespace EConstructionApp.Application.Interfaces.Services.Entities
         Task<(bool IsSuccess, string Message, IList<TaskStatusCountsDto>? TaskCount)> GetListOfTasksCountsByStatusAsync();
 
         Task FinishCurrentTaskById(Guid taskId);
+        Task<(bool IsSuccess, string Message, Domain.Entities.Task? Task)> GetTaskByIdAsync(Guid taskId);
+        Task<(bool IsSuccess, string Message, List<Guid>? EmployeeIds)> GetTaskEmployeeIdsAsync(Guid taskId);
+        Task<(bool IsSuccess, string Message)> LogoutAsync(string userId);
+
     }
 }
