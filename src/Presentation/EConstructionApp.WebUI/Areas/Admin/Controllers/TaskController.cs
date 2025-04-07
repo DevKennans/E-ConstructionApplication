@@ -181,9 +181,91 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
                                            .Where(guid => guid.HasValue)
                                            .Select(guid => guid.Value)
                                            .ToList() ?? new List<Guid>();
+
+            // Əvvəlki işçiləri al
+            var (prevSuccess, _, previousEmployeeIds) = await _taskService.GetTaskEmployeeIdsAsync(taskId);
+
+            // Dəyişiklikləri yadda saxla
             var (isSuccess, message) = await _taskService.UpdateTasksEmployeesAsync(taskId, employeeIdList);
+
             if (isSuccess)
             {
+                if (prevSuccess && previousEmployeeIds is not null)
+                {
+                    // ✅ Əlavə olunanlar
+                    var addedEmployeeIds = employeeIdList.Except(previousEmployeeIds).ToList();
+
+                    if (addedEmployeeIds.Any())
+                    {
+                        var deviceTokens = await _authService.GetFcmTokensByEmployeeIdsAsync(addedEmployeeIds);
+                        foreach (var token in deviceTokens)
+                        {
+                            if (string.IsNullOrWhiteSpace(token))
+                                continue;
+
+                            var notfMessage = new Message()
+                            {
+                                Notification = new Notification
+                                {
+                                    Title = "Yeni tapşırıq",
+                                    Body = "Sizə yeni tapşırıq təyin olunub. Ətraflı məlumat üçün tətbiqə baxın."
+                                },
+                                Data = new Dictionary<string, string>
+                        {
+                            { "taskId", taskId.ToString() }
+                        },
+                                Token = token,
+                            };
+
+                            try
+                            {
+                                string response = await FirebaseMessaging.DefaultInstance.SendAsync(notfMessage);
+                                Debug.WriteLine($"Notification sent to new employee. Response: {response}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"Error sending notification to new employee: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    var removedEmployeeIds = previousEmployeeIds.Except(employeeIdList).ToList();
+
+                    if (removedEmployeeIds.Any())
+                    {
+                        var deviceTokens = await _authService.GetFcmTokensByEmployeeIdsAsync(removedEmployeeIds);
+                        foreach (var token in deviceTokens)
+                        {
+                            if (string.IsNullOrWhiteSpace(token))
+                                continue;
+
+                            var notfMessage = new Message()
+                            {
+                                Notification = new Notification
+                                {
+                                    Title = "Tapşırıq ləğv edildi",
+                                    Body = "Siz bu tapşırıqdan çıxarıldınız."
+                                },
+                                Data = new Dictionary<string, string>
+                        {
+                            { "taskId", taskId.ToString() }
+                        },
+                                Token = token,
+                            };
+
+                            try
+                            {
+                                string response = await FirebaseMessaging.DefaultInstance.SendAsync(notfMessage);
+                                Debug.WriteLine($"Notification sent to removed employee. Response: {response}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"Error sending notification to removed employee: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+
                 TempData["SuccessMessageFromTask"] = message;
             }
             else
@@ -193,6 +275,9 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
             return RedirectToAction("GetTasks");
         }
+
+
+
 
         [HttpPost]
         public async Task<IActionResult> UpdateTaskMaterials(Guid taskId, string updatedMaterialIds)
