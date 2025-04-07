@@ -1,6 +1,7 @@
 ﻿using EConstructionApp.Application.Features.Commands.Auth.LogIn;
 using EConstructionApp.Application.Features.Commands.Auth.RefreshToken;
 using EConstructionApp.Application.Features.Commands.Auth.SignUp;
+using EConstructionApp.Application.Interfaces.Services.Identification;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +13,11 @@ namespace EConstructionApp.WebAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public AuthController(IMediator mediator)
+        private readonly IAuthService _authService;
+        public AuthController(IMediator mediator, IAuthService authService)
         {
             _mediator = mediator;
+            _authService = authService;
         }
 
         [HttpPost("SignUp")]
@@ -48,6 +51,14 @@ namespace EConstructionApp.WebAPI.Controllers
                 return BadRequest();
             else
                 return Ok(new { refreshTokenCommandResponse.Token });
+        }
+
+        [HttpPost("LogOut")]
+        [AllowAnonymous]
+        public async Task<IActionResult> LogOut([FromQuery] string userId)
+        {
+            await _authService.LogoutAsync(userId);
+            return Ok();
         }
     }
 }
