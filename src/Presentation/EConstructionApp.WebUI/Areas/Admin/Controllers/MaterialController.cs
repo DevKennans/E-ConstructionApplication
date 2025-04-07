@@ -184,8 +184,8 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             var result = await _materialService.GetTransactionLogsAsync();
             if (!result.IsSuccess)
                 TempData["ErrorMessageFromTransaction"] = result.Message;
-
-            return View(result.Logs);
+            var orderedLogs = result!.Logs!.OrderByDescending(x => x.InsertedDate).ToList();
+            return View(orderedLogs);
         }
     }
 }
