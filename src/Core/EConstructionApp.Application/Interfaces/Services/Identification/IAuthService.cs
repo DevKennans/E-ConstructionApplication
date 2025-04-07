@@ -17,6 +17,7 @@ namespace EConstructionApp.Application.Interfaces.Services.Identification
 
         Task UpdateRefreshToken(string refreshToken, AppUser user, DateTime accessTokenDate, int addOnAccessTokenDate);
         Task<IList<string>> GetFcmTokensByEmployeeIdsAsync(List<Guid> employeeIds);
+        Task<(bool IsSuccess, string Message)> LogoutAsync(string userId);
 
     }
 }
