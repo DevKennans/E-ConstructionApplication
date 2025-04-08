@@ -62,23 +62,26 @@ namespace EConstructionApp.Persistence.Concretes.Services.Entities
             await _unitOfWork.SaveAsync();
 
             List<MaterialTransactionLog> materialTransactionLogs = new List<MaterialTransactionLog>();
-            foreach (MaterialTask mt in task.MaterialTasks)
+            if (task.MaterialTasks != null)
             {
-                Material? material = await _unitOfWork.GetReadRepository<Material>()
-                    .GetAsync(m => m.Id == mt.MaterialId, enableTracking: false);
-                if (material is not null)
+                foreach (MaterialTask mt in task.MaterialTasks)
                 {
-                    decimal totalCost = mt.Quantity * material.Price;
+                    var material = await _unitOfWork.GetReadRepository<Material>()
+                        .GetAsync(m => m.Id == mt.MaterialId, enableTracking: false);
 
-                    materialTransactionLogs.Add(new MaterialTransactionLog
+                    if (material != null && material.Price > 0)
                     {
-                        TaskId = task.Id,
-                        MaterialId = mt.MaterialId,
-                        Quantity = mt.Quantity,
-                        Measure = material.Measure,
-                        PriceAtTransaction = totalCost,
-                        TransactionType = MaterialTransactionType.Added
-                    });
+                        decimal totalCost = mt.Quantity * material.Price;
+                        materialTransactionLogs.Add(new MaterialTransactionLog
+                        {
+                            TaskId = task.Id,
+                            MaterialId = mt.MaterialId,
+                            Quantity = mt.Quantity,
+                            Measure = material.Measure,
+                            PriceAtTransaction = totalCost,
+                            TransactionType = MaterialTransactionType.Added
+                        });
+                    }
                 }
             }
 
