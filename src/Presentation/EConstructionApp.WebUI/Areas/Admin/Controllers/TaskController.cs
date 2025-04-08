@@ -34,10 +34,8 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
 
         public async Task<IActionResult> CreateTask()
         {
-            
             var employeeResult = await _employeeService.GetAvailableEmployeesListAsync();
             var materialResult = await _materialService.GetAvailableMaterialsListAsync();
-
             var model = new TaskCreateViewModel
             {
                 Employees = employeeResult.Employees ?? new List<EmployeeDto>(),
@@ -52,14 +50,12 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             };
             return View(model);
         }
-
         [HttpPost]
         public async Task<IActionResult> CreateTask(TaskCreateViewModel model)
         {
             var (isSuccess, message) = await _taskService.InsertAsync(model.Task);
             var employeeResult = await _employeeService.GetAvailableEmployeesListAsync();
             var materialResult = await _materialService.GetAvailableMaterialsListAsync();
-
             model.Employees = employeeResult.Employees;
             model.Materials = materialResult.Materials;
             model.Priorities = Enum.GetValues(typeof(TaskPriority))
@@ -73,50 +69,16 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             {
                 if (model.Task.EmployeeIds != null && model.Task.EmployeeIds.Any())
                 {
-                    var deviceTokens = await _authService.GetFcmTokensByEmployeeIdsAsync(model.Task.EmployeeIds);
-                    Debug.WriteLine($"Device tokens: {string.Join(", ", deviceTokens)}");
-                    foreach (var token in deviceTokens)
-                    {
-                        if (string.IsNullOrWhiteSpace(token))
-                        {
-                            Debug.WriteLine("Token is null or empty!");
-                            continue;
-                        }
-
-                        var notfMessage = new Message()
-                        {
-                            Notification = new Notification
-                            {
-                                Title = model.Task.Title ?? "Yeni Tapşırıq",
-                                Body = model.Task.Description ?? "Tapşırıq təfərrüatları üçün tətbiqə baxın"
-                            },
-                            Data = new Dictionary<string, string>
-                                {
-                                    { "taskBy", model.Task.AssignedBy }
-                                },
-                            Token = token,
-                        };
-
-                        try
-                        {
-                            string response = await FirebaseMessaging.DefaultInstance.SendAsync(notfMessage);
-                            Debug.WriteLine($"Notification sent. Response: {response}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"Error sending notification: {ex.Message}");
-                        }
-                    }
-
+                    await SendNotificationToEmployeesAsync(model.Task.EmployeeIds, "Yeni tapşırıq", "Sizə yeni tapşırıq təyin olunub. Ətraflı məlumat üçün tətbiqə baxın.", Guid.Empty);
                 }
                 TempData["SuccessMessageFromTask"] = message;
-                model.Task = new TaskInsertDto();
+                model.Task = new TaskInsertDto(); 
                 return View(model);
             }
-
             TempData["ErrorMessageFromTask"] = message;
             return View(model);
         }
+
 
         public async Task<IActionResult> GetTasks(int page = 1, int size = 6)
         {
@@ -155,9 +117,6 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             return View(model);
         }
 
-
-
-
         [HttpPost]
         public async Task<IActionResult> EditTask(TaskDetailsUpdateDto viewModel)
         {
@@ -176,96 +135,15 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateTaskEmployees(Guid taskId, string? updatedEmployeeIds)
         {
-            var employeeIdList = updatedEmployeeIds?.Split(',')
-                                           .Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
-                                           .Where(guid => guid.HasValue)
-                                           .Select(guid => guid.Value)
-                                           .ToList() ?? new List<Guid>();
-
-            // Əvvəlki işçiləri al
+            var employeeIdList = ParseEmployeeIds(updatedEmployeeIds);
             var (prevSuccess, _, previousEmployeeIds) = await _taskService.GetTaskEmployeeIdsAsync(taskId);
-
-            // Dəyişiklikləri yadda saxla
             var (isSuccess, message) = await _taskService.UpdateTasksEmployeesAsync(taskId, employeeIdList);
-
-            if (isSuccess)
+            if (isSuccess && prevSuccess && previousEmployeeIds is not null)
             {
-                if (prevSuccess && previousEmployeeIds is not null)
-                {
-                    // ✅ Əlavə olunanlar
-                    var addedEmployeeIds = employeeIdList.Except(previousEmployeeIds).ToList();
-
-                    if (addedEmployeeIds.Any())
-                    {
-                        var deviceTokens = await _authService.GetFcmTokensByEmployeeIdsAsync(addedEmployeeIds);
-                        foreach (var token in deviceTokens)
-                        {
-                            if (string.IsNullOrWhiteSpace(token))
-                                continue;
-
-                            var notfMessage = new Message()
-                            {
-                                Notification = new Notification
-                                {
-                                    Title = "Yeni tapşırıq",
-                                    Body = "Sizə yeni tapşırıq təyin olunub. Ətraflı məlumat üçün tətbiqə baxın."
-                                },
-                                Data = new Dictionary<string, string>
-                        {
-                            { "taskId", taskId.ToString() }
-                        },
-                                Token = token,
-                            };
-
-                            try
-                            {
-                                string response = await FirebaseMessaging.DefaultInstance.SendAsync(notfMessage);
-                                Debug.WriteLine($"Notification sent to new employee. Response: {response}");
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Error sending notification to new employee: {ex.Message}");
-                            }
-                        }
-                    }
-
-                    var removedEmployeeIds = previousEmployeeIds.Except(employeeIdList).ToList();
-
-                    if (removedEmployeeIds.Any())
-                    {
-                        var deviceTokens = await _authService.GetFcmTokensByEmployeeIdsAsync(removedEmployeeIds);
-                        foreach (var token in deviceTokens)
-                        {
-                            if (string.IsNullOrWhiteSpace(token))
-                                continue;
-
-                            var notfMessage = new Message()
-                            {
-                                Notification = new Notification
-                                {
-                                    Title = "Tapşırıq ləğv edildi",
-                                    Body = "Siz bu tapşırıqdan çıxarıldınız."
-                                },
-                                Data = new Dictionary<string, string>
-                        {
-                            { "taskId", taskId.ToString() }
-                        },
-                                Token = token,
-                            };
-
-                            try
-                            {
-                                string response = await FirebaseMessaging.DefaultInstance.SendAsync(notfMessage);
-                                Debug.WriteLine($"Notification sent to removed employee. Response: {response}");
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Error sending notification to removed employee: {ex.Message}");
-                            }
-                        }
-                    }
-                }
-
+                var addedEmployeeIds = employeeIdList.Except(previousEmployeeIds).ToList();
+                await SendNotificationToEmployeesAsync(addedEmployeeIds, "Yeni tapşırıq", "Sizə yeni tapşırıq təyin olunub. Ətraflı məlumat üçün tətbiqə baxın.", taskId);
+                var removedEmployeeIds = previousEmployeeIds.Except(employeeIdList).ToList();
+                await SendNotificationToEmployeesAsync(removedEmployeeIds, "Tapşırıq ləğv edildi", "Siz bu tapşırıqdan çıxarıldınız.", taskId);
                 TempData["SuccessMessageFromTask"] = message;
             }
             else
@@ -276,8 +154,46 @@ namespace EConstructionApp.WebUI.Areas.Admin.Controllers
             return RedirectToAction("GetTasks");
         }
 
+        private List<Guid> ParseEmployeeIds(string? ids)
+        {
+            return ids?.Split(',')
+                       .Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
+                       .Where(guid => guid.HasValue)
+                       .Select(guid => guid.Value)
+                       .ToList() ?? new List<Guid>();
+        }
 
-
+        private async Task SendNotificationToEmployeesAsync(List<Guid> employeeIds, string title, string body, Guid taskId)
+        {
+            if (employeeIds is null || !employeeIds.Any()) return;
+            var deviceTokens = await _authService.GetFcmTokensByEmployeeIdsAsync(employeeIds);
+            foreach (var token in deviceTokens)
+            {
+                if (string.IsNullOrWhiteSpace(token)) continue;
+                var notfMessage = new Message
+                {
+                    Notification = new Notification
+                    {
+                        Title = title,
+                        Body = body
+                    },
+                    Data = new Dictionary<string, string>
+                    {
+                        { "taskId", taskId.ToString() }
+                    },
+                    Token = token
+                };
+                try
+                {
+                    string response = await FirebaseMessaging.DefaultInstance.SendAsync(notfMessage);
+                    Debug.WriteLine($"Notification sent. Response: {response}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Notification error: {ex.Message}");
+                }
+            }
+        }
 
         [HttpPost]
         public async Task<IActionResult> UpdateTaskMaterials(Guid taskId, string updatedMaterialIds)
